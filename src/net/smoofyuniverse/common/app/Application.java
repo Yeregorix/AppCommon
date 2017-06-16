@@ -224,7 +224,7 @@ public abstract class Application {
 	
 	protected final void checkForUpdate() {
 		try {
-			checkForUpdate(new URL("http://files.smoofyuniverse.net/apps/" + this.name + ".jar"), new URL("http://files.smoofyuniverse.net/apps/Updater.jar"));
+			checkForUpdate(new URL("https://files.smoofyuniverse.net/apps/" + this.name + ".jar"), new URL("https://files.smoofyuniverse.net/apps/Updater.jar"));
 		} catch (MalformedURLException e) {
 			this.logger.warn("Failed to form update url", e);
 		}
