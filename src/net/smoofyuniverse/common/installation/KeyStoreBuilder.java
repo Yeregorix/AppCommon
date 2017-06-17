@@ -151,8 +151,4 @@ public class KeyStoreBuilder {
 	public void installCertificate(String host, int port, int index) throws GeneralSecurityException, IOException {
 		installCertificate(host + "-" + (index +1), listCertificates(host, port)[index]);
 	}
-	
-	public static interface Modifier {
-		public void accept(KeyStoreBuilder b) throws GeneralSecurityException, IOException;
-	}
 }
