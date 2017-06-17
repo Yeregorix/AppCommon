@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package net.smoofyuniverse.common.util;
+package net.smoofyuniverse.common.installation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +39,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
+import net.smoofyuniverse.common.util.DownloadUtil;
 
 public class KeyStoreBuilder {
 	private KeyStore keystore;
@@ -148,5 +150,9 @@ public class KeyStoreBuilder {
 	
 	public void installCertificate(String host, int port, int index) throws GeneralSecurityException, IOException {
 		installCertificate(host + "-" + (index +1), listCertificates(host, port)[index]);
+	}
+	
+	public static interface Modifier {
+		public void accept(KeyStoreBuilder b) throws GeneralSecurityException, IOException;
 	}
 }

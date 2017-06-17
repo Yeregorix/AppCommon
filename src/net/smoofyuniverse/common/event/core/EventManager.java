@@ -60,17 +60,26 @@ public class EventManager {
 		return l instanceof ObjectRegistration ? this.objectRegistrations.contains((ObjectRegistration) l) : this.listenerRegistrations.contains(l);
 	}
 	
-	public List<ObjectRegistration<?>> registerAll(Object obj) {
+	public List<ObjectRegistration<?>> registerAll(Object obj, boolean superclasses) {
 		List<ObjectRegistration<?>> list = new ArrayList<>();
 		
-		for (Method method : obj.getClass().getDeclaredMethods()) {
-			Listener a = method.getAnnotation(Listener.class);
-			if (a != null)
-				list.add(new ObjectRegistration<>(obj, method, a.order(), a.ignoreCancelled()));
+		Class<?> clazz = obj.getClass();
+		registerDeclaredMethods(list, obj, clazz);
+		if (superclasses) {
+			while ((clazz = clazz.getSuperclass()) != null)
+				registerDeclaredMethods(list, obj, clazz);
 		}
 		
 		this.objectRegistrations.addAll(list);
 		return list;
+	}
+	
+	private void registerDeclaredMethods(List<ObjectRegistration<?>> list, Object obj, Class<?> clazz) {
+		for (Method method : clazz.getDeclaredMethods()) {
+			Listener a = method.getAnnotation(Listener.class);
+			if (a != null)
+				list.add(new ObjectRegistration<>(obj, method, a.order(), a.ignoreCancelled()));
+		}
 	}
 	
 	public List<ObjectRegistration<?>> unregisterAll(Object obj) {
@@ -102,20 +111,33 @@ public class EventManager {
 		return list;
 	}
 	
-	public boolean postEvent(Event e) {
-		List<ListenerRegistration<?>> listeners = getListeners(e.getClass());
+	public boolean postEvent(Event ev) {
+		List<ListenerRegistration<?>> listeners = getListeners(ev.getClass());
 		Collections.sort(listeners);
 		
 		for (ListenerRegistration l : listeners) {
-			if (e.isCancelled() && l.ignoreCancelled)
+			if (ev.isCancelled() && l.ignoreCancelled)
 				continue;
 			try {
-				l.listener.handle(e);
-			} catch (Throwable t) {
-				this.logger.error("An exception occurred while handling event " + e.getClass().getSimpleName(), t);
+				l.listener.handle(ev);
+			} catch (Exception e) {
+				this.logger.error("An exception occurred while handling event " + ev.getClass().getSimpleName(), e);
 			}
 		}
 		
-		return !e.isCancelled();
+		return !ev.isCancelled();
+	}
+	
+	public boolean postEventUnchecked(Event ev) throws Exception {
+		List<ListenerRegistration<?>> listeners = getListeners(ev.getClass());
+		Collections.sort(listeners);
+		
+		for (ListenerRegistration l : listeners) {
+			if (ev.isCancelled() && l.ignoreCancelled)
+				continue;
+			l.listener.handle(ev);
+		}
+		
+		return !ev.isCancelled();
 	}
 }

@@ -47,8 +47,15 @@ import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.app.ApplicationStateEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
+import net.smoofyuniverse.common.event.installation.InstallationDetailsLoadEvent;
+import net.smoofyuniverse.common.event.installation.InstallationDetailsSaveEvent;
+import net.smoofyuniverse.common.event.installation.KeyStoreCreationEvent;
+import net.smoofyuniverse.common.event.installation.KeyStoreLoadEvent;
+import net.smoofyuniverse.common.event.installation.KeyStorePostCreationEvent;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
+import net.smoofyuniverse.common.installation.InstallationDetails;
+import net.smoofyuniverse.common.installation.KeyStoreBuilder;
 import net.smoofyuniverse.common.logger.appender.DatedRollingFileAppender;
 import net.smoofyuniverse.common.logger.appender.LogAppender;
 import net.smoofyuniverse.common.logger.appender.PrintStreamAppender;
@@ -73,7 +80,11 @@ public abstract class Application {
 	private ExecutorService executor;
 	private Logger logger;
 	
+	private InstallationDetails installationDetails;
+	
 	private Stage stage;
+	
+	private boolean updateKeyStore;
 	
 	private FileDownloadTask jarUpdateTask, updaterUpdateTask;
 	
@@ -116,6 +127,10 @@ public abstract class Application {
 		this.title = title;
 		this.version = version;
 		
+		this.installationDetails = new InstallationDetails(dir.resolve("installation-details"));
+		
+		System.setProperty("java.net.preferIPv4Stack", "true");
+		
 		setState(State.SERVICES_INIT);
 	}
 	
@@ -156,14 +171,56 @@ public abstract class Application {
 		this.executor = executor;
 		this.logger = loggerFactory.provideLogger("Application");
 		
+		this.eventManager.registerAll(this, false);
+		
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
 		
-		long dur = System.currentTimeMillis() - time;
-		this.logger.debug("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
 		if (Files.exists(this.workingDir))
 			this.logger.debug("Working directory: " + this.workingDir.toAbsolutePath());
 		
+		if (loadInstallationDetails(true))
+			checkInstallationDetails();
+		else
+			shutdown();
+		
+		installKeyStore();
+		
+		long dur = System.currentTimeMillis() - time;
+		this.logger.debug("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
+		
 		setState(State.STAGE_INIT);
+	}
+	
+	private void checkInstallationDetails() {
+		this.updateKeyStore = this.installationDetails.getVersion("common.keystore") != 1;
+	}
+	
+	protected final boolean loadInstallationDetails(boolean autoSave) {
+		boolean success;
+		try {
+			this.installationDetails.read();
+			success = true;
+		} catch (IOException e) {
+			this.logger.error("Failed to read installation details", e);
+			success = false;
+		}
+		this.eventManager.postEvent(new InstallationDetailsLoadEvent(this.installationDetails, success));
+		if (this.installationDetails.changed())
+			saveInstallationDetails();
+		return success;
+	}
+	
+	protected final boolean saveInstallationDetails() {
+		boolean success;
+		try {
+			this.installationDetails.save();
+			success = true;
+		} catch (IOException e) {
+			this.logger.error("Failed to save installation details", e);
+			success = false;
+		}
+		this.eventManager.postEvent(new InstallationDetailsSaveEvent(this.installationDetails, success));
+		return success;
 	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
@@ -220,6 +277,37 @@ public abstract class Application {
 		this.stage.setScene(scene);
 		setState(State.RUNNING);
 		return this.stage;
+	}
+	
+	private void installKeyStore() {
+		Path file = getWorkingDirectory().resolve(".keystore");
+		KeyStoreLoadEvent ev = new KeyStoreLoadEvent(file, !Files.exists(file) || this.updateKeyStore);
+		this.eventManager.postEvent(ev);
+		if (ev.createNew()) {
+			boolean success;
+			try {
+				KeyStoreBuilder b = new KeyStoreBuilder();
+				b.load();
+				b.installCertificate("smoofyuniverse.net", 0);
+				this.eventManager.postEventUnchecked(new KeyStoreCreationEvent(b));
+				b.save(file);
+				success = true;
+			} catch (Exception e) {
+				getLogger().error("Failed to create a new keystore", e);
+				success = false;
+			}
+			
+			if (success) {
+				this.installationDetails.setVersion("common.keystore", 1);
+				this.updateKeyStore = false;
+			}	
+			
+			this.eventManager.postEvent(new KeyStorePostCreationEvent(success));
+			
+			if (this.installationDetails.changed())
+				saveInstallationDetails();
+		}
+		System.setProperty("javax.net.ssl.trustStore", file.toAbsolutePath().toString());
 	}
 	
 	protected final void checkForUpdate() {
@@ -360,6 +448,12 @@ public abstract class Application {
 	
 	public Logger getLogger() {
 		return this.logger;
+	}
+	
+	public InstallationDetails getInstallationDetails() {
+		if (this.installationDetails == null)
+			throw new IllegalStateException("Installation details not available");
+		return this.installationDetails;
 	}
 	
 	public Stage getStage() {
