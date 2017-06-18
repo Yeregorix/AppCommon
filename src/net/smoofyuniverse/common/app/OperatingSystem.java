@@ -21,8 +21,13 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.app;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import net.smoofyuniverse.common.util.ProcessUtil;
 
 public enum OperatingSystem {
 	WINDOWS {
@@ -43,6 +48,21 @@ public enum OperatingSystem {
 
 	public Path getWorkingDirectory() {
 		return Paths.get(USER_HOME);
+	}
+	
+	public void openLink(URI uri) {
+		try {
+			Desktop.getDesktop().browse(uri);
+		} catch (Exception e) {
+			if (this == MACOS) {
+				try {
+					ProcessUtil.builder().command("/usr/bin/open", uri.toASCIIString()).start();
+				} catch (IOException e2) {
+					Application.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e2);
+				}
+			} else
+				Application.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e);
+		}
 	}
 
 	public static final OperatingSystem CURRENT = getPlatform();
