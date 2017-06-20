@@ -38,9 +38,9 @@ import net.smoofyuniverse.common.util.StringUtil;
 public class FileDownloadTask {
 	private static final Logger logger = Application.getLogger("FileDownloadTask");
 	
-	public final URL url;
-	public final int connectTimeout, readTimeout, bufferSize;
+	public final ConnectionConfiguration config;
 	public final boolean isDirectory;
+	public final URL url;
 	
 	private String expectedDigest, digestInstance;
 	private long expectedSize;
@@ -48,25 +48,15 @@ public class FileDownloadTask {
 	private Path path;
 	
 	public FileDownloadTask(URL url, Path path, long expectedSize, String expectedDigest, String digestInstance) {
-		this(url, path, expectedSize, expectedDigest, digestInstance, DownloadUtil.prefBuffer);
+		this(url, path, Application.get().getConnectionConfig(), expectedSize, expectedDigest, digestInstance);
 	}
 	
-	public FileDownloadTask(URL url, Path path, long expectedSize, String expectedDigest, String digestInstance, int bufferSize) {
-		this(url, DownloadUtil.prefConnectTimeout, DownloadUtil.prefReadTimeout, path, expectedSize, expectedDigest, digestInstance, bufferSize);
-	}
-	
-	public FileDownloadTask(URL url, int connectTimeout, int readTimeout, Path path, long expectedSize, String expectedDigest, String digestInstance) {
-		this(url, connectTimeout, readTimeout, path, expectedSize, expectedDigest, digestInstance, DownloadUtil.prefBuffer);
-	}
-	
-	public FileDownloadTask(URL url, int connectTimeout, int readTimeout, Path path, long expectedSize, String expectedDigest, String digestInstance, int bufferSize) {
+	public FileDownloadTask(URL url, Path path, ConnectionConfiguration config, long expectedSize, String expectedDigest, String digestInstance) {
 		if (expectedSize < 0 && expectedSize != -1)
 			throw new IllegalArgumentException("Size must be positive or indefinite");
 		this.url = url;
-		this.connectTimeout = connectTimeout;
-		this.readTimeout = readTimeout;
 		this.path = path;
-		this.bufferSize = bufferSize;
+		this.config = config;
 		this.isDirectory = url.getFile().endsWith("/");
 		if (!this.isDirectory) {
 			this.expectedSize = expectedSize;
@@ -93,7 +83,7 @@ public class FileDownloadTask {
 	
 	public void setPath(Path p) {
 		if (p == null)
-			throw new IllegalArgumentException("Null path");
+			throw new IllegalArgumentException("path");
 		this.path = p;
 	}
 	
@@ -156,7 +146,7 @@ public class FileDownloadTask {
 				return s.substring(0, i) + "?info=" + s.substring(i);
 			});
 			
-			try (BufferedReader in = DownloadUtil.openBufferedReader(url)) {
+			try (BufferedReader in = this.config.openBufferedReader(url)) {
 				this.expectedSize = Long.parseLong(in.readLine());
 				this.expectedDigest = in.readLine();
 				this.digestInstance = in.readLine();
@@ -177,6 +167,6 @@ public class FileDownloadTask {
 				return false;
 			}
 		}
-		return DownloadUtil.download(this.url, this.connectTimeout, this.readTimeout, this.path, this.bufferSize, p.provide(this.expectedSize));
+		return DownloadUtil.download(this.url, this.path, this.config, p.provide(this.expectedSize));
 	}
 }

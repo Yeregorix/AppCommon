@@ -42,6 +42,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import net.smoofyuniverse.common.download.ConnectionConfiguration;
 import net.smoofyuniverse.common.download.FileDownloadTask;
 import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.app.ApplicationStateEvent;
@@ -64,8 +65,9 @@ public abstract class Application {
 	private State state = State.CREATION;
 	private Arguments arguments;
 	private Path workingDir;
-	private Proxy proxy;
 	private String name, title, version;
+	
+	private ConnectionConfiguration connectionConfig;
 	
 	private LoggerFactory loggerFactory;
 	
@@ -82,7 +84,7 @@ public abstract class Application {
 	}
 	
 	public Application(Arguments args, String name, String title, String version) {
-		this(args, getDirectory(args, name), getProxy(args), name, title, version);
+		this(args, getDirectory(args, name), name, title, version);
 	}
 	
 	private static Path getDirectory(Arguments args, String defaultDir) {
@@ -97,21 +99,13 @@ public abstract class Application {
 		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
 	}
 	
-	private static Proxy getProxy(Arguments args) {
-		Optional<String> host = args.getFlag("proxyHost");
-		if (host.isPresent())
-			return new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), args.getIntFlag(8080, "proxyPort")));
-		return Proxy.NO_PROXY;
-	}
-	
-	public Application(Arguments args, Path dir, Proxy proxy, String name, String title, String version) {
+	public Application(Arguments args, Path dir, String name, String title, String version) {
 		if (instance != null)
 			throw new IllegalStateException("An application instance already exists");
 		instance = this;
 		
 		this.arguments = args;
 		this.workingDir = dir;
-		this.proxy = proxy;
 		this.name = name;
 		this.title = title;
 		this.version = version;
@@ -371,8 +365,16 @@ public abstract class Application {
 		return this.stage;
 	}
 	
-	public Proxy getProxy() {
-		return this.proxy;
+	public ConnectionConfiguration getConnectionConfig() {
+		if (this.connectionConfig == null) {
+			Optional<String> host = this.arguments.getFlag("proxyHost");
+			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
+			if (host.isPresent())
+				b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), this.arguments.getIntFlag(8080, "proxyPort"))));
+			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
+					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
+		}
+		return this.connectionConfig;
 	}
 	
 	public void shutdown() {

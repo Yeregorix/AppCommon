@@ -36,31 +36,21 @@ import net.smoofyuniverse.common.util.DownloadUtil;
 public class DirectoryDownloadTask {
 	private static final Logger logger = Application.getLogger("DirectoryDownloadTask");
 	
-	public final URL baseUrl;
-	public final Path baseDirectory;
-	public final int connectTimeout, readTimeout, bufferSize;
 	public final List<FileDownloadTask> files = new ArrayList<>(), toUpdate = new ArrayList<>(), updateFailed = new ArrayList<>();
+	public final ConnectionConfiguration config;
+	public final Path baseDirectory;
+	public final URL baseUrl;
 	
 	private long totalSize = 0, toUpdateSize = 0;
 	
 	public DirectoryDownloadTask(URL baseUrl, Path baseDirectory) {
-		this(baseUrl, baseDirectory, DownloadUtil.prefBuffer);
+		this(baseUrl, baseDirectory, Application.get().getConnectionConfig());
 	}
 	
-	public DirectoryDownloadTask(URL baseUrl, Path baseDirectory, int bufferSize) {
-		this(baseUrl, DownloadUtil.prefConnectTimeout, DownloadUtil.prefReadTimeout, baseDirectory, bufferSize);
-	}
-	
-	public DirectoryDownloadTask(URL baseUrl, int connectTimeout, int readTimeout, Path baseDirectory) {
-		this(baseUrl, connectTimeout, readTimeout, baseDirectory, DownloadUtil.prefBuffer);
-	}
-	
-	public DirectoryDownloadTask(URL baseUrl, int connectTimeout, int readTimeout, Path baseDirectory, int bufferSize) {
+	public DirectoryDownloadTask(URL baseUrl, Path baseDirectory, ConnectionConfiguration config) {
 		this.baseUrl = baseUrl;
-		this.connectTimeout = connectTimeout;
-		this.readTimeout = readTimeout;
 		this.baseDirectory = baseDirectory;
-		this.bufferSize = bufferSize;
+		this.config = config;
 	}
 	
 	public long totalSize() {
@@ -93,7 +83,7 @@ public class DirectoryDownloadTask {
 		long time = System.currentTimeMillis();
 		
 		BasicListener l = null;
-		try (BufferedReader in = DownloadUtil.openBufferedReader(this.baseUrl)) {
+		try (BufferedReader in = this.config.openBufferedReader(this.baseUrl)) {
 			l = p.provide(Long.parseLong(in.readLine()) *3);
 			String digestInstance = in.readLine();
 			
@@ -118,8 +108,7 @@ public class DirectoryDownloadTask {
 				}
 				
 				long size = Long.parseLong(line);
-				this.files.add(new FileDownloadTask(DownloadUtil.appendUrlSuffix(this.baseUrl, path), this.connectTimeout, this.readTimeout,
-						this.baseDirectory.resolve(path), size, digest, digestInstance, this.bufferSize));
+				this.files.add(new FileDownloadTask(DownloadUtil.appendUrlSuffix(this.baseUrl, path), this.baseDirectory.resolve(path), this.config, size, digest, digestInstance));
 				this.totalSize += size;
 				l.increment(1);
 			}
