@@ -46,20 +46,9 @@ public class StringUtil {
 			return (s) -> true;
 			
 		int last = arg.lastIndexOf('*');
-		String start = arg.substring(0, first), end = arg.substring(last +1);
+		String start = arg.substring(0, first), end = arg.substring(last +1), middle = arg.substring(first +1, last);
 		
-		if (start.isEmpty()) {
-			if (end.isEmpty()) {
-				String middle = start.substring(last +1);
-				return (s) -> s.contains(middle);
-			}
-			return (s) -> s.endsWith(end);
-		}
-		
-		if (end.isEmpty())
-			return (s) -> s.startsWith(start);
-		
-		return (s) -> s.startsWith(start) && s.endsWith(end);
+		return (s) -> s.startsWith(start) && s.endsWith(end) && s.contains(middle);
 	}
 	
 	public static String simpleFormat(Throwable t) {
