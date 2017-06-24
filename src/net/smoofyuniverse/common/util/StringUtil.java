@@ -46,9 +46,23 @@ public class StringUtil {
 			return (s) -> true;
 			
 		int last = arg.lastIndexOf('*');
-		String start = arg.substring(0, first), end = arg.substring(last +1), middle = arg.substring(first +1, last);
+		String start = arg.substring(0, first), end = arg.substring(last +1);
+		if (first == last)
+			return (s) -> s.startsWith(start) && s.endsWith(end);
+			
+		String[] parts = arg.substring(first +1, last).split("\\*"); // TODO Order
 		
-		return (s) -> s.startsWith(start) && s.endsWith(end) && s.contains(middle);
+		return (s) -> {
+			if (!(s.startsWith(start) && s.endsWith(end)))
+				return false;
+			
+			for (String p : parts) {
+				if (!s.contains(p))
+					return false;
+			}
+			
+			return true;
+		};
 	}
 	
 	public static String simpleFormat(Throwable t) {
