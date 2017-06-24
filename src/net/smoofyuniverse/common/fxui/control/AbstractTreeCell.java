@@ -21,45 +21,31 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.fxui.control;
 
-import java.util.function.BiFunction;
-
+import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
+import javafx.scene.control.TreeCell;
 
-public class LabelCell<T> extends ListCell<T> {
-	private BiFunction<Integer, T, String> toText;
-	private Label label = new Label();
-	private String text;
+public abstract class AbstractTreeCell<T> extends TreeCell<T> {
 	
-	public LabelCell(BiFunction<Integer, T, String> toText) {
+	public AbstractTreeCell() {
 		setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-		this.toText = toText;
 	}
 	
 	@Override
 	public void updateIndex(int i) {
 		super.updateIndex(i);
-		if (i == -1)
-			setGraphic(null);
-		else
-			updateLabel();
+		updateContent();
 	}
 	
 	@Override
 	protected void updateItem(T item, boolean empty) {
 		super.updateItem(item, empty);
-		
-		if (empty || item == null) {
-			setGraphic(null);
-		} else if (item != null) {
-			setGraphic(this.label);
-			this.text = this.toText.apply(getIndex(), item);
-			updateLabel();
-		}
+		updateContent();
 	}
 	
-	private void updateLabel() {
-		this.label.setText(text);
+	protected void updateContent() {
+		setGraphic(getIndex() == -1 || getItem() == null ? null : getContent());
 	}
+	
+	protected abstract Node getContent();
 }
