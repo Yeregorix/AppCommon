@@ -21,18 +21,13 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.event.core;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.Listener;
 import net.smoofyuniverse.common.logger.core.Logger;
 import net.smoofyuniverse.common.logger.core.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class EventManager {
 	private Set<ListenerRegistration<?>> listenerRegistrations = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -53,11 +48,11 @@ public class EventManager {
 	}
 	
 	public boolean unregister(ListenerRegistration<?> l) {
-		return l instanceof ObjectRegistration ? this.objectRegistrations.remove((ObjectRegistration) l) : this.listenerRegistrations.remove(l);
+		return l instanceof ObjectRegistration ? this.objectRegistrations.remove(l) : this.listenerRegistrations.remove(l);
 	}
 	
 	public boolean isRegistered(ListenerRegistration<?> l) {
-		return l instanceof ObjectRegistration ? this.objectRegistrations.contains((ObjectRegistration) l) : this.listenerRegistrations.contains(l);
+		return l instanceof ObjectRegistration ? this.objectRegistrations.contains(l) : this.listenerRegistrations.contains(l);
 	}
 	
 	public List<ObjectRegistration<?>> registerAll(Object obj, boolean superclasses) {

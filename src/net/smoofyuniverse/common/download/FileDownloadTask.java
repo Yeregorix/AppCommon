@@ -21,19 +21,19 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.download;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Optional;
-
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.listener.ListenerProvider;
 import net.smoofyuniverse.common.logger.core.Logger;
 import net.smoofyuniverse.common.util.DownloadUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
 import net.smoofyuniverse.common.util.StringUtil;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 
 public class FileDownloadTask {
 	private static final Logger logger = Application.getLogger("FileDownloadTask");
@@ -99,9 +99,7 @@ public class FileDownloadTask {
 	}
 	
 	public boolean shouldSync() {
-		if (this.isDirectory)
-			return false;
-		return this.expectedSize == -1 || this.expectedDigest == null || this.digestInstance == null;
+		return !this.isDirectory && (this.expectedSize == -1 || this.expectedDigest == null || this.digestInstance == null);
 	}
 	
 	public boolean exists() {

@@ -53,7 +53,8 @@ public class BufferedWriterAppender implements LogAppender {
 			return;
 		try {
 			this.writer.close();
-		} catch (IOException e) {}
+		} catch (IOException ignored) {
+		}
 		this.writer = null;
 	}
 }

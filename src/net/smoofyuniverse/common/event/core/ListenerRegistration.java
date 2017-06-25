@@ -26,7 +26,7 @@ import net.smoofyuniverse.common.event.EventListener;
 import net.smoofyuniverse.common.event.Order;
 import net.smoofyuniverse.common.util.ReflectionUtil;
 
-public class ListenerRegistration<T extends Event> implements Comparable<ListenerRegistration<T>> {
+public class ListenerRegistration<T extends Event> implements Comparable<ListenerRegistration<?>> {
 	public final Class<? extends T> eventType;
 	public final EventListener<T> listener;
 	public final Order order;
@@ -60,7 +60,7 @@ public class ListenerRegistration<T extends Event> implements Comparable<Listene
 	}
 
 	@Override
-	public int compareTo(ListenerRegistration<T> o) {
+	public int compareTo(ListenerRegistration<?> o) {
 		return order.compareTo(o.order);
 	}
 }

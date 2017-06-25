@@ -21,45 +21,31 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.util;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.app.OperatingSystem;
 
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.stream.Stream;
+
 public class ResourceUtil {
 	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
-	private static final Map<String, FileSystem> fileSystems = new HashMap<String, FileSystem>();
+	private static final Map<String, FileSystem> fileSystems = new HashMap<>();
 	
 	public static Stream<String> lines(InputStream in) {
 		return lines(new BufferedReader(new InputStreamReader(in)));
 	}
 	
 	public static Stream<String> lines(BufferedReader in) {
-		Stream<String> st = in.lines();
-		st.onClose(() -> close(in));
-		return st;
+		return in.lines().onClose(() -> close(in));
 	}
 	
 	public static byte[] digest(Path file, String instance) throws IOException, NoSuchAlgorithmException {
@@ -79,6 +65,7 @@ public class ResourceUtil {
 	}
 	
 	public static Image loadImage(String localPath) {
+		//noinspection ConstantConditions
 		return new Image(Application.class.getClassLoader().getResource(localPath).toString());
 	}
 	
@@ -153,12 +140,14 @@ public class ResourceUtil {
 	public static void close(Closeable c) {
 		try {
 			c.close();
-		} catch (Exception e) {}
+		} catch (Exception ignored) {
+		}
 	}
 
 	public static void close(Stream<?> st) {
 		try {
 			st.close();
-		} catch (Exception e) {}
+		} catch (Exception ignored) {
+		}
 	}
 }

@@ -21,10 +21,10 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.logger.filter;
 
-import java.util.Optional;
-
 import net.smoofyuniverse.common.logger.core.LogLevel;
 import net.smoofyuniverse.common.logger.core.LogMessage;
+
+import java.util.Optional;
 
 public class MinLevelFilter implements LogFilter {
 	private LogLevel level;
@@ -39,6 +39,6 @@ public class MinLevelFilter implements LogFilter {
 
 	@Override
 	public boolean allow(LogMessage msg) {
-		return this.level == null ? true : msg.level.ordinal() >= this.level.ordinal();
+		return this.level == null || msg.level.ordinal() >= this.level.ordinal();
 	}
 }
