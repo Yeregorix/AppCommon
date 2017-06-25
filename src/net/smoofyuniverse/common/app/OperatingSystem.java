@@ -1,16 +1,16 @@
-/*******************************************************************************
- * Copyright (C) 2017 Hugo Dupanloup (Yeregorix)
- * 
+/*
+ * Copyright (c) 2017 Hugo Dupanloup (Yeregorix)
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,16 +18,17 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- ******************************************************************************/
+ */
+
 package net.smoofyuniverse.common.app;
 
-import java.awt.Desktop;
+import net.smoofyuniverse.common.util.ProcessUtil;
+
+import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import net.smoofyuniverse.common.util.ProcessUtil;
 
 public enum OperatingSystem {
 	WINDOWS {
@@ -46,10 +47,24 @@ public enum OperatingSystem {
 	LINUX,
 	UNKNOWN;
 
+	public static final OperatingSystem CURRENT = getPlatform();
+	public static final String USER_HOME = System.getProperty("user.home", ".");
+
+	private static OperatingSystem getPlatform() {
+		String osName = System.getProperty("os.name").toLowerCase();
+		if (osName.contains("win"))
+			return WINDOWS;
+		if (osName.contains("mac"))
+			return MACOS;
+		if (osName.contains("linux") || osName.contains("unix"))
+			return LINUX;
+		return UNKNOWN;
+	}
+
 	public Path getWorkingDirectory() {
 		return Paths.get(USER_HOME);
 	}
-	
+
 	public void openLink(URI uri) {
 		try {
 			Desktop.getDesktop().browse(uri);
@@ -63,19 +78,5 @@ public enum OperatingSystem {
 			} else
 				Application.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e);
 		}
-	}
-
-	public static final OperatingSystem CURRENT = getPlatform();
-	public static final String USER_HOME = System.getProperty("user.home", ".");
-
-	private static OperatingSystem getPlatform() {
-		String osName = System.getProperty("os.name").toLowerCase();
-		if (osName.contains("win"))
-			return WINDOWS;
-		if (osName.contains("mac"))
-			return MACOS;
-		if (osName.contains("linux") || osName.contains("unix"))
-			return LINUX;
-		return UNKNOWN;
 	}
 }
