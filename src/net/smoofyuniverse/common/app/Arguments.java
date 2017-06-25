@@ -21,11 +21,7 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.app;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public final class Arguments {
 	private Map<String, String> flags;
@@ -38,40 +34,10 @@ public final class Arguments {
 		this.args = args;
 	}
 	
-	public int getIntFlag(int defaultV, String... keys) {
-		for (String key : keys) {
-			String v = this.flags.get(key.toLowerCase());
-			if (v != null)
-				try {
-					return Integer.parseInt(v);
-				} catch (NumberFormatException e) {}
-		}
-		return defaultV;
-	}
-	
-	public Optional<String> getFlag(String... keys) {
-		for (String key : keys) {
-			String v = this.flags.get(key.toLowerCase());
-			if (v != null)
-				return Optional.of(v);
-		}
-		return Optional.empty();
-	}
-	
-	public Optional<String> getArgument(int index) {
-		if (index < 0 || index >= this.args.size())
-			return Optional.empty();
-		return Optional.of(this.args.get(index));
-	}
-	
-	public String[] getInitialArguments() {
-		return this.initialArgs;
-	}
-	
 	public static Arguments parse(String[] rawArgs) {
 		Map<String, String> flags = new HashMap<>();
 		List<String> args = new ArrayList<>();
-		
+
 		String key = null;
 		for (String arg : rawArgs) {
 			if (arg.startsWith("--")) {
@@ -87,12 +53,43 @@ public final class Arguments {
 				}
 			}
 		}
-		
+
 		if (key != null)
 			flags.put(key, "");
-		
+
 		Arguments a = new Arguments(flags, args);
 		a.initialArgs = rawArgs;
 		return a;
+	}
+
+	public int getIntFlag(int defaultV, String... keys) {
+		for (String key : keys) {
+			String v = this.flags.get(key.toLowerCase());
+			if (v != null)
+				try {
+					return Integer.parseInt(v);
+				} catch (NumberFormatException ignored) {
+				}
+		}
+		return defaultV;
+	}
+
+	public Optional<String> getFlag(String... keys) {
+		for (String key : keys) {
+			String v = this.flags.get(key.toLowerCase());
+			if (v != null)
+				return Optional.of(v);
+		}
+		return Optional.empty();
+	}
+
+	public Optional<String> getArgument(int index) {
+		if (index < 0 || index >= this.args.size())
+			return Optional.empty();
+		return Optional.of(this.args.get(index));
+	}
+
+	public String[] getInitialArguments() {
+		return this.initialArgs;
 	}
 }

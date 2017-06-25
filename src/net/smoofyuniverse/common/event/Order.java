@@ -22,5 +22,5 @@
 package net.smoofyuniverse.common.event;
 
 public enum Order {
-	FIRST, EARLY, DEFAULT, LATE, LAST;
+	FIRST, EARLY, DEFAULT, LATE, LAST
 }

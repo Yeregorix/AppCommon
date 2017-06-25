@@ -22,19 +22,13 @@
 package net.smoofyuniverse.common.fxui.dialog;
 
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
-
 import javafx.application.Platform;
 import javafx.geometry.Pos;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
-@SuppressWarnings("restriction")
 public class TextInputDialog extends Dialog<String> {
 	private GridPane grid;
 	private Label label;

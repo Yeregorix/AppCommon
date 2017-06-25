@@ -115,7 +115,7 @@ public class StringUtil {
 	}
 
 	public static String toHexString(byte[] bytes) {
-		StringBuffer s = new StringBuffer(bytes.length *2);
+		StringBuilder s = new StringBuilder(bytes.length * 2);
 		for (byte b : bytes)
 			s.append(hexchars[(b & 0xF0) >> 4]).append(hexchars[b & 0x0F]);
 		 return s.toString();

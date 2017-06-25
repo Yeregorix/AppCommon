@@ -21,23 +21,20 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.function.UnaryOperator;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.download.ConnectionConfiguration;
 import net.smoofyuniverse.common.listener.BasicListener;
 import net.smoofyuniverse.common.listener.ListenerProvider;
 import net.smoofyuniverse.common.logger.core.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.function.UnaryOperator;
 
 public class DownloadUtil {
 	private static final Logger logger = Application.getLogger("DownloadUtil");
@@ -111,7 +108,8 @@ public class DownloadUtil {
 			logger.warn("Download from url '" + url + "' failed.", e);
 			return false;
 		} finally {
-			co.disconnect();
+			if (co != null)
+				co.disconnect();
 		}
 	}
 }

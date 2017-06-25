@@ -21,6 +21,8 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.logger.appender;
 
+import net.smoofyuniverse.common.app.Application;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,8 +30,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
-import net.smoofyuniverse.common.app.Application;
 
 public class DatedRollingFileAppender implements LogAppender {
 	public static final DateTimeFormatter DEFAULT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -54,7 +54,12 @@ public class DatedRollingFileAppender implements LogAppender {
 		
 		try {
 			Files.createDirectories(dir);
-		} catch (IOException e) {}
+		} catch (IOException ignored) {
+		}
+	}
+
+	public static DatedRollingFileAppender logs() {
+		return new DatedRollingFileAppender(Application.get().getWorkingDirectory().resolve("logs/"), "", ".log");
 	}
 	
 	public Path getDirectory() {
@@ -106,11 +111,8 @@ public class DatedRollingFileAppender implements LogAppender {
 			return;
 		try {
 			this.writer.close();
-		} catch (IOException e) {}
+		} catch (IOException ignored) {
+		}
 		this.writer = null;
-	}
-	
-	public static DatedRollingFileAppender logs() {
-		return new DatedRollingFileAppender(Application.get().getWorkingDirectory().resolve("logs/"), "", ".log");
 	}
 }

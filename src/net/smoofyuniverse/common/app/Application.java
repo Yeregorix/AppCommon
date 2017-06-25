@@ -21,21 +21,6 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.app;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
-
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Parent;
@@ -59,24 +44,35 @@ import net.smoofyuniverse.common.logger.core.LoggerFactory;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
 
+import java.io.IOException;
+import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
+
 public abstract class Application {
 	private static Application instance;
-	
+
+	static {
+		Platform.setImplicitExit(false);
+		new JFXPanel();
+	}
+
 	private State state = State.CREATION;
 	private Arguments arguments;
 	private Path workingDir;
 	private String name, title, version;
-	
 	private ConnectionConfiguration connectionConfig;
-	
 	private LoggerFactory loggerFactory;
-	
 	private EventManager eventManager;
 	private ExecutorService executor;
 	private Logger logger;
-	
 	private Stage stage;
-	
 	private FileDownloadTask jarUpdateTask, updaterUpdateTask;
 	
 	public Application(Arguments args, String name, String version) {
@@ -85,18 +81,6 @@ public abstract class Application {
 	
 	public Application(Arguments args, String name, String title, String version) {
 		this(args, getDirectory(args, name), name, title, version);
-	}
-	
-	private static Path getDirectory(Arguments args, String defaultDir) {
-		String dirName = args.getFlag("directory", "dir").orElse("");
-		if (!dirName.isEmpty())
-			return Paths.get(dirName);
-		dirName = args.getFlag("directoryName", "dirName").orElse("");
-		if (dirName.isEmpty())
-			dirName = defaultDir;
-		if (args.getFlag("development", "dev").isPresent())
-			dirName += "-dev";
-		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
 	}
 	
 	public Application(Arguments args, Path dir, String name, String title, String version) {
@@ -114,11 +98,39 @@ public abstract class Application {
 		
 		setState(State.SERVICES_INIT);
 	}
-	
-	private void setState(State state) {
-		if (this.eventManager != null)
-			this.eventManager.postEvent(new ApplicationStateEvent(this, this.state, state));
-		this.state = state;
+
+	private static Path getDirectory(Arguments args, String defaultDir) {
+		String dirName = args.getFlag("directory", "dir").orElse("");
+		if (!dirName.isEmpty())
+			return Paths.get(dirName);
+		dirName = args.getFlag("directoryName", "dirName").orElse("");
+		if (dirName.isEmpty())
+			dirName = defaultDir;
+		if (args.getFlag("development", "dev").isPresent())
+			dirName += "-dev";
+		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
+	}
+
+	public static Logger getLogger(String name) {
+		return get().getLoggerFactory().provideLogger(name);
+	}
+
+	public static boolean registerListener(ListenerRegistration l) {
+		return get().getEventManager().register(l);
+	}
+
+	public static boolean postEvent(Event e) {
+		return get().getEventManager().postEvent(e);
+	}
+
+	public static boolean isShutdown() {
+		return get().state == State.SHUTDOWN;
+	}
+
+	public static Application get() {
+		if (instance == null)
+			throw new IllegalStateException("Application instance not available");
+		return instance;
 	}
 	
 	public void checkState(State state) {
@@ -128,6 +140,12 @@ public abstract class Application {
 	
 	public State getState() {
 		return this.state;
+	}
+
+	private void setState(State state) {
+		if (this.eventManager != null)
+			this.eventManager.postEvent(new ApplicationStateEvent(this, this.state, state));
+		this.state = state;
 	}
 	
 	protected final void initServices(ExecutorService executor) {
@@ -144,22 +162,22 @@ public abstract class Application {
 	
 	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ExecutorService executor) {
 		checkState(State.SERVICES_INIT);
-		
+
 		long time = System.currentTimeMillis();
-		
+
 		this.loggerFactory = loggerFactory;
 		this.eventManager = eventManager;
 		this.executor = executor;
 		this.logger = loggerFactory.provideLogger("Application");
-		
+
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
-		
+
 		if (Files.exists(this.workingDir))
 			this.logger.debug("Working directory: " + this.workingDir.toAbsolutePath());
-		
+
 		long dur = System.currentTimeMillis() - time;
 		this.logger.debug("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
-		
+
 		setState(State.STAGE_INIT);
 	}
 	
@@ -191,13 +209,13 @@ public abstract class Application {
 	protected final Stage initStage(String title, double minWidth, double minHeight, boolean resizable) {
 		Stage stage = new Stage();
 		stage.setTitle(title);
-		
+
 		stage.setMinWidth(minWidth);
 		stage.setMinHeight(minHeight);
 		stage.setWidth(minWidth);
 		stage.setHeight(minHeight);
 		stage.setResizable(resizable);
-		
+
 		return initStage(stage);
 	}
 	
@@ -235,7 +253,7 @@ public abstract class Application {
 			this.updaterUpdateTask = new FileDownloadTask(updateUrl, this.workingDir.resolve("Updater.jar"), -1, null, null);
 			this.updaterUpdateTask.syncExpectedInfos();
 		}
-		
+
 		if (shouldUpdate() && suggestUpdate())
 			update();
 	}
@@ -253,9 +271,7 @@ public abstract class Application {
 	}
 	
 	public boolean shouldUpdate() {
-		if (this.jarUpdateTask == null)
-			return false;
-		return this.jarUpdateTask.shouldUpdate(false);
+		return this.jarUpdateTask != null && this.jarUpdateTask.shouldUpdate(false);
 	}
 	
 	public boolean suggestUpdate() {
@@ -266,26 +282,26 @@ public abstract class Application {
 		Consumer<ObservableTask> consumer = (task) -> {
 			this.logger.info("Starting application update task ..");
 			task.setTitle("Téléchargement de la mise à jour ..");
-			
+
 			if (this.updaterUpdateTask.shouldUpdate(false)) {
 				this.logger.info("Downloading latest updater ..");
 				this.updaterUpdateTask.update(task);
-				
+
 				if (this.updaterUpdateTask.shouldUpdate(false)) {
 					this.logger.error("Updater file seems invalid, aborting ..");
 					Popup.error().title("Mise à jour annulée").message("L'application de mise à jour possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.").show();
 					return;
 				}
 			}
-			
+
 			Path appJar = this.jarUpdateTask.getPath();
 			Path updateJar = this.workingDir.resolve(this.name + "-Update.jar");
-			
+
 			this.jarUpdateTask.setPath(updateJar);
 			if (this.jarUpdateTask.shouldUpdate(false)) {
 				this.logger.info("Downloading latest application update ..");
 				this.jarUpdateTask.update(task);
-				
+
 				if (this.jarUpdateTask.shouldUpdate(false)) {
 					this.logger.error("Application update file seems invalid, aborting ..");
 					Popup.error().title("Mise à jour annulée").message("La mise à jour téléchargée possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.").show();
@@ -294,12 +310,12 @@ public abstract class Application {
 				}
 			}
 			this.jarUpdateTask.setPath(appJar);
-			
+
 			this.logger.info("Starting updater process ..");
 			task.setTitle("Processus de mise à jour ..");
 			task.setMessage("Démarrage du processus ..");
 			task.setProgress(-1);
-			
+
 			List<String> cmd = new ArrayList<>();
 			cmd.add("java");
 			cmd.add("-jar");
@@ -308,7 +324,7 @@ public abstract class Application {
 			cmd.add(appJar.toAbsolutePath().toString());
 			for (String arg : this.arguments.getInitialArguments())
 				cmd.add(arg);
-			
+
 			try {
 				ProcessUtil.builder().command(cmd).start();
 			} catch (IOException e) {
@@ -316,10 +332,10 @@ public abstract class Application {
 				Popup.error().title("Mise à jour annulée").message("Une erreur est survenue lors du démarrage du processus de mise à jour.").show();
 				return;
 			}
-			
+
 			Platform.runLater(this::shutdown);
 		};
-		
+
 		Popup.consumer(consumer).title("Mise à jour de l'application ..").submitAndWait();
 	}
 	
@@ -382,32 +398,5 @@ public abstract class Application {
 		setState(State.SHUTDOWN);
 		this.executor.shutdown();
 		Platform.runLater(Platform::exit);
-	}
-	
-	public static Logger getLogger(String name) {
-		return get().getLoggerFactory().provideLogger(name);
-	}
-	
-	public static boolean registerListener(ListenerRegistration l) {
-		return get().getEventManager().register(l);
-	}
-	
-	public static boolean postEvent(Event e) {
-		return get().getEventManager().postEvent(e);
-	}
-	
-	public static boolean isShutdown() {
-		return get().state == State.SHUTDOWN;
-	}
-	
-	public static Application get() {
-		if (instance == null)
-			throw new IllegalStateException("Application instance not available");
-		return instance;
-	}
-	
-	static {
-		Platform.setImplicitExit(false);
-		new JFXPanel();
 	}
 }

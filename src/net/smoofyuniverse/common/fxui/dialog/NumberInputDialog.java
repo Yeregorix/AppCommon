@@ -22,7 +22,6 @@
 package net.smoofyuniverse.common.fxui.dialog;
 
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
-
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.ButtonType;
@@ -34,7 +33,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import net.smoofyuniverse.common.fxui.field.NumberField;
 
-@SuppressWarnings("restriction")
 public class NumberInputDialog extends Dialog<Number> {
 	private GridPane grid;
 	private Label label;

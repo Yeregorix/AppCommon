@@ -21,10 +21,6 @@
  ******************************************************************************/
 package net.smoofyuniverse.common.fxui.dialog.builder;
 
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
@@ -34,6 +30,10 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.util.StringUtil;
+
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractBuilder<T> {
 	protected StringProperty titleP, headerP, messageP;
@@ -109,7 +109,7 @@ public abstract class AbstractBuilder<T> {
 	public void validate() {
 		if (!valid())
 			throw new IllegalStateException("Invalid builder");
-	};
+	}
 	
 	public Dialog<T> build() {
 		validate();
@@ -154,7 +154,7 @@ public abstract class AbstractBuilder<T> {
 			build().show();
 		else
 			Platform.runLater(this::show);
-	};
+	}
 	
 	public Optional<T> showAndWait() {
 		validate();
@@ -174,7 +174,7 @@ public abstract class AbstractBuilder<T> {
 			}
 			return result.get();
 		}
-	};
+	}
 	
 	public boolean submitAndWait() {
 		throw new UnsupportedOperationException();

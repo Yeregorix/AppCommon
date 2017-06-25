@@ -25,12 +25,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
@@ -102,7 +97,7 @@ public class ObservableTaskList extends ListView<ObservableTask> {
 				this.message.textProperty().unbind();
 				
 				setGraphic(null);
-			} else if (item != null) {
+			} else {
 				this.progressBar.progressProperty().bind(item.progressProperty());
 				this.cancel.disableProperty().bind(Bindings.or(item.cancelledProperty(), Bindings.not(item.cancellableProperty())));
 				this.title.textProperty().bind(item.titleProperty());
