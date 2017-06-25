@@ -173,8 +173,12 @@ public abstract class Application {
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
 
-		if (Files.exists(this.workingDir))
-			this.logger.debug("Working directory: " + this.workingDir.toAbsolutePath());
+		this.logger.debug("Working directory: " + this.workingDir.toAbsolutePath());
+		try {
+			Files.createDirectories(this.workingDir);
+		} catch (IOException e) {
+			this.logger.warn("Failed to create working directory", e);
+		}
 
 		long dur = System.currentTimeMillis() - time;
 		this.logger.debug("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
