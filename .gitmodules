@@ -1,0 +1,3 @@
+[submodule "AppCommonMain"]
+	path = AppCommonMain
+	url = https://github.com/Yeregorix/AppCommonMain.git
