@@ -33,6 +33,7 @@ import net.smoofyuniverse.common.logger.core.Logger;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -118,8 +119,9 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 			
 			if (this.task == null)
 				return d.showAndWait().orElse(null) == ButtonType.OK;
-			
-			this.executor.submit(() -> {
+
+			AtomicBoolean ended = new AtomicBoolean(false);
+			Future<?> future = this.executor.submit(() -> {
 				this.task.setCancelled(false);
 				try {
 					this.consumer.accept(this.task);
@@ -127,12 +129,23 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 					this.task.cancel();
 					logger.error("An exception occurred while executing a task:", e);
 				}
+				ended.set(true);
 				Platform.runLater(d::hide);
 			});
-			
-			if (d.showAndWait().orElse(null) == ButtonType.CANCEL)
-				this.task.setCancelled(true);
-			return this.task.isCancelled();
+
+			d.showAndWait();
+
+			if (!ended.get()) {
+				this.task.cancel();
+
+				try {
+					future.get();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+			return !this.task.isCancelled();
 		} else {
 			AtomicBoolean result = new AtomicBoolean();
 			CountDownLatch lock = new CountDownLatch(1);
