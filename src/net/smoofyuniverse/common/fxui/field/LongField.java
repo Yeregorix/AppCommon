@@ -43,7 +43,7 @@ public class LongField extends NumberField {
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
 			throw new IllegalArgumentException();
-		
+
 		this.value.set(value);
 		this.min = min;
 		this.max = max;
