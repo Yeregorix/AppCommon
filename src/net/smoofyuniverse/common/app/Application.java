@@ -40,7 +40,6 @@ import net.smoofyuniverse.common.logger.appender.*;
 import net.smoofyuniverse.common.logger.core.LogLevel;
 import net.smoofyuniverse.common.logger.core.Logger;
 import net.smoofyuniverse.common.logger.core.LoggerFactory;
-import net.smoofyuniverse.common.logger.formatter.DefaultFormatter;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
 
@@ -149,7 +148,7 @@ public abstract class Application {
 	}
 	
 	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir)), new DefaultFormatter(true)), executor);
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir.resolve("logs"))), new DefaultFormatter(true)), executor);
 	}
 	
 	protected final void initServices(LogAppender appender, ExecutorService executor) {
