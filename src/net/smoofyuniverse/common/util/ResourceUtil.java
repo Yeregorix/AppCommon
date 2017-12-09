@@ -25,6 +25,7 @@ package net.smoofyuniverse.common.util;
 import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.app.OperatingSystem;
+import net.smoofyuniverse.logger.core.LogMessage;
 
 import java.io.*;
 import java.net.URI;
@@ -34,12 +35,21 @@ import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Stream;
 
 public class ResourceUtil {
 	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
 	private static final Map<String, FileSystem> fileSystems = new HashMap<>();
+
+	public static String format(LogMessage msg) {
+		return format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.text.replace(ResourceUtil.USER_HOME, "USER_HOME") + System.lineSeparator();
+	}
+
+	public static String format(LocalTime time) {
+		return String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());
+	}
 	
 	public static Stream<String> lines(InputStream in) {
 		return lines(new BufferedReader(new InputStreamReader(in)));
@@ -66,7 +76,7 @@ public class ResourceUtil {
 	}
 	
 	public static Image loadImage(String localPath) {
-		//noinspection ConstantConditions
+		// noinspection ConstantConditions
 		return new Image(Application.class.getClassLoader().getResource(localPath).toString());
 	}
 	
@@ -109,8 +119,9 @@ public class ResourceUtil {
 			throw new IOException("Can't list classes in package " + packageName);
 		}
 	}
-	
+
 	public static Path getResource(String localPath) throws IOException, URISyntaxException {
+		// noinspection ConstantConditions
 		return getResource(Application.class.getClassLoader().getResource(localPath));
 	}
 	
