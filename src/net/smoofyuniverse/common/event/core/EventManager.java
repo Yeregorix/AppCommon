@@ -24,8 +24,8 @@ package net.smoofyuniverse.common.event.core;
 
 import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.Listener;
-import net.smoofyuniverse.common.logger.core.Logger;
-import net.smoofyuniverse.common.logger.core.LoggerFactory;
+import net.smoofyuniverse.logger.core.Logger;
+import net.smoofyuniverse.logger.core.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;

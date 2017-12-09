@@ -29,7 +29,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
-import net.smoofyuniverse.common.logger.core.Logger;
+import net.smoofyuniverse.logger.core.Logger;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;

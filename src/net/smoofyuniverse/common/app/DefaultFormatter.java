@@ -22,9 +22,9 @@
 
 package net.smoofyuniverse.common.app;
 
-import net.smoofyuniverse.common.logger.core.LogMessage;
-import net.smoofyuniverse.common.logger.formatter.LogFormatter;
 import net.smoofyuniverse.common.util.ResourceUtil;
+import net.smoofyuniverse.logger.core.LogMessage;
+import net.smoofyuniverse.logger.formatter.LogFormatter;
 
 import java.time.LocalTime;
 

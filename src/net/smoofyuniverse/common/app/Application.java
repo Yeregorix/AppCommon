@@ -36,12 +36,12 @@ import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
-import net.smoofyuniverse.common.logger.appender.*;
-import net.smoofyuniverse.common.logger.core.LogLevel;
-import net.smoofyuniverse.common.logger.core.Logger;
-import net.smoofyuniverse.common.logger.core.LoggerFactory;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
+import net.smoofyuniverse.logger.appender.*;
+import net.smoofyuniverse.logger.core.LogLevel;
+import net.smoofyuniverse.logger.core.Logger;
+import net.smoofyuniverse.logger.core.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;

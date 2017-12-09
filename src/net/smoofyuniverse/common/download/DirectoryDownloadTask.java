@@ -25,8 +25,8 @@ package net.smoofyuniverse.common.download;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.listener.BasicListener;
 import net.smoofyuniverse.common.listener.ListenerProvider;
-import net.smoofyuniverse.common.logger.core.Logger;
 import net.smoofyuniverse.common.util.DownloadUtil;
+import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
 import java.net.URL;
