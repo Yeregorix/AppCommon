@@ -23,6 +23,7 @@
 package net.smoofyuniverse.common.util;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -35,6 +36,10 @@ public class StringUtil {
 			TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
 	
 	private static final char[] hexchars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+	public static String format(LocalTime time) {
+		return String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());
+	}
 	
 	public static Duration parseDuration(String s) {
 		long value = 0;

@@ -38,8 +38,10 @@ import net.smoofyuniverse.common.fxui.dialog.Popup;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
+import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.appender.*;
 import net.smoofyuniverse.logger.core.LogLevel;
+import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 import net.smoofyuniverse.logger.core.LoggerFactory;
 
@@ -148,7 +150,7 @@ public abstract class Application {
 	}
 	
 	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir.resolve("logs"))), ResourceUtil::format), executor);
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir.resolve("logs"))), Application::format), executor);
 	}
 	
 	protected final void initServices(LogAppender appender, ExecutorService executor) {
@@ -401,5 +403,9 @@ public abstract class Application {
 		setState(State.SHUTDOWN);
 		this.executor.shutdown();
 		Platform.runLater(Platform::exit);
+	}
+
+	public static String format(LogMessage msg) {
+		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.text.replace(ResourceUtil.USER_HOME, "USER_HOME") + System.lineSeparator();
 	}
 }
