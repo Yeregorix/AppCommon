@@ -62,6 +62,6 @@ public class ListenerRegistration<T extends Event> implements Comparable<Listene
 
 	@Override
 	public int compareTo(ListenerRegistration<?> o) {
-		return order.compareTo(o.order);
+		return this.order.compareTo(o.order);
 	}
 }

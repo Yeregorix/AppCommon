@@ -32,7 +32,7 @@ public enum State {
 	
 	public ListenerRegistration<ApplicationStateEvent> newListener(EventListener<ApplicationStateEvent> listener, Order order) {
 		return new ListenerRegistration<>(ApplicationStateEvent.class, (e) -> {
-			if (e.newState == State.SHUTDOWN)
+			if (e.newState == this)
 				listener.handle(e);
 		}, Order.EARLY);
 	}
