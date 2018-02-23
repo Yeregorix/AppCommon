@@ -27,7 +27,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
 import net.smoofyuniverse.logger.core.Logger;
 
@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class AlertBuilder extends AbstractBuilder<ButtonType> {
-	private static final Logger logger = Application.getLogger("AlertBuilder");
+	private static final Logger logger = App.getLogger("AlertBuilder");
 	
 	private Consumer<ObservableTask> consumer;
 	private ExecutorService executor;
@@ -89,7 +89,7 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 			this.expandable = createTaskContent();
 		
 		if (this.executor == null)
-			this.executor = Application.get().getExecutor();
+			this.executor = App.get().getExecutor();
 	}
 	
 	private Node createTaskContent() {

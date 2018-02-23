@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.download;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.listener.BasicListener;
 import net.smoofyuniverse.common.listener.ListenerProvider;
 import net.smoofyuniverse.common.util.DownloadUtil;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DirectoryDownloadTask {
-	private static final Logger logger = Application.getLogger("DirectoryDownloadTask");
+	private static final Logger logger = App.getLogger("DirectoryDownloadTask");
 	
 	public final List<FileDownloadTask> files = new ArrayList<>(), toUpdate = new ArrayList<>(), updateFailed = new ArrayList<>();
 	public final ConnectionConfiguration config;
@@ -45,7 +45,7 @@ public class DirectoryDownloadTask {
 	private long totalSize = 0, toUpdateSize = 0;
 	
 	public DirectoryDownloadTask(URL baseUrl, Path baseDirectory) {
-		this(baseUrl, baseDirectory, Application.get().getConnectionConfig());
+		this(baseUrl, baseDirectory, App.get().getConnectionConfig());
 	}
 	
 	public DirectoryDownloadTask(URL baseUrl, Path baseDirectory, ConnectionConfiguration config) {

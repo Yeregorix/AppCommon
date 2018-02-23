@@ -23,7 +23,7 @@
 package net.smoofyuniverse.common.util;
 
 import javafx.scene.image.Image;
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.OperatingSystem;
 
 import java.io.*;
@@ -67,7 +67,7 @@ public class ResourceUtil {
 	
 	public static Image loadImage(String localPath) {
 		// noinspection ConstantConditions
-		return new Image(Application.class.getClassLoader().getResource(localPath).toString());
+		return new Image(App.class.getClassLoader().getResource(localPath).toString());
 	}
 	
 	public static Set<Class<?>> getClasses(String packageName, boolean recursive) throws IOException {
@@ -112,7 +112,7 @@ public class ResourceUtil {
 
 	public static Path getResource(String localPath) throws IOException, URISyntaxException {
 		// noinspection ConstantConditions
-		return getResource(Application.class.getClassLoader().getResource(localPath));
+		return getResource(App.class.getClassLoader().getResource(localPath));
 	}
 	
 	public static Path getResource(URL url) throws IOException, URISyntaxException {

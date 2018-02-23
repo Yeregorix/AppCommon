@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.download;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.listener.ListenerProvider;
 import net.smoofyuniverse.common.util.DownloadUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
@@ -37,7 +37,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class FileDownloadTask {
-	private static final Logger logger = Application.getLogger("FileDownloadTask");
+	private static final Logger logger = App.getLogger("FileDownloadTask");
 	
 	public final ConnectionConfiguration config;
 	public final boolean isDirectory;
@@ -49,7 +49,7 @@ public class FileDownloadTask {
 	private Path path;
 	
 	public FileDownloadTask(URL url, Path path, long expectedSize, String expectedDigest, String digestInstance) {
-		this(url, path, Application.get().getConnectionConfig(), expectedSize, expectedDigest, digestInstance);
+		this(url, path, App.get().getConnectionConfig(), expectedSize, expectedDigest, digestInstance);
 	}
 	
 	public FileDownloadTask(URL url, Path path, ConnectionConfiguration config, long expectedSize, String expectedDigest, String digestInstance) {

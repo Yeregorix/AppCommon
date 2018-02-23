@@ -73,10 +73,10 @@ public enum OperatingSystem {
 				try {
 					ProcessUtil.builder().command("/usr/bin/open", uri.toASCIIString()).start();
 				} catch (IOException e2) {
-					Application.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e2);
+					App.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e2);
 				}
 			} else
-				Application.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e);
+				App.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e);
 		}
 	}
 }

@@ -30,18 +30,15 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.download.ConnectionConfiguration;
 import net.smoofyuniverse.common.download.FileDownloadTask;
-import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
-import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
+import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
-import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.appender.*;
 import net.smoofyuniverse.logger.core.LogLevel;
-import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 import net.smoofyuniverse.logger.core.LoggerFactory;
 
@@ -52,6 +49,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
@@ -71,8 +69,10 @@ public abstract class Application {
 	private ConnectionConfiguration connectionConfig;
 	private LoggerFactory loggerFactory;
 	private EventManager eventManager;
+	private ResourceManager resourceManager;
 	private ExecutorService executor;
 	private Logger logger;
+	private Translator translator;
 	private Stage stage;
 	private FileDownloadTask jarUpdateTask, updaterUpdateTask;
 	
@@ -111,28 +111,6 @@ public abstract class Application {
 			dirName += "-dev";
 		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
 	}
-
-	public static Logger getLogger(String name) {
-		return get().getLoggerFactory().provideLogger(name);
-	}
-
-	public static boolean registerListener(ListenerRegistration l) {
-		return get().getEventManager().register(l);
-	}
-
-	public static boolean postEvent(Event e) {
-		return get().getEventManager().postEvent(e);
-	}
-
-	public static boolean isShutdown() {
-		return get().state == State.SHUTDOWN;
-	}
-
-	public static Application get() {
-		if (instance == null)
-			throw new IllegalStateException("Application instance not available");
-		return instance;
-	}
 	
 	public void checkState(State state) {
 		if (this.state != state)
@@ -150,7 +128,7 @@ public abstract class Application {
 	}
 	
 	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir.resolve("logs"))), Application::format), executor);
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir.resolve("logs"))), App::format), executor);
 	}
 	
 	protected final void initServices(LogAppender appender, ExecutorService executor) {
@@ -158,32 +136,58 @@ public abstract class Application {
 	}
 	
 	protected final void initServices(LoggerFactory loggerFactory, ExecutorService executor) {
-		initServices(loggerFactory, new EventManager(loggerFactory), executor);
+		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
 	}
-	
-	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ExecutorService executor) {
+
+	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
 		checkState(State.SERVICES_INIT);
 
 		long time = System.currentTimeMillis();
 
 		this.loggerFactory = loggerFactory;
 		this.eventManager = eventManager;
+		this.resourceManager = resourceManager;
 		this.executor = executor;
 		this.logger = loggerFactory.provideLogger("Application");
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
 
-		this.logger.debug("Working directory: " + this.workingDir.toAbsolutePath());
+		this.logger.info("Working directory: " + this.workingDir.toAbsolutePath());
 		try {
 			Files.createDirectories(this.workingDir);
 		} catch (IOException e) {
-			this.logger.warn("Failed to create working directory", e);
+			this.logger.error("Failed to create working directory", e);
+			// TODO shutdown
 		}
 
+		this.logger.info("Loading resources ..");
+		try {
+			loadResources();
+		} catch (Exception e) {
+			this.logger.error("Failed to load resources", e);
+			// TODO shutdown
+		}
+
+		this.translator = Translator.of(this.resourceManager);
+
+		String langId = System.getProperty("user.language");
+		if (Language.isValidId(langId))
+			this.resourceManager.setSelection(Language.of(langId));
+		this.logger.info("Selected language: " + this.resourceManager.getSelection().id);
+
 		long dur = System.currentTimeMillis() - time;
-		this.logger.debug("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
+		this.logger.info("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
 
 		setState(State.STAGE_INIT);
+	}
+
+	protected void loadResources() throws Exception {
+		loadTranslations(ResourceUtil.getResource("lang/common"), "txt");
+	}
+
+	protected final void loadTranslations(Path dir, String extension) {
+		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
+			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
 	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
@@ -371,7 +375,11 @@ public abstract class Application {
 	public EventManager getEventManager() {
 		return this.eventManager;
 	}
-	
+
+	public ResourceManager getResourceManager() {
+		return this.resourceManager;
+	}
+
 	public ExecutorService getExecutor() {
 		return this.executor;
 	}
@@ -379,7 +387,11 @@ public abstract class Application {
 	public Logger getLogger() {
 		return this.logger;
 	}
-	
+
+	public Translator getTranslator() {
+		return this.translator;
+	}
+
 	public Stage getStage() {
 		if (this.stage == null)
 			throw new IllegalStateException("Stage not available");
@@ -399,13 +411,15 @@ public abstract class Application {
 	}
 	
 	public void shutdown() {
-		this.logger.debug("Shutting down ..");
+		this.logger.info("Shutting down ..");
 		setState(State.SHUTDOWN);
 		this.executor.shutdown();
 		Platform.runLater(Platform::exit);
 	}
 
-	public static String format(LogMessage msg) {
-		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.text.replace(ResourceUtil.USER_HOME, "USER_HOME") + System.lineSeparator();
+	public static Application get() {
+		if (instance == null)
+			throw new IllegalStateException("Application instance not available");
+		return instance;
 	}
 }

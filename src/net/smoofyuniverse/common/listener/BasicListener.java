@@ -22,13 +22,13 @@
 
 package net.smoofyuniverse.common.listener;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 
 public interface BasicListener extends ListenerProvider {
 	public static final BasicListener DEFAULT = (v) -> {};
 	
 	public default boolean isCancelled() {
-		return Application.isShutdown();
+		return App.isShutdown();
 	}
 	
 	public void increment(long v);

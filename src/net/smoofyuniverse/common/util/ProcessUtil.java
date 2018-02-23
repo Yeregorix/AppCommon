@@ -22,14 +22,14 @@
 
 package net.smoofyuniverse.common.util;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 
 import java.nio.file.Path;
 
 public class ProcessUtil {
 	
 	public static ProcessBuilder builder() {
-		return builder(Application.get().getWorkingDirectory());
+		return builder(App.get().getWorkingDirectory());
 	}
 	
 	public static ProcessBuilder builder(Path dir) {

@@ -29,7 +29,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.util.StringUtil;
 
 import java.util.Optional;
@@ -115,8 +115,8 @@ public abstract class AbstractBuilder<T> {
 	public Dialog<T> build() {
 		validate();
 		Dialog<T> d = provide();
-		
-		d.initOwner(this.owner == null ? Application.get().getStage() : this.owner);
+
+		d.initOwner(this.owner == null ? App.get().getStage() : this.owner);
 		
 		if (this.titleP != null)
 			d.titleProperty().bind(this.titleP);

@@ -24,7 +24,7 @@ package net.smoofyuniverse.common.fxui.task;
 
 import javafx.application.Platform;
 import javafx.beans.property.*;
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Order;
 import net.smoofyuniverse.common.listener.ListenerProvider;
@@ -39,7 +39,7 @@ public final class ObservableTask implements ListenerProvider {
 	private static final Set<ObservableTask> tasks = Collections.newSetFromMap(new WeakHashMap<>());
 
 	static {
-		Application.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(ObservableTask::cancel), Order.EARLY));
+		App.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(ObservableTask::cancel), Order.EARLY));
 	}
 
 	private AtomicReference<String> titleUpdate = new AtomicReference<>();

@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.util;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.download.ConnectionConfiguration;
 import net.smoofyuniverse.common.listener.BasicListener;
 import net.smoofyuniverse.common.listener.ListenerProvider;
@@ -38,7 +38,7 @@ import java.nio.file.Path;
 import java.util.function.UnaryOperator;
 
 public class DownloadUtil {
-	private static final Logger logger = Application.getLogger("DownloadUtil");
+	private static final Logger logger = App.getLogger("DownloadUtil");
 	
 	public static String encode(String s) {
 		try {
@@ -67,7 +67,7 @@ public class DownloadUtil {
 	}
 	
 	public static boolean download(URL url, Path file, ListenerProvider p) {
-		return download(url, file, Application.get().getConnectionConfig(), p);
+		return download(url, file, App.get().getConnectionConfig(), p);
 	}
 	
 	public static boolean download(URL url, Path file, ConnectionConfiguration config, ListenerProvider p) {
