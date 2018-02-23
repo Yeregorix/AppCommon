@@ -34,6 +34,6 @@ public enum State {
 		return new ListenerRegistration<>(ApplicationStateChangeEvent.class, e -> {
 			if (e.newState == this)
 				listener.handle(e);
-		}, Order.EARLY);
+		}, order);
 	}
 }
