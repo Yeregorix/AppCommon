@@ -39,7 +39,7 @@ public final class ObservableTask implements ListenerProvider {
 	private static final Set<ObservableTask> tasks = Collections.newSetFromMap(new WeakHashMap<>());
 
 	static {
-		Application.registerListener(State.SHUTDOWN.newListener((e) -> tasks.forEach(ObservableTask::cancel), Order.EARLY));
+		Application.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(ObservableTask::cancel), Order.EARLY));
 	}
 
 	private AtomicReference<String> titleUpdate = new AtomicReference<>();

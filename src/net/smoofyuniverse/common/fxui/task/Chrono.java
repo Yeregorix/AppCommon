@@ -40,7 +40,7 @@ public class Chrono {
 		this.total = 0;
 		
 		this.timeline = new Timeline();
-		this.timeline.getKeyFrames().add(new KeyFrame(Duration.millis(millis), (e) -> increment()));
+		this.timeline.getKeyFrames().add(new KeyFrame(Duration.millis(millis), e -> increment()));
 		this.timeline.setCycleCount(Animation.INDEFINITE);
 	}
 	

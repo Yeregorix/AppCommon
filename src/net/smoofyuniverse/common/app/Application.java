@@ -31,7 +31,7 @@ import javafx.stage.Stage;
 import net.smoofyuniverse.common.download.ConnectionConfiguration;
 import net.smoofyuniverse.common.download.FileDownloadTask;
 import net.smoofyuniverse.common.event.Event;
-import net.smoofyuniverse.common.event.app.ApplicationStateEvent;
+import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
@@ -145,7 +145,7 @@ public abstract class Application {
 
 	private void setState(State state) {
 		if (this.eventManager != null)
-			this.eventManager.postEvent(new ApplicationStateEvent(this, this.state, state));
+			this.eventManager.postEvent(new ApplicationStateChangeEvent(this, this.state, state));
 		this.state = state;
 	}
 	
