@@ -170,8 +170,17 @@ public abstract class Application {
 
 		this.translator = Translator.of(this.resourceManager);
 
-		String langId = System.getProperty("user.language");
-		if (Language.isValidId(langId))
+		String langId = this.arguments.getFlag("language", "lang").orElse(null);
+		if (langId != null && !Language.isValidId(langId)) {
+			this.logger.warn("Argument '" + langId + "' is not a valid language identifier.");
+			langId = null;
+		}
+		if (langId == null) {
+			langId = System.getProperty("user.language");
+			if (langId != null && !Language.isValidId(langId))
+				langId = null;
+		}
+		if (langId != null)
 			this.resourceManager.setSelection(Language.of(langId));
 		this.logger.info("Selected language: " + this.resourceManager.getSelection().id);
 
