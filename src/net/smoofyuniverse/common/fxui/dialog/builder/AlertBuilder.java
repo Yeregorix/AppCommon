@@ -111,8 +111,6 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 	@Override
 	public boolean submitAndWait() {
 		validate();
-		if (this.task == null && this.type != AlertType.CONFIRMATION)
-			throw new UnsupportedOperationException("No task");
 		
 		if (Platform.isFxApplicationThread()) {
 			Dialog<ButtonType> d = build();

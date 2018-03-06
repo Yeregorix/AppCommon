@@ -27,6 +27,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -36,6 +39,138 @@ public class StringUtil {
 			TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
 	
 	private static final char[] hexchars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+	public static String replaceParameters(String value, String... parameters) {
+		int size = parameters.length;
+		if (size == 0)
+			return value;
+
+		if (size > 40) {
+			Map<String, String> map = new HashMap<>(size / 2 + 1);
+			for (int i = 0; i + 1 < parameters.length; i += 2)
+				map.put(parameters[i], parameters[i + 1]);
+
+			return replaceParameters(value, map::get);
+		} else {
+			return replaceParameters(value, arg -> {
+				for (int i = 0; i + 1 < parameters.length; i += 2) {
+					if (arg.equals(parameters[i]))
+						return parameters[i + 1];
+				}
+				return null;
+			});
+		}
+	}
+
+	public static String replaceParameters(String value, Function<String, String> params) {
+		if (value == null)
+			return null;
+
+		int size = value.length();
+		StringBuilder b = new StringBuilder(), argB = new StringBuilder();
+		boolean inArg = false;
+
+		for (int i = 0; i < size; i++) {
+			char ch = value.charAt(i);
+			if (inArg) {
+				if (ch == '}') {
+					String arg = argB.toString(), param = params.apply(arg);
+					if (param == null)
+						b.append('{').append(arg).append('}');
+					else
+						b.append(param);
+
+					argB.setLength(0);
+					inArg = false;
+				} else
+					argB.append(ch);
+			} else {
+				if (ch == '{')
+					inArg = true;
+				else
+					b.append(ch);
+			}
+		}
+
+		if (inArg)
+			b.append('{').append(argB);
+
+		return b.toString();
+	}
+
+	public static String unescape(String value) {
+		if (value == null)
+			return null;
+
+		int size = value.length();
+		StringBuilder b = new StringBuilder(size), code = new StringBuilder(4);
+		boolean hadSlash = false, inUnicode = false;
+
+		for (int i = 0; i < size; i++) {
+			char ch = value.charAt(i);
+			if (inUnicode) {
+				code.append(ch);
+				if (code.length() == 4) {
+					try {
+						b.append((char) Integer.parseInt(code.toString(), 16));
+
+						code.setLength(0);
+						inUnicode = false;
+						hadSlash = false;
+					} catch (NumberFormatException e) {
+						throw new IllegalArgumentException("Unable to parse unicode value: " + code, e);
+					}
+				}
+				continue;
+			}
+			if (hadSlash) {
+				hadSlash = false;
+				switch (ch) {
+					case '\\':
+						b.append('\\');
+						break;
+					case '\'':
+						b.append('\'');
+						break;
+					case '\"':
+						b.append('"');
+						break;
+					case 'r':
+						b.append('\r');
+						break;
+					case 'f':
+						b.append('\f');
+						break;
+					case 't':
+						b.append('\t');
+						break;
+					case 'n':
+						b.append('\n');
+						break;
+					case 'b':
+						b.append('\b');
+						break;
+					case 'u':
+						inUnicode = true;
+						break;
+					default:
+						b.append(ch);
+						break;
+				}
+				continue;
+			}
+			if (ch == '\\') {
+				hadSlash = true;
+				continue;
+			}
+			b.append(ch);
+		}
+
+		if (hadSlash)
+			b.append('\\');
+
+		return b.toString();
+	}
 
 	public static String format(LocalTime time) {
 		return String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());

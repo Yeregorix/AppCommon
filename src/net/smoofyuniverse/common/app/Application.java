@@ -157,7 +157,8 @@ public abstract class Application {
 			Files.createDirectories(this.workingDir);
 		} catch (IOException e) {
 			this.logger.error("Failed to create working directory", e);
-			// TODO shutdown
+			Popup.error().title("Fatal error").message(e).submitAndWait();
+			shutdownNow();
 		}
 
 		this.logger.info("Loading resources ..");
@@ -165,7 +166,8 @@ public abstract class Application {
 			loadResources();
 		} catch (Exception e) {
 			this.logger.error("Failed to load resources", e);
-			// TODO shutdown
+			Popup.error().title("Fatal error").message(e).submitAndWait();
+			shutdownNow();
 		}
 
 		this.translator = Translator.of(this.resourceManager);
@@ -236,12 +238,9 @@ public abstract class Application {
 
 		return initStage(stage);
 	}
-	
-	protected final Stage initStage(Stage stage) {
-		checkState(State.STAGE_INIT);
-		this.stage = stage;
-		this.stage.setOnCloseRequest((e) -> shutdown());
-		return this.stage;
+
+	public void shutdownNow() {
+		shutdownNow(0);
 	}
 	
 	protected final Stage setScene(Parent root) {
@@ -291,15 +290,91 @@ public abstract class Application {
 	public boolean shouldUpdate() {
 		return this.jarUpdateTask != null && this.jarUpdateTask.shouldUpdate(false);
 	}
-	
-	public boolean suggestUpdate() {
-		return Popup.confirmation().title("Mise à jour disponible").message("Une mise à jour est disponible.\nSouhaitez vous l'installer ?").submitAndWait();
+
+	public void shutdownNow(int code) {
+		this.logger.info("Shutting down ..");
+		setState(State.SHUTDOWN);
+		System.exit(code);
 	}
-	
+
+	protected final Stage initStage(Stage stage) {
+		checkState(State.STAGE_INIT);
+		this.stage = stage;
+		this.stage.setOnCloseRequest(e -> shutdown());
+		return this.stage;
+	}
+
+	public Arguments getArguments() {
+		return this.arguments;
+	}
+
+	public Path getWorkingDirectory() {
+		return this.workingDir;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public String getTitle() {
+		return this.name;
+	}
+
+	public String getVersion() {
+		return this.version;
+	}
+
+	public LoggerFactory getLoggerFactory() {
+		return this.loggerFactory;
+	}
+
+	public EventManager getEventManager() {
+		return this.eventManager;
+	}
+
+	public ResourceManager getResourceManager() {
+		return this.resourceManager;
+	}
+
+	public ExecutorService getExecutor() {
+		return this.executor;
+	}
+
+	public Logger getLogger() {
+		return this.logger;
+	}
+
+	public Translator getTranslator() {
+		return this.translator;
+	}
+
+	public boolean suggestUpdate() {
+		return Popup.confirmation().title(App.translate("update_available_title")).message(App.translate("update_available_message")).submitAndWait();
+	}
+
+	public ConnectionConfiguration getConnectionConfig() {
+		if (this.connectionConfig == null) {
+			Optional<String> host = this.arguments.getFlag("proxyHost");
+			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
+			if (host.isPresent())
+				b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), this.arguments.getIntFlag(8080, "proxyPort"))));
+			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
+					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
+		}
+		return this.connectionConfig;
+	}
+
+	public void shutdown() {
+		this.logger.info("Shutting down ..");
+		setState(State.SHUTDOWN);
+		this.executor.shutdown();
+		Platform.runLater(Platform::exit);
+	}
+
 	public void update() {
 		Consumer<ObservableTask> consumer = (task) -> {
 			this.logger.info("Starting application update task ..");
-			task.setTitle("Téléchargement de la mise à jour ..");
+			task.setTitle(App.translate("update_download_title"));
 
 			if (this.updaterUpdateTask.shouldUpdate(false)) {
 				this.logger.info("Downloading latest updater ..");
@@ -307,7 +382,7 @@ public abstract class Application {
 
 				if (this.updaterUpdateTask.shouldUpdate(false)) {
 					this.logger.error("Updater file seems invalid, aborting ..");
-					Popup.error().title("Mise à jour annulée").message("L'application de mise à jour possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.").show();
+					Popup.error().title(App.translate("update_cancelled")).message(App.translate("updater_signature_invalid")).show();
 					return;
 				}
 			}
@@ -322,7 +397,7 @@ public abstract class Application {
 
 				if (this.jarUpdateTask.shouldUpdate(false)) {
 					this.logger.error("Application update file seems invalid, aborting ..");
-					Popup.error().title("Mise à jour annulée").message("La mise à jour téléchargée possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.").show();
+					Popup.error().title(App.translate("update_cancelled")).message(App.translate("update_signature_invalid")).show();
 					this.jarUpdateTask.setPath(appJar);
 					return;
 				}
@@ -330,8 +405,8 @@ public abstract class Application {
 			this.jarUpdateTask.setPath(appJar);
 
 			this.logger.info("Starting updater process ..");
-			task.setTitle("Processus de mise à jour ..");
-			task.setMessage("Démarrage du processus ..");
+			task.setTitle(App.translate("update_process_title"));
+			task.setMessage(App.translate("update_process_message"));
 			task.setProgress(-1);
 
 			List<String> cmd = new ArrayList<>();
@@ -347,83 +422,18 @@ public abstract class Application {
 				ProcessUtil.builder().command(cmd).start();
 			} catch (IOException e) {
 				this.logger.error("Failed to start updater process", e);
-				Popup.error().title("Mise à jour annulée").message("Une erreur est survenue lors du démarrage du processus de mise à jour.").show();
+				Popup.error().title(App.translate("update_cancelled")).message(App.translate("update_process_error")).show();
 				return;
 			}
 
 			Platform.runLater(this::shutdown);
 		};
 
-		Popup.consumer(consumer).title("Mise à jour de l'application ..").submitAndWait();
-	}
-	
-	public Arguments getArguments() {
-		return this.arguments;
-	}
-	
-	public Path getWorkingDirectory() {
-		return this.workingDir;
-	}
-	
-	public String getName() {
-		return this.name;
-	}
-	
-	public String getTitle() {
-		return this.name;
-	}
-	
-	public String getVersion() {
-		return this.version;
-	}
-	
-	public LoggerFactory getLoggerFactory() {
-		return this.loggerFactory;
-	}
-	
-	public EventManager getEventManager() {
-		return this.eventManager;
+		Popup.consumer(consumer).title(App.translate("update_title")).submitAndWait();
 	}
 
-	public ResourceManager getResourceManager() {
-		return this.resourceManager;
-	}
-
-	public ExecutorService getExecutor() {
-		return this.executor;
-	}
-	
-	public Logger getLogger() {
-		return this.logger;
-	}
-
-	public Translator getTranslator() {
-		return this.translator;
-	}
-
-	public Stage getStage() {
-		if (this.stage == null)
-			throw new IllegalStateException("Stage not available");
-		return this.stage;
-	}
-	
-	public ConnectionConfiguration getConnectionConfig() {
-		if (this.connectionConfig == null) {
-			Optional<String> host = this.arguments.getFlag("proxyHost");
-			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
-			if (host.isPresent())
-				b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), this.arguments.getIntFlag(8080, "proxyPort"))));
-			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
-					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
-		}
-		return this.connectionConfig;
-	}
-	
-	public void shutdown() {
-		this.logger.info("Shutting down ..");
-		setState(State.SHUTDOWN);
-		this.executor.shutdown();
-		Platform.runLater(Platform::exit);
+	public Optional<Stage> getStage() {
+		return Optional.ofNullable(this.stage);
 	}
 
 	public static Application get() {

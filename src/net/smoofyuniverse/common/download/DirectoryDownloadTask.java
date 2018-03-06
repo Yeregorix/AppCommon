@@ -26,6 +26,7 @@ import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.listener.BasicListener;
 import net.smoofyuniverse.common.listener.ListenerProvider;
 import net.smoofyuniverse.common.util.DownloadUtil;
+import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
@@ -69,7 +70,7 @@ public class DirectoryDownloadTask {
 	public void update(ListenerProvider p, boolean force, boolean verify, boolean deleteFailed, boolean filter) {
 		listRemoteFiles(p);
 		if (!force)
-			listFilesToUpdate(p);
+			checkFilesToUpdate(p);
 		updateFiles(p, force, verify);
 		if (deleteFailed)
 			deleteFailedFiles();
@@ -87,20 +88,22 @@ public class DirectoryDownloadTask {
 		try (BufferedReader in = this.config.openBufferedReader(this.baseUrl)) {
 			l = p.provide(Long.parseLong(in.readLine()) *3);
 			String digestInstance = in.readLine();
-			
-			l.setMessage("Listage ..");
+
+			l.setMessage(App.translate("dirdl_listing_message"));
+			String msg_path = App.translate("dirdl_listing_path");
+
 			String path = null, digest = null;
 			String line;
 			while ((line = in.readLine()) != null) {
 				if (l.isCancelled()) {
 					logger.debug("Listing cancelled (" + (System.currentTimeMillis() - time) /1000F + "s).");
-					l.setMessage("Listage annulé.");
+					l.setMessage(App.translate("dirdl_listing_cancelled"));
 					return;
 				}
 				
 				if (path == null) {
 					path = line;
-					l.setMessage("Listage: " + path);
+					l.setMessage(StringUtil.replaceParameters(msg_path, "path", path));
 					continue;
 				}
 				if (digest == null) {
@@ -115,26 +118,26 @@ public class DirectoryDownloadTask {
 			}
 			
 			logger.debug("Listing ended (" + this.files.size() + " files, " + (System.currentTimeMillis() - time) /1000F + "s).");
-			l.setMessage("Listage terminé (" + this.files.size() + " fichiers listés).");
+			l.setMessage(App.translate("dirdl_listing_end", "count", String.valueOf(this.files.size())));
 		} catch (Exception e) {
 			logger.warn("Listing at url '" + this.baseUrl + "' failed.", e);
 			if (l != null)
-				l.setMessage("Listage interrompu par une erreur.");
+				l.setMessage(App.translate("dirdl_listing_error"));
 		}
 	}
-	
-	public void listFilesToUpdate(ListenerProvider p) {
+
+	public void checkFilesToUpdate(ListenerProvider p) {
 		this.toUpdate.clear();
 		this.toUpdateSize = 0;
 		BasicListener l = p.provide(this.files.size());
-		logger.info("Listing files to update in directory: " + this.baseDirectory.getFileName() + " ..");
-		l.setMessage("Vérification des fichiers à jour ..");
+		logger.info("Checking files to update in directory: " + this.baseDirectory.getFileName() + " ..");
+		l.setMessage(App.translate("dirdl_checking_message"));
 		long time = System.currentTimeMillis();
 		
 		for (FileDownloadTask t : this.files) {
 			if (l.isCancelled()) {
 				logger.debug("Checking cancelled (" + (System.currentTimeMillis() - time) /1000F + "s).");
-				l.setMessage("Vérification annulée.");
+				l.setMessage(App.translate("dirdl_checking_cancelled"));
 				return;
 			}
 			
@@ -145,9 +148,9 @@ public class DirectoryDownloadTask {
 			
 			l.increment(1);
 		}
-		
-		logger.debug("Listing ended (" + this.toUpdate.size() + " files to update, " + (System.currentTimeMillis() - time) /1000F + "s).");
-		l.setMessage("Vérification terminée (" + this.toUpdate.size() + " fichiers à mettre à jour).");
+
+		logger.debug("Checking ended (" + this.toUpdate.size() + " files to update, " + (System.currentTimeMillis() - time) / 1000F + "s).");
+		l.setMessage(App.translate("dirdl_checkind_end", "count", String.valueOf(this.toUpdate.size())));
 	}
 	
 	public void updateFiles(ListenerProvider p, boolean force, boolean verify) {
@@ -155,23 +158,25 @@ public class DirectoryDownloadTask {
 		this.updateFailed.clear();
 		BasicListener l = p.provide(force ? this.totalSize : this.toUpdateSize);
 		logger.info("Updating " + list.size() + " files in directory: " + this.baseDirectory.getFileName() + " ..");
-		l.setMessage("Mise à jour des fichiers ..");
 		long time = System.currentTimeMillis();
+
+		l.setMessage(App.translate("dirdl_update_message"));
+		String msg_creating_dir = App.translate("dirdl_update_creating_directory"), msg_downloading_file = App.translate("dirdl_update_downloading_file");
 		
 		for (FileDownloadTask t : list) {
 			if (l.isCancelled()) {
 				logger.debug("Update cancelled (" + (System.currentTimeMillis() - time) /1000F + "s).");
-				l.setMessage("Mise à jour annulée.");
+				l.setMessage(App.translate("dirdl_update_cancelled"));
 				return;
 			}
-			
-			l.setMessage((t.isDirectory ? "Création du dossier: " : "Téléchargement du fichier: ") + t.getPath() + " ..");
+
+			l.setMessage(StringUtil.replaceParameters(t.isDirectory ? msg_creating_dir : msg_downloading_file, "path", t.getPath().toString()));
 			if (!t.update(p) || (verify && t.shouldUpdate(false)))
 				this.updateFailed.add(t);
 		}
 		
 		logger.debug("Update ended (" + list.size() + " updated files, " + this.updateFailed.size() + " failed, " + (System.currentTimeMillis() - time) /1000F + "s).");
-		l.setMessage("Mise à jour terminée (" + list.size() + " fichiers mis à jour, " + this.updateFailed.size() + " échoués).");
+		l.setMessage(App.translate("dirdl_update_end", "success_count", String.valueOf(list.size()), "fail_count", String.valueOf(this.updateFailed.size())));
 	}
 	
 	public void deleteFailedFiles() {

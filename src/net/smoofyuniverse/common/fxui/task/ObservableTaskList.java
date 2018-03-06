@@ -30,6 +30,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.fxui.control.EmptySelectionModel;
 import net.smoofyuniverse.common.util.GridUtil;
 
@@ -49,7 +50,7 @@ public class ObservableTaskList extends ListView<ObservableTask> {
 		private static final Font FONT_14 = new Font("Monospaced", 14), FONT_12 = new Font("Monospaced", 12);
 		
 		private ProgressBar progressBar = new ProgressBar();
-		private Button cancel = new Button("Annuler");
+		private Button cancel = new Button(App.translate("task_list_cancel"));
 		private Label title = new Label();
 		private Label message = new Label();
 		

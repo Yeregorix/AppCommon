@@ -116,7 +116,7 @@ public abstract class AbstractBuilder<T> {
 		validate();
 		Dialog<T> d = provide();
 
-		d.initOwner(this.owner == null ? App.get().getStage() : this.owner);
+		d.initOwner(this.owner == null ? App.get().getStage().orElse(null) : this.owner);
 		
 		if (this.titleP != null)
 			d.titleProperty().bind(this.titleP);

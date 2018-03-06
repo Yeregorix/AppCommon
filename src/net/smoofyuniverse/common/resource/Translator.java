@@ -27,6 +27,7 @@ import net.smoofyuniverse.common.event.Order;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
+import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
@@ -66,6 +67,25 @@ public class Translator {
 			Optional<String> value = this.defaultModule.get(key);
 			if (value.isPresent())
 				return value.get();
+		}
+
+		return key;
+	}
+
+	public String translate(String key, String... parameters) {
+		if (!ResourceModule.isValidKey(key))
+			return key;
+
+		if (this.selectionModule != null) {
+			Optional<String> value = this.selectionModule.get(key);
+			if (value.isPresent())
+				return StringUtil.replaceParameters(value.get(), parameters);
+		}
+
+		if (this.defaultModule != null) {
+			Optional<String> value = this.defaultModule.get(key);
+			if (value.isPresent())
+				return StringUtil.replaceParameters(value.get(), parameters);
 		}
 
 		return key;
@@ -119,10 +139,15 @@ public class Translator {
 	public static void load(ResourceModule.Builder<String> builder, BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
+			line = line.trim();
+			if (line.isEmpty() || line.charAt(0) == '#')
+				continue;
+
 			int i = line.indexOf('=');
 			if (i == -1)
 				throw new IllegalArgumentException("No '=' separator was found");
-			builder.add(line.substring(0, i), line.substring(i + 1));
+
+			builder.add(line.substring(0, i), StringUtil.unescape(line.substring(i + 1)));
 		}
 	}
 

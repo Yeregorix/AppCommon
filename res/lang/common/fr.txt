@@ -1,0 +1,32 @@
+## Application update
+update_available_title=Mise à jour disponible
+update_available_message=Une mise à jour est disponible.\nSouhaitez vous l'installer ?
+update_download_title=Téléchargement de la mise à jour ..
+update_cancelled=Mise à jour annulée
+updater_signature_invalid=L'application de mise à jour possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.
+update_signature_invalid=La mise à jour téléchargée possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.
+update_process_title=Processus de mise à jour ..
+update_process_message=Démarrage du processus ..
+update_process_error=Une erreur est survenue lors du démarrage du processus de mise à jour.
+update_title=Mise à jour de l'application ..
+
+## Directory download
+# Listing
+dirdl_listing_message=Listage ..
+dirdl_listing_cancelled=Listage annulé.
+dirdl_listing_path=Listage: {path} ..
+dirdl_listing_end=Listage terminé ({count} fichiers listés).
+dirdl_listing_error=Listage interrompu par une erreur.
+# Checking
+dirdl_checking_message=Vérification des fichiers à jour ..
+dirdl_checking_cancelled=Vérification annulée.
+dirdl_checkind_end=Vérification terminée ({count} fichiers à mettre à jour).
+# Update
+dirdl_update_message=Mise à jour des fichiers ..
+dirdl_update_cancelled=Mise à jour annulée.
+dirdl_update_creating_directory=Création du dossier: {path} ..
+dirdl_update_downloading_file=Téléchargement du fichier: {path} ..
+dirdl_update_end=Mise à jour terminée ({success_count} fichiers mis à jour, {fail_count} échoués).
+
+## Task list
+task_list_cancel=Annuler
