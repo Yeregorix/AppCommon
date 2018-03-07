@@ -29,7 +29,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
-import net.smoofyuniverse.logger.core.Logger;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -38,8 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class AlertBuilder extends AbstractBuilder<ButtonType> {
-	private static final Logger logger = App.getLogger("AlertBuilder");
-	
 	private Consumer<ObservableTask> consumer;
 	private ExecutorService executor;
 	private ObservableTask task;
@@ -125,7 +122,7 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 					this.consumer.accept(this.task);
 				} catch (Exception e) {
 					this.task.cancel();
-					logger.error("An exception occurred while executing a task:", e);
+					App.getLogger("AlertBuilder").error("An exception occurred while executing a task:", e);
 				}
 				ended.set(true);
 				Platform.runLater(d::hide);

@@ -94,10 +94,30 @@ public abstract class Application {
 		this.name = name;
 		this.title = title;
 		this.version = version;
+		this.logger = new Logger(PrintStreamAppender.system(), "Application");
 		
 		System.setProperty("java.net.preferIPv4Stack", "true");
 		
 		setState(State.SERVICES_INIT);
+	}
+
+	public final void safeInit() {
+		try {
+			init();
+		} catch (Exception e) {
+			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", e);
+			fatalError(e);
+		}
+	}
+
+	public abstract void init() throws Exception;
+
+	public final void fatalError(Throwable t) {
+		try {
+			Popup.error().title(this.title + " " + this.version + " - Fatal error").message(t).submitAndWait();
+		} catch (Exception ignored) {
+		}
+		shutdownNow();
 	}
 
 	private static Path getDirectory(Arguments args, String defaultDir) {
@@ -139,6 +159,29 @@ public abstract class Application {
 		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
 	}
 
+	public void shutdownNow() {
+		shutdownNow(0);
+	}
+
+	protected void loadResources() throws Exception {
+		loadTranslations(ResourceUtil.getResource("lang/common"), "txt");
+	}
+
+	protected final void loadTranslations(Path dir, String extension) {
+		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
+			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
+	}
+
+	public void shutdownNow(int code) {
+		try {
+			this.logger.info("Shutting down ..");
+			setState(State.SHUTDOWN);
+			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
+		} catch (Exception ignored) {
+		}
+		System.exit(code);
+	}
+	
 	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
 		checkState(State.SERVICES_INIT);
 
@@ -157,8 +200,7 @@ public abstract class Application {
 			Files.createDirectories(this.workingDir);
 		} catch (IOException e) {
 			this.logger.error("Failed to create working directory", e);
-			Popup.error().title("Fatal error").message(e).submitAndWait();
-			shutdownNow();
+			fatalError(e);
 		}
 
 		this.logger.info("Loading resources ..");
@@ -166,8 +208,7 @@ public abstract class Application {
 			loadResources();
 		} catch (Exception e) {
 			this.logger.error("Failed to load resources", e);
-			Popup.error().title("Fatal error").message(e).submitAndWait();
-			shutdownNow();
+			fatalError(e);
 		}
 
 		this.translator = Translator.of(this.resourceManager);
@@ -187,30 +228,13 @@ public abstract class Application {
 		this.logger.info("Selected language: " + this.resourceManager.getSelection().id);
 
 		long dur = System.currentTimeMillis() - time;
-		this.logger.info("Started " + this.name + " v" + this.version + " (" + dur + "ms).");
+		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
 
 		setState(State.STAGE_INIT);
 	}
-
-	protected void loadResources() throws Exception {
-		loadTranslations(ResourceUtil.getResource("lang/common"), "txt");
-	}
-
-	protected final void loadTranslations(Path dir, String extension) {
-		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
-			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
-	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
-		return initStage(this.title + " v" + this.version, minWidth, minHeight, resizable, icons);
-	}
-	
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, Image... icons) {
-		return initStage(this.title + " v" + this.version, minWidth, minHeight, resizable, icons);
-	}
-	
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable) {
-		return initStage(this.title + " v" + this.version, minWidth, minHeight, resizable);
+		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
 	}
 	
 	protected final Stage initStage(String title, double minWidth, double minHeight, boolean resizable, String... icons) {
@@ -237,10 +261,6 @@ public abstract class Application {
 		stage.setResizable(resizable);
 
 		return initStage(stage);
-	}
-
-	public void shutdownNow() {
-		shutdownNow(0);
 	}
 	
 	protected final Stage setScene(Parent root) {
@@ -291,12 +311,6 @@ public abstract class Application {
 		return this.jarUpdateTask != null && this.jarUpdateTask.shouldUpdate(false);
 	}
 
-	public void shutdownNow(int code) {
-		this.logger.info("Shutting down ..");
-		setState(State.SHUTDOWN);
-		System.exit(code);
-	}
-
 	protected final Stage initStage(Stage stage) {
 		checkState(State.STAGE_INIT);
 		this.stage = stage;
@@ -324,28 +338,34 @@ public abstract class Application {
 		return this.version;
 	}
 
-	public LoggerFactory getLoggerFactory() {
-		return this.loggerFactory;
+	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, Image... icons) {
+		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
 	}
 
-	public EventManager getEventManager() {
-		return this.eventManager;
-	}
-
-	public ResourceManager getResourceManager() {
-		return this.resourceManager;
-	}
-
-	public ExecutorService getExecutor() {
-		return this.executor;
+	protected final Stage initStage(double minWidth, double minHeight, boolean resizable) {
+		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable);
 	}
 
 	public Logger getLogger() {
 		return this.logger;
 	}
 
-	public Translator getTranslator() {
-		return this.translator;
+	public LoggerFactory getLoggerFactory() {
+		if (this.loggerFactory == null)
+			throw new IllegalStateException("LoggerFactory not initialized");
+		return this.loggerFactory;
+	}
+
+	public EventManager getEventManager() {
+		if (this.eventManager == null)
+			throw new IllegalStateException("EventManager not initialized");
+		return this.eventManager;
+	}
+
+	public ResourceManager getResourceManager() {
+		if (this.resourceManager == null)
+			throw new IllegalStateException("ResourceManager not initialized");
+		return this.resourceManager;
 	}
 
 	public boolean suggestUpdate() {
@@ -364,10 +384,23 @@ public abstract class Application {
 		return this.connectionConfig;
 	}
 
+	public ExecutorService getExecutor() {
+		if (this.executor == null)
+			throw new IllegalStateException("ExecutorService not initialized");
+		return this.executor;
+	}
+
+	public Translator getTranslator() {
+		if (this.translator == null)
+			throw new IllegalStateException("Translator not initialized");
+		return this.translator;
+	}
+
 	public void shutdown() {
 		this.logger.info("Shutting down ..");
 		setState(State.SHUTDOWN);
-		this.executor.shutdown();
+		if (this.executor != null)
+			this.executor.shutdown();
 		Platform.runLater(Platform::exit);
 	}
 
