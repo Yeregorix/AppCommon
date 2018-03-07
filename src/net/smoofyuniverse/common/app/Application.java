@@ -405,6 +405,9 @@ public abstract class Application {
 	}
 
 	public void update() {
+		if (this.updaterUpdateTask == null || this.jarUpdateTask == null)
+			throw new IllegalStateException("Update tasks not initialized");
+
 		Consumer<ObservableTask> consumer = (task) -> {
 			this.logger.info("Starting application update task ..");
 			task.setTitle(App.translate("update_download_title"));
