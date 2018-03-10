@@ -33,8 +33,12 @@ public class LongField extends NumberField {
 		this(Long.MIN_VALUE, Long.MAX_VALUE, value);
 	}
 
+	public LongField(long min, long max) {
+		this(min, max, min);
+	}
+
 	public LongField(long min, long max, long value) {
-		super(String.valueOf(value));
+		super(Long.toString(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -44,7 +48,7 @@ public class LongField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(String.valueOf(newV)));
+		this.value.addListener((v, oldV, newV) -> setText(Long.toString(newV.longValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
@@ -66,10 +70,6 @@ public class LongField extends NumberField {
 				setText(oldV);
 			}
 		});
-	}
-
-	public LongField(long min, long max) {
-		this(min, max, min);
 	}
 
 	@Override

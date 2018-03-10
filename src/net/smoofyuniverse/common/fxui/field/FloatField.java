@@ -33,8 +33,12 @@ public class FloatField extends NumberField {
 		this(Float.MIN_VALUE, Float.MAX_VALUE, value);
 	}
 
+	public FloatField(float min, float max) {
+		this(min, max, min);
+	}
+
 	public FloatField(float min, float max, float value) {
-		super(String.valueOf(value));
+		super(toString(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -44,7 +48,7 @@ public class FloatField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(String.valueOf(newV)));
+		this.value.addListener((v, oldV, newV) -> setText(toString(newV.floatValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
@@ -68,10 +72,6 @@ public class FloatField extends NumberField {
 		});
 	}
 
-	public FloatField(float min, float max) {
-		this(min, max, min);
-	}
-
 	@Override
 	public FloatProperty valueProperty() {
 		return this.value;
@@ -79,5 +79,10 @@ public class FloatField extends NumberField {
 
 	public float getValue() {
 		return this.value.get();
+	}
+
+	private static String toString(float floatValue) {
+		long longValue = (long) floatValue;
+		return longValue == floatValue ? Long.toString(longValue) : Double.toString(floatValue);
 	}
 }

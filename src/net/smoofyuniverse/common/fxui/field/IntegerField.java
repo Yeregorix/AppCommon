@@ -33,8 +33,12 @@ public class IntegerField extends NumberField {
 		this(Integer.MIN_VALUE, Integer.MAX_VALUE, value);
 	}
 
+	public IntegerField(int min, int max) {
+		this(min, max, min);
+	}
+
 	public IntegerField(int min, int max, int value) {
-		super(String.valueOf(value));
+		super(Integer.toString(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -44,7 +48,7 @@ public class IntegerField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(String.valueOf(newV)));
+		this.value.addListener((v, oldV, newV) -> setText(Integer.toString(newV.intValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
@@ -66,10 +70,6 @@ public class IntegerField extends NumberField {
 				setText(oldV);
 			}
 		});
-	}
-
-	public IntegerField(int min, int max) {
-		this(min, max, min);
 	}
 
 	@Override

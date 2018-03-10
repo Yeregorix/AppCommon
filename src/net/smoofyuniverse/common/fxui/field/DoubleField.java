@@ -33,8 +33,12 @@ public class DoubleField extends NumberField {
 		this(Double.MIN_VALUE, Double.MAX_VALUE, value);
 	}
 
+	public DoubleField(double min, double max) {
+		this(min, max, min);
+	}
+
 	public DoubleField(double min, double max, double value) {
-		super(String.valueOf(value));
+		super(toString(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -44,7 +48,7 @@ public class DoubleField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(String.valueOf(newV)));
+		this.value.addListener((v, oldV, newV) -> setText(toString(newV.doubleValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
@@ -68,10 +72,6 @@ public class DoubleField extends NumberField {
 		});
 	}
 
-	public DoubleField(double min, double max) {
-		this(min, max, min);
-	}
-
 	@Override
 	public DoubleProperty valueProperty() {
 		return this.value;
@@ -79,5 +79,10 @@ public class DoubleField extends NumberField {
 
 	public double getValue() {
 		return this.value.get();
+	}
+
+	private static String toString(double doubleValue) {
+		long longValue = (long) doubleValue;
+		return longValue == doubleValue ? Long.toString(longValue) : Double.toString(doubleValue);
 	}
 }
