@@ -33,27 +33,27 @@ import java.net.URISyntaxException;
 
 public class TextUtil {
 
-	public static TextFlow justify(double lineLength, Node... childs) {
-		TextFlow t = new TextFlow(childs);
+	public static TextFlow justify(double lineLength, Node... children) {
+		TextFlow t = new TextFlow(children);
 		t.setTextAlignment(TextAlignment.JUSTIFY);
 		t.setPrefWidth(lineLength);
 		return t;
 	}
 
-	public static TextFlow justify(Node... childs) {
-		TextFlow t = new TextFlow(childs);
+	public static TextFlow justify(Node... children) {
+		TextFlow t = new TextFlow(children);
 		t.setTextAlignment(TextAlignment.JUSTIFY);
 		return t;
 	}
 
-	public static TextFlow join(double lineLength, Node... childs) {
-		TextFlow t = new TextFlow(childs);
+	public static TextFlow join(double lineLength, Node... children) {
+		TextFlow t = new TextFlow(children);
 		t.setPrefWidth(lineLength);
 		return t;
 	}
 
-	public static TextFlow join(Node... childs) {
-		return new TextFlow(childs);
+	public static TextFlow join(Node... children) {
+		return new TextFlow(children);
 	}
 
 	public static Hyperlink openLink(String link) {

@@ -148,7 +148,7 @@ public abstract class Application {
 	}
 	
 	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new DatedRollingFileAppender(this.workingDir.resolve("logs"))), App::format), executor);
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), App::transformLog)), App::formatLog), executor);
 	}
 	
 	protected final void initServices(LogAppender appender, ExecutorService executor) {

@@ -59,7 +59,11 @@ public final class App {
 		return get().getState() == State.SHUTDOWN;
 	}
 
-	public static String format(LogMessage msg) {
-		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.text.replace(ResourceUtil.USER_HOME, "USER_HOME") + System.lineSeparator();
+	public static String formatLog(LogMessage msg) {
+		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.text + System.lineSeparator();
+	}
+
+	public static String transformLog(String msg) {
+		return msg.replace(ResourceUtil.USER_HOME, "USER_HOME");
 	}
 }

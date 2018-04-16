@@ -47,13 +47,13 @@ public class StringUtil {
 
 		if (size > 40) {
 			Map<String, String> map = new HashMap<>(size / 2 + 1);
-			for (int i = 0; i + 1 < parameters.length; i += 2)
+			for (int i = 0; i + 1 < size; i += 2)
 				map.put(parameters[i], parameters[i + 1]);
 
 			return replaceParameters(value, map::get);
 		} else {
 			return replaceParameters(value, arg -> {
-				for (int i = 0; i + 1 < parameters.length; i += 2) {
+				for (int i = 0; i + 1 < size; i += 2) {
 					if (arg.equals(parameters[i]))
 						return parameters[i + 1];
 				}
