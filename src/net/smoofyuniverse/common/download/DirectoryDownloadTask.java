@@ -23,8 +23,8 @@
 package net.smoofyuniverse.common.download;
 
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.listener.BasicListener;
-import net.smoofyuniverse.common.listener.ListenerProvider;
+import net.smoofyuniverse.common.task.listener.IncrementalListener;
+import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.DownloadUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
@@ -62,12 +62,12 @@ public class DirectoryDownloadTask {
 	public long toUpdateSize() {
 		return this.toUpdateSize;
 	}
-	
-	public void update(ListenerProvider p, boolean force, boolean filter) {
+
+	public void update(IncrementalListenerProvider p, boolean force, boolean filter) {
 		update(p, force, true, true, filter);
 	}
-	
-	public void update(ListenerProvider p, boolean force, boolean verify, boolean deleteFailed, boolean filter) {
+
+	public void update(IncrementalListenerProvider p, boolean force, boolean verify, boolean deleteFailed, boolean filter) {
 		listRemoteFiles(p);
 		if (!force)
 			checkFilesToUpdate(p);
@@ -77,14 +77,14 @@ public class DirectoryDownloadTask {
 		if (filter)
 			filterFiles();
 	}
-	
-	public void listRemoteFiles(ListenerProvider p) {
+
+	public void listRemoteFiles(IncrementalListenerProvider p) {
 		this.files.clear();
 		this.totalSize = 0;
 		logger.info("Listing remote files at url '" + this.baseUrl + "' ..");
 		long time = System.currentTimeMillis();
-		
-		BasicListener l = null;
+
+		IncrementalListener l = null;
 		try (BufferedReader in = this.config.openBufferedReader(this.baseUrl)) {
 			l = p.provide(Long.parseLong(in.readLine()) *3);
 			String digestInstance = in.readLine();
@@ -126,10 +126,10 @@ public class DirectoryDownloadTask {
 		}
 	}
 
-	public void checkFilesToUpdate(ListenerProvider p) {
+	public void checkFilesToUpdate(IncrementalListenerProvider p) {
 		this.toUpdate.clear();
 		this.toUpdateSize = 0;
-		BasicListener l = p.provide(this.files.size());
+		IncrementalListener l = p.provide(this.files.size());
 		logger.info("Checking files to update in directory: " + this.baseDirectory.getFileName() + " ..");
 		l.setMessage(App.translate("dirdl_checking_message"));
 		long time = System.currentTimeMillis();
@@ -152,11 +152,11 @@ public class DirectoryDownloadTask {
 		logger.debug("Checking ended (" + this.toUpdate.size() + " files to update, " + (System.currentTimeMillis() - time) / 1000F + "s).");
 		l.setMessage(App.translate("dirdl_checkind_end", "count", String.valueOf(this.toUpdate.size())));
 	}
-	
-	public void updateFiles(ListenerProvider p, boolean force, boolean verify) {
+
+	public void updateFiles(IncrementalListenerProvider p, boolean force, boolean verify) {
 		List<FileDownloadTask> list = force ? this.files : this.toUpdate;
 		this.updateFailed.clear();
-		BasicListener l = p.provide(force ? this.totalSize : this.toUpdateSize);
+		IncrementalListener l = p.provide(force ? this.totalSize : this.toUpdateSize);
 		logger.info("Updating " + list.size() + " files in directory: " + this.baseDirectory.getFileName() + " ..");
 		long time = System.currentTimeMillis();
 

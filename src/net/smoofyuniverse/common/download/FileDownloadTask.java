@@ -23,7 +23,7 @@
 package net.smoofyuniverse.common.download;
 
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.listener.ListenerProvider;
+import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.DownloadUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
 import net.smoofyuniverse.common.util.StringUtil;
@@ -154,8 +154,8 @@ public class FileDownloadTask {
 			logger.warn("Can't sync with url '" + url + "'", e);
 		}
 	}
-	
-	public boolean update(ListenerProvider p) {
+
+	public boolean update(IncrementalListenerProvider p) {
 		if (this.isDirectory) {
 			try {
 				Files.deleteIfExists(this.path);

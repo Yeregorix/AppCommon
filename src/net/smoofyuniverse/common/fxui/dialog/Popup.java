@@ -28,7 +28,7 @@ import net.smoofyuniverse.common.fxui.dialog.builder.AlertBuilder;
 import net.smoofyuniverse.common.fxui.dialog.builder.NumberInputBuilder;
 import net.smoofyuniverse.common.fxui.dialog.builder.TextInputBuilder;
 import net.smoofyuniverse.common.fxui.field.NumberField;
-import net.smoofyuniverse.common.fxui.task.ObservableTask;
+import net.smoofyuniverse.common.task.Task;
 
 import java.util.function.Consumer;
 
@@ -49,8 +49,8 @@ public class Popup {
 	public static NumberInputBuilder numberInput() {
 		return new NumberInputBuilder();
 	}
-	
-	public static AlertBuilder consumer(Consumer<ObservableTask> c) {
+
+	public static AlertBuilder consumer(Consumer<Task> c) {
 		return alert().consumer(c);
 	}
 	

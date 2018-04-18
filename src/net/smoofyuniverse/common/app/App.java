@@ -22,12 +22,18 @@
 
 package net.smoofyuniverse.common.app;
 
+import javafx.application.Platform;
 import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
+import net.smoofyuniverse.common.task.SimpleTask;
+import net.smoofyuniverse.common.task.Task;
 import net.smoofyuniverse.common.util.ResourceUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 
 public final class App {
 
@@ -65,5 +71,33 @@ public final class App {
 
 	public static String transformLog(String msg) {
 		return msg.replace(ResourceUtil.USER_HOME, "USER_HOME");
+	}
+
+	public static boolean submit(Consumer<Task> consumer) {
+		return submit(consumer, new SimpleTask());
+	}
+
+	public static boolean submit(Consumer<Task> consumer, Task task) {
+		task.setCancelled(false);
+		try {
+			consumer.accept(task);
+		} catch (Exception e) {
+			task.cancel();
+			App.getLogger("App").error("An exception occurred while executing a task.", e);
+		}
+		return task.isCancelled();
+	}
+
+	public static void runLater(Runnable runnable) {
+		CountDownLatch lock = new CountDownLatch(1);
+		Platform.runLater(() -> {
+			runnable.run();
+			lock.countDown();
+		});
+		try {
+			lock.await();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

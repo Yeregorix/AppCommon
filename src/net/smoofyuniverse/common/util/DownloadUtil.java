@@ -24,8 +24,8 @@ package net.smoofyuniverse.common.util;
 
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.download.ConnectionConfiguration;
-import net.smoofyuniverse.common.listener.BasicListener;
-import net.smoofyuniverse.common.listener.ListenerProvider;
+import net.smoofyuniverse.common.task.listener.IncrementalListener;
+import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.IOException;
@@ -65,12 +65,12 @@ public class DownloadUtil {
 	public static URL editUrlSuffix(URL url, UnaryOperator<String> edit) throws MalformedURLException {
 		return new URL(url.getProtocol(), url.getHost(), url.getPort(), edit.apply(url.getFile()));
 	}
-	
-	public static boolean download(URL url, Path file, ListenerProvider p) {
+
+	public static boolean download(URL url, Path file, IncrementalListenerProvider p) {
 		return download(url, file, App.get().getConnectionConfig(), p);
 	}
-	
-	public static boolean download(URL url, Path file, ConnectionConfiguration config, ListenerProvider p) {
+
+	public static boolean download(URL url, Path file, ConnectionConfiguration config, IncrementalListenerProvider p) {
 		HttpURLConnection co = null;
 		try {
 			co = config.openHttpConnection(url);
@@ -79,8 +79,8 @@ public class DownloadUtil {
 				logger.info("Server at url '" + url + "' returned a bad response code: " + co.getResponseCode());
 				return false;
 			}
-			
-			BasicListener l;
+
+			IncrementalListener l;
 			try {
 				l = p.provide(Long.parseLong(co.getHeaderField("Content-Length")));
 			} catch (NumberFormatException e) {

@@ -27,19 +27,20 @@ import javafx.beans.property.*;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Order;
-import net.smoofyuniverse.common.listener.ListenerProvider;
-import net.smoofyuniverse.common.listener.ObservableListener;
+import net.smoofyuniverse.common.task.Task;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public final class ObservableTask implements ListenerProvider {
+public final class ObservableTask implements Task {
 	private static final Set<ObservableTask> tasks = Collections.newSetFromMap(new WeakHashMap<>());
 
-	static {
-		App.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(ObservableTask::cancel), Order.EARLY));
+	@Override
+	public Optional<String> getTitle() {
+		return Optional.ofNullable(this.title.get());
 	}
 
 	private AtomicReference<String> titleUpdate = new AtomicReference<>();
@@ -77,6 +78,7 @@ public final class ObservableTask implements ListenerProvider {
 		return this.cancelled;
 	}
 
+	@Override
 	public void setTitle(String value) {
 		if (Platform.isFxApplicationThread())
 			this.title.set(value);
@@ -84,6 +86,12 @@ public final class ObservableTask implements ListenerProvider {
 			Platform.runLater(() -> this.title.set(this.titleUpdate.getAndSet(null)));
 	}
 
+	@Override
+	public Optional<String> getMessage() {
+		return Optional.ofNullable(this.message.get());
+	}
+
+	@Override
 	public void setMessage(String value) {
 		if (Platform.isFxApplicationThread())
 			this.message.set(value);
@@ -91,13 +99,38 @@ public final class ObservableTask implements ListenerProvider {
 			Platform.runLater(() -> this.message.set(this.messageUpdate.getAndSet(null)));
 	}
 
+	@Override
+	public boolean isCancelled() {
+		return this.cancelled.get();
+	}
+
+	@Override
+	public void setCancelled(boolean value) {
+		if (Platform.isFxApplicationThread())
+			this.cancelled.set(value);
+		else if (this.cancelledUpdate.getAndSet(value) == null)
+			Platform.runLater(() -> this.cancelled.set(this.cancelledUpdate.getAndSet(null)));
+	}
+
+	@Override
+	public double getProgress() {
+		return this.progress.get();
+	}
+
+	@Override
 	public void setProgress(double value) {
 		if (Platform.isFxApplicationThread())
 			this.progress.set(value);
 		else if (this.progressUpdate.getAndSet(value) == null)
 			Platform.runLater(() -> this.progress.set(this.progressUpdate.getAndSet(null)));
 	}
-	
+
+	@Override
+	public boolean isCancellable() {
+		return this.cancellable.get();
+	}
+
+	@Override
 	public void setCancellable(boolean value) {
 		if (Platform.isFxApplicationThread())
 			this.cancellable.set(value);
@@ -105,23 +138,7 @@ public final class ObservableTask implements ListenerProvider {
 			Platform.runLater(() -> this.cancellable.set(this.cancellableUpdate.getAndSet(null)));
 	}
 
-	public boolean isCancelled() {
-		return this.cancelled.get();
-	}
-	
-	public void setCancelled(boolean value) {
-		if (Platform.isFxApplicationThread())
-			this.cancelled.set(value);
-		else if (this.cancelledUpdate.getAndSet(value) == null)
-			Platform.runLater(() -> this.cancelled.set(this.cancelledUpdate.getAndSet(null)));
-	}
-	
-	public void cancel() {
-		setCancelled(true);
-	}
-	
-	@Override
-	public ObservableListener provide(long expectedTotal) {
-		return new ObservableListener(this, expectedTotal);
+	static {
+		App.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(Task::cancel), Order.EARLY));
 	}
 }

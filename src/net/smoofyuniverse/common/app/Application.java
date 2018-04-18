@@ -33,8 +33,8 @@ import net.smoofyuniverse.common.download.FileDownloadTask;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
-import net.smoofyuniverse.common.fxui.task.ObservableTask;
 import net.smoofyuniverse.common.resource.*;
+import net.smoofyuniverse.common.task.Task;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceUtil;
 import net.smoofyuniverse.logger.appender.*;
@@ -57,15 +57,12 @@ import java.util.function.Consumer;
 public abstract class Application {
 	private static Application instance;
 
-	static {
-		Platform.setImplicitExit(false);
-		new JFXPanel();
-	}
-
 	private State state = State.CREATION;
-	private Arguments arguments;
-	private Path workingDir;
-	private String name, title, version;
+	protected final Arguments arguments;
+	protected final Path workingDir;
+	protected final String name, title, version;
+	protected final boolean UIEnabled;
+
 	private ConnectionConfiguration connectionConfig;
 	private LoggerFactory loggerFactory;
 	private EventManager eventManager;
@@ -81,10 +78,10 @@ public abstract class Application {
 	}
 	
 	public Application(Arguments args, String name, String title, String version) {
-		this(args, getDirectory(args, name), name, title, version);
+		this(args, getDirectory(args, name), name, title, version, !args.getFlag("disableUI").isPresent());
 	}
-	
-	public Application(Arguments args, Path dir, String name, String title, String version) {
+
+	public Application(Arguments args, Path dir, String name, String title, String version, boolean enableUI) {
 		if (instance != null)
 			throw new IllegalStateException("An application instance already exists");
 		instance = this;
@@ -94,30 +91,12 @@ public abstract class Application {
 		this.name = name;
 		this.title = title;
 		this.version = version;
+		this.UIEnabled = enableUI;
 		this.logger = new Logger(PrintStreamAppender.system(), "Application");
 		
 		System.setProperty("java.net.preferIPv4Stack", "true");
 		
 		setState(State.SERVICES_INIT);
-	}
-
-	public final void safeInit() {
-		try {
-			init();
-		} catch (Exception e) {
-			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", e);
-			fatalError(e);
-		}
-	}
-
-	public abstract void init() throws Exception;
-
-	public final void fatalError(Throwable t) {
-		try {
-			Popup.error().title(this.title + " " + this.version + " - Fatal error").message(t).submitAndWait();
-		} catch (Exception ignored) {
-		}
-		shutdownNow();
 	}
 
 	private static Path getDirectory(Arguments args, String defaultDir) {
@@ -131,6 +110,30 @@ public abstract class Application {
 			dirName += "-dev";
 		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
 	}
+
+	private void setState(State state) {
+		if (this.state == state)
+			return;
+		if (this.eventManager != null)
+			this.eventManager.postEvent(new ApplicationStateChangeEvent(this, this.state, state));
+		this.state = state;
+	}
+
+	public final void launch() {
+		try {
+			if (this.UIEnabled)
+				initJavaFX();
+			init();
+		} catch (Exception e) {
+			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", e);
+			fatalError(e);
+		}
+	}
+
+	private static void initJavaFX() {
+		Platform.setImplicitExit(false);
+		new JFXPanel();
+	}
 	
 	public void checkState(State state) {
 		if (this.state != state)
@@ -141,11 +144,7 @@ public abstract class Application {
 		return this.state;
 	}
 
-	private void setState(State state) {
-		if (this.eventManager != null)
-			this.eventManager.postEvent(new ApplicationStateChangeEvent(this, this.state, state));
-		this.state = state;
-	}
+	public abstract void init() throws Exception;
 	
 	protected final void initServices(ExecutorService executor) {
 		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), App::transformLog)), App::formatLog), executor);
@@ -159,10 +158,6 @@ public abstract class Application {
 		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
 	}
 
-	public void shutdownNow() {
-		shutdownNow(0);
-	}
-
 	protected void loadResources() throws Exception {
 		loadTranslations(ResourceUtil.getResource("lang/common"), "txt");
 	}
@@ -170,16 +165,6 @@ public abstract class Application {
 	protected final void loadTranslations(Path dir, String extension) {
 		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
 			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
-	}
-
-	public void shutdownNow(int code) {
-		try {
-			this.logger.info("Shutting down ..");
-			setState(State.SHUTDOWN);
-			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
-		} catch (Exception ignored) {
-		}
-		System.exit(code);
 	}
 	
 	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
@@ -262,6 +247,16 @@ public abstract class Application {
 
 		return initStage(stage);
 	}
+
+	public final void fatalError(Throwable t) {
+		if (this.UIEnabled) {
+			try {
+				Popup.error().title(this.title + " " + this.version + " - Fatal error").message(t).submitAndWait();
+			} catch (Exception ignored) {
+			}
+		}
+		shutdownNow();
+	}
 	
 	protected final Stage setScene(Parent root) {
 		return setScene(new Scene(root));
@@ -273,26 +268,44 @@ public abstract class Application {
 		setState(State.RUNNING);
 		return this.stage;
 	}
-	
-	protected final void checkForUpdate() {
-		try {
-			checkForUpdate(new URL("https://files.smoofyuniverse.net/apps/" + this.name + ".jar"), new URL("https://files.smoofyuniverse.net/apps/Updater.jar"));
-		} catch (MalformedURLException e) {
-			this.logger.warn("Failed to form update url", e);
-		}
+
+	public void shutdownNow() {
+		shutdownNow(0);
 	}
-	
-	protected final void checkForUpdate(URL jarUrl, URL updateUrl) {
-		Path jarFile = getApplicationJarFile().orElse(null);
-		if (jarFile != null) {
-			this.jarUpdateTask = new FileDownloadTask(jarUrl, jarFile, -1, null, null);
-			this.jarUpdateTask.syncExpectedInfos();
-			this.updaterUpdateTask = new FileDownloadTask(updateUrl, this.workingDir.resolve("Updater.jar"), -1, null, null);
-			this.updaterUpdateTask.syncExpectedInfos();
+
+	public void shutdownNow(int code) {
+		try {
+			if (this.state != State.SHUTDOWN) {
+				this.logger.info("Shutting down ..");
+				setState(State.SHUTDOWN);
+			}
+			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
+		} catch (Exception ignored) {
+		}
+		System.exit(code);
+	}
+
+	protected final Stage initStage(Stage stage) {
+		checkState(State.STAGE_INIT);
+		this.stage = stage;
+		this.stage.setOnCloseRequest(e -> shutdown());
+		return this.stage;
+	}
+
+	public void shutdown() {
+		if (this.state == State.SHUTDOWN)
+			return;
+
+		this.logger.info("Shutting down ..");
+		setState(State.SHUTDOWN);
+
+		if (this.executor != null) {
+			this.executor.shutdown();
+			this.executor = null;
 		}
 
-		if (shouldUpdate() && suggestUpdate())
-			update();
+		if (this.UIEnabled)
+			Platform.runLater(Platform::exit);
 	}
 	
 	public Optional<Path> getApplicationJarFile() {
@@ -311,104 +324,59 @@ public abstract class Application {
 		return this.jarUpdateTask != null && this.jarUpdateTask.shouldUpdate(false);
 	}
 
-	protected final Stage initStage(Stage stage) {
+	protected final void skipStage() {
 		checkState(State.STAGE_INIT);
-		this.stage = stage;
-		this.stage.setOnCloseRequest(e -> shutdown());
-		return this.stage;
+		if (this.stage != null)
+			throw new IllegalStateException();
+		setState(State.RUNNING);
 	}
 
-	public Arguments getArguments() {
-		return this.arguments;
+	public final void requireUI() {
+		if (!this.UIEnabled)
+			throw new IllegalStateException("UI is not enabled");
 	}
 
-	public Path getWorkingDirectory() {
-		return this.workingDir;
+	protected final void checkForUpdate() {
+		try {
+			checkForUpdate(new URL("https://files.smoofyuniverse.net/apps/" + this.name + ".jar"), new URL("https://files.smoofyuniverse.net/apps/updater/Updater.jar"));
+		} catch (MalformedURLException e) {
+			this.logger.warn("Failed to form update url", e);
+		}
 	}
 
-	public String getName() {
-		return this.name;
-	}
+	protected final void checkForUpdate(URL jarUrl, URL updaterUrl) {
+		checkState(State.RUNNING);
+		if (this.arguments.getFlag("noUpdateCheck").isPresent())
+			return;
 
-	public String getTitle() {
-		return this.name;
-	}
+		Path jarFile = getApplicationJarFile().orElse(null);
+		if (jarFile != null) {
+			this.jarUpdateTask = new FileDownloadTask(jarUrl, jarFile, -1, null, null);
+			this.jarUpdateTask.syncExpectedInfos();
+			this.updaterUpdateTask = new FileDownloadTask(updaterUrl, this.workingDir.resolve("Updater.jar"), -1, null, null);
+			this.updaterUpdateTask.syncExpectedInfos();
+		}
 
-	public String getVersion() {
-		return this.version;
-	}
-
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, Image... icons) {
-		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
-	}
-
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable) {
-		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable);
-	}
-
-	public Logger getLogger() {
-		return this.logger;
-	}
-
-	public LoggerFactory getLoggerFactory() {
-		if (this.loggerFactory == null)
-			throw new IllegalStateException("LoggerFactory not initialized");
-		return this.loggerFactory;
-	}
-
-	public EventManager getEventManager() {
-		if (this.eventManager == null)
-			throw new IllegalStateException("EventManager not initialized");
-		return this.eventManager;
-	}
-
-	public ResourceManager getResourceManager() {
-		if (this.resourceManager == null)
-			throw new IllegalStateException("ResourceManager not initialized");
-		return this.resourceManager;
+		if (shouldUpdate() && suggestUpdate())
+			update();
 	}
 
 	public boolean suggestUpdate() {
-		return Popup.confirmation().title(App.translate("update_available_title")).message(App.translate("update_available_message")).submitAndWait();
-	}
+		if (this.UIEnabled)
+			return Popup.confirmation().title(App.translate("update_available_title")).message(App.translate("update_available_message")).submitAndWait();
 
-	public ConnectionConfiguration getConnectionConfig() {
-		if (this.connectionConfig == null) {
-			Optional<String> host = this.arguments.getFlag("proxyHost");
-			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
-			if (host.isPresent())
-				b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), this.arguments.getIntFlag(8080, "proxyPort"))));
-			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
-					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
-		}
-		return this.connectionConfig;
-	}
+		if (this.arguments.getFlag("autoUpdate").isPresent())
+			return true;
 
-	public ExecutorService getExecutor() {
-		if (this.executor == null)
-			throw new IllegalStateException("ExecutorService not initialized");
-		return this.executor;
-	}
-
-	public Translator getTranslator() {
-		if (this.translator == null)
-			throw new IllegalStateException("Translator not initialized");
-		return this.translator;
-	}
-
-	public void shutdown() {
-		this.logger.info("Shutting down ..");
-		setState(State.SHUTDOWN);
-		if (this.executor != null)
-			this.executor.shutdown();
-		Platform.runLater(Platform::exit);
+		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
+		return false;
 	}
 
 	public void update() {
 		if (this.updaterUpdateTask == null || this.jarUpdateTask == null)
 			throw new IllegalStateException("Update tasks not initialized");
 
-		Consumer<ObservableTask> consumer = (task) -> {
+		Consumer<Task> consumer = (task) -> {
 			this.logger.info("Starting application update task ..");
 			task.setTitle(App.translate("update_download_title"));
 
@@ -445,13 +413,19 @@ public abstract class Application {
 			task.setMessage(App.translate("update_process_message"));
 			task.setProgress(-1);
 
+			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
+			if (!launch)
+				this.logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
+
 			List<String> cmd = new ArrayList<>();
 			cmd.add("java");
 			cmd.add("-jar");
 			cmd.add(this.updaterUpdateTask.getPath().toAbsolutePath().toString());
-			cmd.add(updateJar.toAbsolutePath().toString());
-			cmd.add(appJar.toAbsolutePath().toString());
-			for (String arg : this.arguments.getInitialArguments())
+			cmd.add("1"); // version
+			cmd.add(updateJar.toAbsolutePath().toString()); // source
+			cmd.add(appJar.toAbsolutePath().toString()); // target
+			cmd.add(String.valueOf(launch)); // launch
+			for (String arg : this.arguments.getInitialArguments()) // args
 				cmd.add(arg);
 
 			try {
@@ -462,10 +436,90 @@ public abstract class Application {
 				return;
 			}
 
-			Platform.runLater(this::shutdown);
+			if (this.UIEnabled)
+				Platform.runLater(this::shutdown);
+			else
+				shutdown();
 		};
 
-		Popup.consumer(consumer).title(App.translate("update_title")).submitAndWait();
+		if (this.UIEnabled)
+			Popup.consumer(consumer).title(App.translate("update_title")).submitAndWait();
+		else
+			App.submit(consumer);
+	}
+
+	public final Arguments getArguments() {
+		return this.arguments;
+	}
+
+	public final Path getWorkingDirectory() {
+		return this.workingDir;
+	}
+
+	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, Image... icons) {
+		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
+	}
+
+	protected final Stage initStage(double minWidth, double minHeight, boolean resizable) {
+		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable);
+	}
+
+	public Logger getLogger() {
+		return this.logger;
+	}
+
+	public LoggerFactory getLoggerFactory() {
+		if (this.loggerFactory == null)
+			throw new IllegalStateException("LoggerFactory not initialized");
+		return this.loggerFactory;
+	}
+
+	public EventManager getEventManager() {
+		if (this.eventManager == null)
+			throw new IllegalStateException("EventManager not initialized");
+		return this.eventManager;
+	}
+
+	public ResourceManager getResourceManager() {
+		if (this.resourceManager == null)
+			throw new IllegalStateException("ResourceManager not initialized");
+		return this.resourceManager;
+	}
+
+	public ConnectionConfiguration getConnectionConfig() {
+		if (this.connectionConfig == null) {
+			Optional<String> host = this.arguments.getFlag("proxyHost");
+			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
+			if (host.isPresent())
+				b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), this.arguments.getIntFlag(8080, "proxyPort"))));
+			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
+					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
+		}
+		return this.connectionConfig;
+	}
+
+	public ExecutorService getExecutor() {
+		if (this.executor == null)
+			throw new IllegalStateException("ExecutorService not initialized");
+		return this.executor;
+	}
+
+	public Translator getTranslator() {
+		if (this.translator == null)
+			throw new IllegalStateException("Translator not initialized");
+		return this.translator;
+	}
+
+	public final String getName() {
+		return this.name;
+	}
+
+	public final String getTitle() {
+		return this.name;
+	}
+
+	public final String getVersion() {
+		return this.version;
 	}
 
 	public Optional<Stage> getStage() {
@@ -476,5 +530,9 @@ public abstract class Application {
 		if (instance == null)
 			throw new IllegalStateException("Application instance not available");
 		return instance;
+	}
+
+	public final boolean isUIEnabled() {
+		return this.UIEnabled;
 	}
 }

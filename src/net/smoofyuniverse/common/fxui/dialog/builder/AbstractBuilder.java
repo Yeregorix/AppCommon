@@ -42,6 +42,10 @@ public abstract class AbstractBuilder<T> {
 	protected ButtonType[] buttonTypes;
 	protected Node content, expandable;
 	protected Stage owner;
+
+	public AbstractBuilder() {
+		App.get().requireUI();
+	}
 	
 	public AbstractBuilder<T> owner(Stage s) {
 		this.owner = s;
