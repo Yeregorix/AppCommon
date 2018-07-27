@@ -25,12 +25,18 @@ package net.smoofyuniverse.common.fxui.field;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+
 public class DoubleField extends NumberField {
+	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
+
 	public final double min, max;
 	private DoubleProperty value = new SimpleDoubleProperty();
 
 	public DoubleField(double value) {
-		this(Double.MIN_VALUE, Double.MAX_VALUE, value);
+		this(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, value);
 	}
 
 	public DoubleField(double min, double max) {
@@ -38,7 +44,7 @@ public class DoubleField extends NumberField {
 	}
 
 	public DoubleField(double min, double max, double value) {
-		super(toString(value));
+		super(format(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -48,7 +54,7 @@ public class DoubleField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(toString(newV.doubleValue())));
+		this.value.addListener((v, oldV, newV) -> setText(format(newV.doubleValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
@@ -61,12 +67,12 @@ public class DoubleField extends NumberField {
 			}
 
 			try {
-				double doubleV = Double.parseDouble(newV);
+				double doubleV = parse(newV);
 				if (doubleV < this.min || doubleV > this.max)
 					setText(oldV);
 				else
 					this.value.set(doubleV);
-			} catch (Throwable t) {
+			} catch (ParseException e) {
 				setText(oldV);
 			}
 		});
@@ -81,8 +87,24 @@ public class DoubleField extends NumberField {
 		return this.value.get();
 	}
 
-	private static String toString(double doubleValue) {
-		long longValue = (long) doubleValue;
-		return longValue == doubleValue ? Long.toString(longValue) : Double.toString(doubleValue);
+	public static String format(double value) {
+		return DECIMAL_FORMAT.format(value);
+	}
+
+	public static double parse(String value) throws ParseException {
+		ParsePosition position = new ParsePosition(0);
+		Number number = DECIMAL_FORMAT.parse(value, position);
+		if (position.getIndex() != value.length())
+			throw new ParseException("Failed to parse the entire string: " + value, position.getIndex());
+		return number.doubleValue();
+	}
+
+	public void setValue(double value) {
+		this.value.set(value);
+	}
+
+	static {
+		DECIMAL_FORMAT.setMaximumFractionDigits(Integer.MAX_VALUE);
+		DECIMAL_FORMAT.setGroupingUsed(false);
 	}
 }

@@ -25,12 +25,18 @@ package net.smoofyuniverse.common.fxui.field;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
 
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+
 public class FloatField extends NumberField {
+	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
+
 	public final float min, max;
 	private FloatProperty value = new SimpleFloatProperty();
 
 	public FloatField(float value) {
-		this(Float.MIN_VALUE, Float.MAX_VALUE, value);
+		this(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, value);
 	}
 
 	public FloatField(float min, float max) {
@@ -38,7 +44,7 @@ public class FloatField extends NumberField {
 	}
 
 	public FloatField(float min, float max, float value) {
-		super(toString(value));
+		super(format(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -48,7 +54,7 @@ public class FloatField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(toString(newV.floatValue())));
+		this.value.addListener((v, oldV, newV) -> setText(format(newV.floatValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
@@ -61,12 +67,12 @@ public class FloatField extends NumberField {
 			}
 
 			try {
-				float floatV = Float.parseFloat(newV);
+				float floatV = parse(newV);
 				if (floatV < this.min || floatV > this.max)
 					setText(oldV);
 				else
 					this.value.set(floatV);
-			} catch (Throwable t) {
+			} catch (ParseException e) {
 				setText(oldV);
 			}
 		});
@@ -81,8 +87,24 @@ public class FloatField extends NumberField {
 		return this.value.get();
 	}
 
-	private static String toString(float floatValue) {
-		long longValue = (long) floatValue;
-		return longValue == floatValue ? Long.toString(longValue) : Double.toString(floatValue);
+	public static String format(float value) {
+		return DECIMAL_FORMAT.format(value);
+	}
+
+	public static float parse(String value) throws ParseException {
+		ParsePosition position = new ParsePosition(0);
+		Number number = DECIMAL_FORMAT.parse(value, position);
+		if (position.getIndex() != value.length())
+			throw new ParseException("Failed to parse the entire string: " + value, position.getIndex());
+		return number.floatValue();
+	}
+
+	public void setValue(float value) {
+		this.value.set(value);
+	}
+
+	static {
+		DECIMAL_FORMAT.setMaximumFractionDigits(Integer.MAX_VALUE);
+		DECIMAL_FORMAT.setGroupingUsed(false);
 	}
 }

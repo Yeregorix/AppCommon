@@ -66,7 +66,7 @@ public class IntegerField extends NumberField {
 					setText(oldV);
 				else
 					this.value.set(intV);
-			} catch (Throwable t) {
+			} catch (NumberFormatException e) {
 				setText(oldV);
 			}
 		});
@@ -79,5 +79,9 @@ public class IntegerField extends NumberField {
 
 	public int getValue() {
 		return this.value.get();
+	}
+
+	public void setValue(int value) {
+		this.value.set(value);
 	}
 }

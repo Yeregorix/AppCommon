@@ -66,7 +66,7 @@ public class LongField extends NumberField {
 					setText(oldV);
 				else
 					this.value.set(longV);
-			} catch (Throwable t) {
+			} catch (NumberFormatException e) {
 				setText(oldV);
 			}
 		});
@@ -79,5 +79,9 @@ public class LongField extends NumberField {
 
 	public long getValue() {
 		return this.value.get();
+	}
+
+	public void setValue(long value) {
+		this.value.set(value);
 	}
 }
