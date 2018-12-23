@@ -27,11 +27,14 @@ import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.task.SimpleTask;
 import net.smoofyuniverse.common.task.Task;
-import net.smoofyuniverse.common.util.ResourceUtil;
+import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
@@ -39,6 +42,10 @@ public final class App {
 
 	public static Logger getLogger(String name) {
 		return get().getLoggerFactory().provideLogger(name);
+	}
+
+	public static Path getResource(String localResource) throws IOException, URISyntaxException {
+		return get().getResourceLoader().toPath(App.class, localResource);
 	}
 
 	public static Application get() {
@@ -70,7 +77,7 @@ public final class App {
 	}
 
 	public static String transformLog(String msg) {
-		return msg.replace(ResourceUtil.USER_HOME, "USER_HOME");
+		return msg.replace(IOUtil.USER_HOME, "USER_HOME");
 	}
 
 	public static boolean submit(Consumer<Task> consumer) {

@@ -35,8 +35,9 @@ import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
 import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.task.Task;
+import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
-import net.smoofyuniverse.common.util.ResourceUtil;
+import net.smoofyuniverse.common.util.ResourceLoader;
 import net.smoofyuniverse.logger.appender.*;
 import net.smoofyuniverse.logger.core.LogLevel;
 import net.smoofyuniverse.logger.core.Logger;
@@ -58,6 +59,7 @@ public abstract class Application {
 	private static Application instance;
 
 	private State state = State.CREATION;
+	protected final ResourceLoader resourceLoader;
 	protected final Arguments arguments;
 	protected final Path workingDir;
 	protected final String name, title, version;
@@ -85,9 +87,10 @@ public abstract class Application {
 		if (instance != null)
 			throw new IllegalStateException("An application instance already exists");
 		instance = this;
-		
+
+		this.resourceLoader = new ResourceLoader();
 		this.arguments = args;
-		this.workingDir = dir;
+		this.workingDir = dir.toAbsolutePath();
 		this.name = name;
 		this.title = title;
 		this.version = version;
@@ -158,15 +161,6 @@ public abstract class Application {
 		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
 	}
 
-	protected void loadResources() throws Exception {
-		loadTranslations(ResourceUtil.getResource("lang/common"), "txt");
-	}
-
-	protected final void loadTranslations(Path dir, String extension) {
-		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
-			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
-	}
-	
 	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
 		checkState(State.SERVICES_INIT);
 
@@ -180,7 +174,7 @@ public abstract class Application {
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
 
-		this.logger.info("Working directory: " + this.workingDir.toAbsolutePath());
+		this.logger.info("Working directory: " + this.workingDir);
 		try {
 			Files.createDirectories(this.workingDir);
 		} catch (IOException e) {
@@ -217,6 +211,15 @@ public abstract class Application {
 
 		setState(State.STAGE_INIT);
 	}
+
+	protected final void loadTranslations(Path dir, String extension) {
+		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
+			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
+	}
+
+	protected void loadResources() throws Exception {
+		loadTranslations(App.getResource("lang/common"), "txt");
+	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
 		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
@@ -225,7 +228,7 @@ public abstract class Application {
 	protected final Stage initStage(String title, double minWidth, double minHeight, boolean resizable, String... icons) {
 		Image[] images = new Image[icons.length];
 		for (int i = 0; i < icons.length; i++)
-			images[i] = ResourceUtil.loadImage(icons[i]);
+			images[i] = IOUtil.loadImage(icons[i]);
 		return initStage(title, minWidth, minHeight, resizable, images);
 	}
 	
@@ -279,6 +282,9 @@ public abstract class Application {
 				this.logger.info("Shutting down ..");
 				setState(State.SHUTDOWN);
 			}
+
+			this.resourceLoader.close();
+
 			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
 		} catch (Exception ignored) {
 		}
@@ -298,6 +304,8 @@ public abstract class Application {
 
 		this.logger.info("Shutting down ..");
 		setState(State.SHUTDOWN);
+
+		this.resourceLoader.close();
 
 		if (this.executor != null) {
 			this.executor.shutdown();
@@ -446,6 +454,10 @@ public abstract class Application {
 			Popup.consumer(consumer).title(App.translate("update_title")).submitAndWait();
 		else
 			App.submit(consumer);
+	}
+
+	public final ResourceLoader getResourceLoader() {
+		return this.resourceLoader;
 	}
 
 	public final Arguments getArguments() {

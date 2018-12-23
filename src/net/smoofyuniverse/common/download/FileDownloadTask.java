@@ -25,7 +25,7 @@ package net.smoofyuniverse.common.download;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.DownloadUtil;
-import net.smoofyuniverse.common.util.ResourceUtil;
+import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
@@ -92,7 +92,7 @@ public class FileDownloadTask {
 		if (this.isDirectory || this.digestInstance == null || !exists())
 			return Optional.empty();
 		try {
-			return Optional.of(StringUtil.toHexString(ResourceUtil.digest(this.path, this.digestInstance)));
+			return Optional.of(StringUtil.toHexString(IOUtil.digest(this.path, this.digestInstance)));
 		} catch (Exception e) {
 			logger.warn("Can't get " + this.digestInstance + " digest of file: " + this.path, e);
 			return Optional.empty();
