@@ -27,8 +27,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class ResourceLoader {
 	private final Map<String, FileSystem> fileSystems = new HashMap<>();
@@ -49,10 +51,8 @@ public class ResourceLoader {
 	}
 
 	private void findClasses(Path dir, String packageName, boolean recursive, Set<Class<?>> classes) throws IOException {
-		try (Stream<Path> st = Files.list(dir)) {
-			Iterator<Path> it = st.iterator();
-			while (it.hasNext()) {
-				Path p = it.next();
+		try (DirectoryStream<Path> st = Files.newDirectoryStream(dir)) {
+			for (Path p : st) {
 				String fn = p.getFileName().toString();
 				if (Files.isDirectory(p)) {
 					if (recursive)

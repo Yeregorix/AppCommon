@@ -33,14 +33,13 @@ import net.smoofyuniverse.logger.core.Logger;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Translator {
 	private static final Logger logger = App.getLogger("Translator");
@@ -164,10 +163,8 @@ public class Translator {
 		Map<Language, ResourceModule<String>> map = new HashMap<>();
 		ResourceModule.Builder<String> builder = ResourceModule.builder(String.class);
 
-		try (Stream<Path> st = Files.list(dir)) {
-			Iterator<Path> it = st.iterator();
-			while (it.hasNext()) {
-				Path p = it.next();
+		try (DirectoryStream<Path> st = Files.newDirectoryStream(dir)) {
+			for (Path p : st) {
 				String fn = p.getFileName().toString();
 				if (fn.endsWith(extension)) {
 					String id = fn.substring(0, fn.length() - extension.length());
@@ -182,7 +179,7 @@ public class Translator {
 					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.error("Can't list lang files in directory " + dir, e);
 		}
 
