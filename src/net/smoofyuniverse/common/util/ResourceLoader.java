@@ -62,12 +62,12 @@ public class ResourceLoader {
 					try {
 						classes.add(Class.forName(className));
 					} catch (Exception e) {
-						throw new IOException("Can't get class for name " + className);
+						throw new IOException("Can't get class for name " + className, e);
 					}
 				}
 			}
 		} catch (Exception e) {
-			throw new IOException("Can't list classes in package " + packageName);
+			throw new IOException("Can't list classes in package " + packageName, e);
 		}
 	}
 
