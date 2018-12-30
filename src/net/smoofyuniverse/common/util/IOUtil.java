@@ -33,8 +33,10 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.regex.Pattern;
 
 public class IOUtil {
+	public static final Pattern ILLEGAL_PATH_CHARACTERS = Pattern.compile("[:\\\\/*?|<>]\"");
 	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
 
 	public static final FileVisitor<Path> DIRECTORY_REMOVER = new FileVisitor<Path>() {
