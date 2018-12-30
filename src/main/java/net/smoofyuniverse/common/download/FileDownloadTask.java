@@ -116,6 +116,7 @@ public class FileDownloadTask {
 		
 		if (this.expectedSize == -1)
 			return unknown;
+
 		try {
 			if (this.expectedSize != Files.size(this.path))
 				return true;
@@ -126,13 +127,12 @@ public class FileDownloadTask {
 		
 		if (this.expectedDigest == null)
 			return unknown;
+
 		String localDigest = localDigest().orElse(null);
 		if (localDigest == null)
 			return unknown;
-		if (!this.expectedDigest.equals(localDigest))
-			return true;
-		
-		return false;
+
+		return !this.expectedDigest.equals(localDigest);
 	}
 	
 	public void syncExpectedInfos() {

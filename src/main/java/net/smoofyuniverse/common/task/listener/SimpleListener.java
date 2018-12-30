@@ -26,9 +26,9 @@ import net.smoofyuniverse.common.app.App;
 
 public interface SimpleListener {
 
-	public default void setMessage(String value) {}
+	default void setMessage(String value) {}
 
-	public default boolean isCancelled() {
+	default boolean isCancelled() {
 		return App.isShutdown();
 	}
 }

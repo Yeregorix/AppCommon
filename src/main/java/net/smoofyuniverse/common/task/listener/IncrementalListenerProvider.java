@@ -24,6 +24,6 @@ package net.smoofyuniverse.common.task.listener;
 
 public interface IncrementalListenerProvider {
 
-	public IncrementalListener provide(long expectedTotal);
+	IncrementalListener provide(long expectedTotal);
 
 }

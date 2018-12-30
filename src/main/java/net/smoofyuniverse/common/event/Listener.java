@@ -31,6 +31,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Listener {
 	
-	public Order order() default Order.DEFAULT;
-	public boolean ignoreCancelled() default true;
+	Order order() default Order.DEFAULT;
+	boolean ignoreCancelled() default true;
 }

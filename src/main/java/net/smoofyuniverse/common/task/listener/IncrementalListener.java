@@ -24,8 +24,8 @@ package net.smoofyuniverse.common.task.listener;
 
 public interface IncrementalListener extends SimpleListener, IncrementalListenerProvider {
 
-	public void increment(long value);
+	void increment(long value);
 	
 	@Override
-	public default IncrementalListener provide(long expectedTotal) { return this; }
+	default IncrementalListener provide(long expectedTotal) { return this; }
 }

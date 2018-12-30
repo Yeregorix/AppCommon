@@ -502,8 +502,7 @@ public abstract class Application {
 		if (this.connectionConfig == null) {
 			Optional<String> host = this.arguments.getFlag("proxyHost");
 			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
-			if (host.isPresent())
-				b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(host.get(), this.arguments.getIntFlag(8080, "proxyPort"))));
+			host.ifPresent(s -> b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(s, this.arguments.getIntFlag(8080, "proxyPort")))));
 			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
 					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
 		}

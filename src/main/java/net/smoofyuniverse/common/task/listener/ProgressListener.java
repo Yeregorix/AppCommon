@@ -24,10 +24,10 @@ package net.smoofyuniverse.common.task.listener;
 
 public interface ProgressListener extends SimpleListener, IncrementalListenerProvider {
 
-	public void setProgress(double value);
+	void setProgress(double value);
 
 	@Override
-	public default IncrementalListener provide(long expectedTotal) {
+	default IncrementalListener provide(long expectedTotal) {
 		return new IncrementalProgressListener(this, expectedTotal);
 	}
 }

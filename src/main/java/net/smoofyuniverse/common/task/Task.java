@@ -28,21 +28,21 @@ import java.util.Optional;
 
 public interface Task extends ProgressListener {
 
-	public Optional<String> getTitle();
+	Optional<String> getTitle();
 
-	public void setTitle(String value);
+	void setTitle(String value);
 
-	public Optional<String> getMessage();
+	Optional<String> getMessage();
 
-	public double getProgress();
+	double getProgress();
 
-	public boolean isCancellable();
+	boolean isCancellable();
 
-	public void setCancellable(boolean value);
+	void setCancellable(boolean value);
 
-	public default void cancel() {
+	default void cancel() {
 		setCancelled(true);
 	}
 
-	public void setCancelled(boolean value);
+	void setCancelled(boolean value);
 }
