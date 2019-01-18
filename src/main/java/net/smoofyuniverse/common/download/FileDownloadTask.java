@@ -24,7 +24,6 @@ package net.smoofyuniverse.common.download;
 
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
-import net.smoofyuniverse.common.util.DownloadUtil;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
@@ -140,7 +139,7 @@ public class FileDownloadTask {
 			return;
 		URL url = null;
 		try {
-			url = DownloadUtil.editUrlSuffix(this.url, (s) -> {
+			url = IOUtil.editSuffix(this.url, (s) -> {
 				int i = s.lastIndexOf('/') +1;
 				return s.substring(0, i) + "?info=" + s.substring(i);
 			});
@@ -166,6 +165,6 @@ public class FileDownloadTask {
 				return false;
 			}
 		}
-		return DownloadUtil.download(this.url, this.path, this.config, p.provide(this.expectedSize));
+		return IOUtil.download(this.url, this.path, this.config, p.provide(this.expectedSize));
 	}
 }

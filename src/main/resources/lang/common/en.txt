@@ -10,23 +10,5 @@ update_process_message=Starting the process ..
 update_process_error=An error occurred while starting the update process.
 update_title=Application update ..
 
-## Directory download
-# Listing
-dirdl_listing_message=Listing ..
-dirdl_listing_cancelled=Listing cancelled.
-dirdl_listing_path=Listing: {path} ..
-dirdl_listing_end=Listing completed ({count} files listed).
-dirdl_listing_error=Listing interrupted by an error.
-# Checking
-dirdl_checking_message=Checking up to date files ..
-dirdl_checking_cancelled=Checking cancelled.
-dirdl_checkind_end=Checking completed ({count} files to update).
-# Update
-dirdl_update_message=Updating files ..
-dirdl_update_cancelled=Update cancelled.
-dirdl_update_creating_directory=Creating folder: {path} ..
-dirdl_update_downloading_file=Downloading file: {path} ..
-dirdl_update_end=Update completed ({success_count} updated files, {fail_count} failed).
-
 ## Task list
 task_list_cancel=Cancel

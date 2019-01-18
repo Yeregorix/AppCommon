@@ -25,17 +25,27 @@ package net.smoofyuniverse.common.util;
 import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.OperatingSystem;
+import net.smoofyuniverse.common.download.ConnectionConfiguration;
+import net.smoofyuniverse.common.task.listener.IncrementalListener;
+import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
+import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 public class IOUtil {
+	private static final Logger logger = App.getLogger("IOUtil");
+
 	public static final Pattern ILLEGAL_PATH_CHARACTERS = Pattern.compile("[:\\\\/*?|<>]\"");
 	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
 
@@ -72,14 +82,15 @@ public class IOUtil {
 		int i = source.toString().length();
 
 		Files.walkFileTree(source, new FileVisitor<Path>() {
+
+			private Path getDestination(Path sourcePath) {
+				return target.resolve(sourcePath.toString().substring(i));
+			}
+
 			@Override
 			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 				Files.createDirectory(getDestination(dir));
 				return FileVisitResult.CONTINUE;
-			}
-
-			private Path getDestination(Path sourcePath) {
-				return target.resolve(sourcePath.toString().substring(i));
 			}
 
 			@Override
@@ -98,6 +109,71 @@ public class IOUtil {
 				return FileVisitResult.CONTINUE;
 			}
 		});
+	}
+
+	public static URL appendSuffix(URL url, String suffix) throws MalformedURLException {
+		return new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile() + suffix);
+	}
+
+	public static URL editSuffix(URL url, UnaryOperator<String> edit) throws MalformedURLException {
+		return new URL(url.getProtocol(), url.getHost(), url.getPort(), edit.apply(url.getFile()));
+	}
+
+	public static boolean download(URL url, Path file, IncrementalListenerProvider p) {
+		return download(url, file, App.get().getConnectionConfig(), p);
+	}
+
+	public static boolean download(URL url, Path file, ConnectionConfiguration config, IncrementalListenerProvider p) {
+		HttpURLConnection co;
+		try {
+			co = config.openHttpConnection(url);
+		} catch (IOException e) {
+			logger.warn("Download from url '" + url + "' failed.", e);
+			return false;
+		}
+
+		return download(file, co, config.bufferSize, p);
+	}
+
+	public static boolean download(Path file, HttpURLConnection co, int bufferSize, IncrementalListenerProvider p) {
+		try {
+			co.connect();
+			if (co.getResponseCode() / 100 != 2) {
+				logger.info("Server at url '" + co.getURL() + "' returned a bad response code: " + co.getResponseCode());
+				return false;
+			}
+
+			IncrementalListener l;
+			try {
+				l = p.provide(Long.parseLong(co.getHeaderField("Content-Length")));
+			} catch (NumberFormatException e) {
+				l = p.provide(-1);
+			}
+
+			logger.info("Downloading from url '" + co.getURL() + "' to file: " + file + " ..");
+			long time = System.currentTimeMillis();
+
+			try (InputStream in = co.getInputStream();
+				 OutputStream out = Files.newOutputStream(file)) {
+				byte[] buffer = new byte[bufferSize];
+				int length;
+				while ((length = in.read(buffer)) > 0) {
+					if (l.isCancelled()) {
+						logger.debug("Download cancelled (" + (System.currentTimeMillis() - time) / 1000F + "s).");
+						return false;
+					}
+					out.write(buffer, 0, length);
+					l.increment(length);
+				}
+			}
+			logger.debug("Download ended (" + (System.currentTimeMillis() - time) / 1000F + "s).");
+			return true;
+		} catch (IOException e) {
+			logger.warn("Download from url '" + co.getURL() + "' failed.", e);
+			return false;
+		} finally {
+			co.disconnect();
+		}
 	}
 	
 	public static byte[] digest(Path file, String instance) throws IOException, NoSuchAlgorithmException {

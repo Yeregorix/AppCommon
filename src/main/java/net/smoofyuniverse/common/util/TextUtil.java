@@ -30,6 +30,7 @@ import net.smoofyuniverse.common.app.OperatingSystem;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 public class TextUtil {
 
@@ -68,9 +69,17 @@ public class TextUtil {
 		}
 	}
 
+	public static Hyperlink openLink(String text, URL link) {
+		try {
+			return openLink(text, link.toURI());
+		} catch (URISyntaxException e) {
+			return new Hyperlink(text);
+		}
+	}
+
 	public static Hyperlink openLink(String text, URI link) {
 		Hyperlink l = new Hyperlink(text);
-		l.setOnAction((e) -> OperatingSystem.CURRENT.openLink(link));
+		l.setOnAction(e -> OperatingSystem.CURRENT.openLink(link));
 		return l;
 	}
 }
