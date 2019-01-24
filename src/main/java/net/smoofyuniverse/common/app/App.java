@@ -73,7 +73,7 @@ public final class App {
 	}
 
 	public static String formatLog(LogMessage msg) {
-		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.text + System.lineSeparator();
+		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
 	}
 
 	public static String transformLog(String msg) {

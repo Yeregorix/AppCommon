@@ -133,8 +133,8 @@ public class FileDownloadTask {
 
 		return !this.expectedDigest.equals(localDigest);
 	}
-	
-	public void syncExpectedInfos() {
+
+	public void syncExpectedInfo() {
 		if (this.isDirectory)
 			return;
 		URL url = null;

@@ -360,9 +360,9 @@ public abstract class Application {
 		Path jarFile = getApplicationJarFile().orElse(null);
 		if (jarFile != null) {
 			this.jarUpdateTask = new FileDownloadTask(jarUrl, jarFile, -1, null, null);
-			this.jarUpdateTask.syncExpectedInfos();
+			this.jarUpdateTask.syncExpectedInfo();
 			this.updaterUpdateTask = new FileDownloadTask(updaterUrl, this.workingDir.resolve("Updater.jar"), -1, null, null);
-			this.updaterUpdateTask.syncExpectedInfos();
+			this.updaterUpdateTask.syncExpectedInfo();
 		}
 
 		if (shouldUpdate() && suggestUpdate())
