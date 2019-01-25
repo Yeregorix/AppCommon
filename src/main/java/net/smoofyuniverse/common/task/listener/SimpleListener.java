@@ -22,11 +22,16 @@
 
 package net.smoofyuniverse.common.task.listener;
 
+import javafx.beans.value.ObservableValue;
 import net.smoofyuniverse.common.app.App;
 
 public interface SimpleListener {
 
 	default void setMessage(String value) {}
+
+	default void setMessage(ObservableValue<String> value) {
+		setMessage(value.getValue());
+	}
 
 	default boolean isCancelled() {
 		return App.isShutdown();

@@ -42,32 +42,36 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 	private ExecutorService executor;
 	private ObservableTask task;
 	private AlertType type;
-	
-	public AlertBuilder type(AlertType t) {
-		this.type = t;
-		return this;
-	}
-	
-	public AlertBuilder task(ObservableTask t) {
-		this.task = t;
-		return this;
-	}
-	
-	public AlertBuilder executor(ExecutorService e) {
-		this.executor = e;
+
+	public AlertBuilder type(AlertType value) {
+		this.type = value;
 		return this;
 	}
 
-	public AlertBuilder consumer(Consumer<Task> c) {
-		this.consumer = c;
+	public AlertBuilder task(ObservableTask value) {
+		this.task = value;
+		return this;
+	}
+
+	public AlertBuilder executor(ExecutorService value) {
+		this.executor = value;
+		return this;
+	}
+
+	public AlertBuilder consumer(Consumer<Task> value) {
+		this.consumer = value;
 		return this;
 	}
 	
 	@Override
-	public boolean valid() {
+	protected void validate() {
 		if (this.consumer != null)
 			prepareTask();
-		return super.valid() && this.type != null;
+
+		super.validate();
+
+		if (this.type == null)
+			throw new IllegalArgumentException("type");
 	}
 	
 	private void prepareTask() {

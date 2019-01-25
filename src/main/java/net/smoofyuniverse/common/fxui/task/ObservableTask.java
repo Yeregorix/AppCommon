@@ -24,6 +24,7 @@ package net.smoofyuniverse.common.fxui.task;
 
 import javafx.application.Platform;
 import javafx.beans.property.*;
+import javafx.beans.value.ObservableValue;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Order;
@@ -37,11 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public final class ObservableTask implements Task {
 	private static final Set<ObservableTask> tasks = Collections.newSetFromMap(new WeakHashMap<>());
-
-	@Override
-	public Optional<String> getTitle() {
-		return Optional.ofNullable(this.title.get());
-	}
 
 	private AtomicReference<String> titleUpdate = new AtomicReference<>();
 	private AtomicReference<String> messageUpdate = new AtomicReference<>();
@@ -79,11 +75,26 @@ public final class ObservableTask implements Task {
 	}
 
 	@Override
+	public Optional<String> getTitle() {
+		return Optional.ofNullable(this.title.get());
+	}
+
+	@Override
 	public void setTitle(String value) {
 		if (Platform.isFxApplicationThread())
 			this.title.set(value);
 		else if (this.titleUpdate.getAndSet(value) == null)
 			Platform.runLater(() -> this.title.set(this.titleUpdate.getAndSet(null)));
+	}
+
+	@Override
+	public void setTitle(ObservableValue<String> value) {
+		if (Platform.isFxApplicationThread())
+			this.title.bind(value);
+		else {
+			this.titleUpdate.set(null);
+			Platform.runLater(() -> this.title.bind(value));
+		}
 	}
 
 	@Override
@@ -97,6 +108,16 @@ public final class ObservableTask implements Task {
 			this.message.set(value);
 		else if (this.messageUpdate.getAndSet(value) == null)
 			Platform.runLater(() -> this.message.set(this.messageUpdate.getAndSet(null)));
+	}
+
+	@Override
+	public void setMessage(ObservableValue<String> value) {
+		if (Platform.isFxApplicationThread())
+			this.message.bind(value);
+		else {
+			this.messageUpdate.set(null);
+			Platform.runLater(() -> this.message.bind(value));
+		}
 	}
 
 	@Override

@@ -22,6 +22,7 @@
 
 package net.smoofyuniverse.common.task;
 
+import javafx.beans.value.ObservableValue;
 import net.smoofyuniverse.common.task.listener.ProgressListener;
 
 import java.util.Optional;
@@ -31,6 +32,10 @@ public interface Task extends ProgressListener {
 	Optional<String> getTitle();
 
 	void setTitle(String value);
+
+	default void setTitle(ObservableValue<String> value) {
+		setTitle(value.getValue());
+	}
 
 	Optional<String> getMessage();
 

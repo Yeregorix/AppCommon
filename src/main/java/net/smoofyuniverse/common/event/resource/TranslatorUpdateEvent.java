@@ -20,30 +20,18 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog.builder;
+package net.smoofyuniverse.common.event.resource;
 
-import javafx.scene.control.Dialog;
-import net.smoofyuniverse.common.fxui.dialog.NumberInputDialog;
-import net.smoofyuniverse.common.fxui.field.NumberField;
+import net.smoofyuniverse.common.event.Event;
+import net.smoofyuniverse.common.resource.translator.Translator;
 
-public class NumberInputBuilder extends AbstractBuilder<Number> {
-	private NumberField field;
+public class TranslatorUpdateEvent implements Event {
+	public final Translator translator;
 
-	public NumberInputBuilder field(NumberField field) {
-		this.field = field;
-		return this;
-	}
-	
-	@Override
-	protected void validate() {
-		super.validate();
+	public TranslatorUpdateEvent(Translator translator) {
+		if (translator == null)
+			throw new IllegalArgumentException("translator");
 
-		if (this.field == null)
-			throw new IllegalArgumentException("field");
-	}
-
-	@Override
-	protected Dialog<Number> provide() {
-		return new NumberInputDialog(this.field);
+		this.translator = translator;
 	}
 }

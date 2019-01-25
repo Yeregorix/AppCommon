@@ -23,7 +23,7 @@
 package net.smoofyuniverse.common.fxui.dialog.builder;
 
 import javafx.application.Platform;
-import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -37,7 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractBuilder<T> {
-	protected StringProperty titleP, headerP, messageP;
+	protected ObservableValue<String> titleP, headerP, messageP;
 	protected String title, header, message;
 	protected ButtonType[] buttonTypes;
 	protected Node content, expandable;
@@ -46,74 +46,70 @@ public abstract class AbstractBuilder<T> {
 	public AbstractBuilder() {
 		App.get().requireUI();
 	}
-	
-	public AbstractBuilder<T> owner(Stage s) {
-		this.owner = s;
+
+	public AbstractBuilder<T> owner(Stage value) {
+		this.owner = value;
 		return this;
 	}
-	
-	public AbstractBuilder<T> title(String s) {
+
+	public AbstractBuilder<T> title(String value) {
 		this.titleP = null;
-		this.title = s;
+		this.title = value;
 		return this;
 	}
-	
-	public AbstractBuilder<T> title(StringProperty s) {
-		this.titleP = s;
+
+	public AbstractBuilder<T> title(ObservableValue<String> value) {
+		this.titleP = value;
 		this.title = null;
 		return this;
 	}
-	
-	public AbstractBuilder<T> header(String s) {
+
+	public AbstractBuilder<T> header(String value) {
 		this.headerP = null;
-		this.header = s;
+		this.header = value;
 		return this;
 	}
-	
-	public AbstractBuilder<T> header(StringProperty s) {
-		this.headerP = s;
+
+	public AbstractBuilder<T> header(ObservableValue<String> value) {
+		this.headerP = value;
 		this.header = null;
 		return this;
 	}
-	
-	public AbstractBuilder<T> message(String s) {
-		this.messageP = null;
-		this.message = s;
-		return this;
-	}
-	
-	public AbstractBuilder<T> message(StringProperty s) {
-		this.messageP = s;
+
+	public AbstractBuilder<T> message(ObservableValue<String> value) {
+		this.messageP = value;
 		this.message = null;
 		return this;
 	}
-	
-	public AbstractBuilder<T> content(Node n) {
-		this.content = n;
+
+	public AbstractBuilder<T> content(Node value) {
+		this.content = value;
 		return this;
 	}
-	
-	public AbstractBuilder<T> expandable(Node n) {
-		this.expandable = n;
+
+	public AbstractBuilder<T> expandable(Node value) {
+		this.expandable = value;
 		return this;
 	}
-	
-	public AbstractBuilder<T> buttonTypes(ButtonType... t) {
-		this.buttonTypes = t;
+
+	public AbstractBuilder<T> buttonTypes(ButtonType... values) {
+		this.buttonTypes = values;
 		return this;
 	}
-	
-	public AbstractBuilder<T> message(Throwable t) {
-		return message(StringUtil.simpleFormat(t));
+
+	public AbstractBuilder<T> message(Throwable value) {
+		return message(StringUtil.simpleFormat(value));
 	}
-	
-	public boolean valid() {
-		return this.title != null;
+
+	public AbstractBuilder<T> message(String value) {
+		this.messageP = null;
+		this.message = value;
+		return this;
 	}
-	
-	public void validate() {
-		if (!valid())
-			throw new IllegalStateException("Invalid builder");
+
+	protected void validate() {
+		if (this.title == null && this.titleP == null)
+			throw new IllegalArgumentException("title");
 	}
 	
 	public Dialog<T> build() {

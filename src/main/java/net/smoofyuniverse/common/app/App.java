@@ -52,14 +52,6 @@ public final class App {
 		return Application.get();
 	}
 
-	public static String translate(String key) {
-		return get().getTranslator().translate(key);
-	}
-
-	public static String translate(String key, String... parameters) {
-		return get().getTranslator().translate(key, parameters);
-	}
-
 	public static boolean registerListener(ListenerRegistration l) {
 		return get().getEventManager().register(l);
 	}

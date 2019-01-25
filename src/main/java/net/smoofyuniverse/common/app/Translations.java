@@ -20,30 +20,16 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog.builder;
+package net.smoofyuniverse.common.app;
 
-import javafx.scene.control.Dialog;
-import net.smoofyuniverse.common.fxui.dialog.NumberInputDialog;
-import net.smoofyuniverse.common.fxui.field.NumberField;
+import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
 
-public class NumberInputBuilder extends AbstractBuilder<Number> {
-	private NumberField field;
+import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
 
-	public NumberInputBuilder field(NumberField field) {
-		this.field = field;
-		return this;
-	}
-	
-	@Override
-	protected void validate() {
-		super.validate();
+public class Translations {
 
-		if (this.field == null)
-			throw new IllegalArgumentException("field");
-	}
-
-	@Override
-	protected Dialog<Number> provide() {
-		return new NumberInputDialog(this.field);
-	}
+	public static final ObservableTranslation update_available_title = DUMMY, update_available_message = DUMMY,
+			update_download_title = DUMMY, update_cancelled = DUMMY, updater_signature_invalid = DUMMY,
+			update_signature_invalid = DUMMY, update_process_title = DUMMY, update_process_message = DUMMY,
+			update_process_error = DUMMY, update_title = DUMMY, task_list_cancel = DUMMY;
 }

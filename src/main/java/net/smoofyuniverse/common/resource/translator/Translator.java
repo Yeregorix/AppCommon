@@ -20,19 +20,27 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.resource;
+package net.smoofyuniverse.common.resource.translator;
 
+import javafx.application.Platform;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.event.Order;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
+import net.smoofyuniverse.common.event.resource.TranslatorUpdateEvent;
+import net.smoofyuniverse.common.resource.Language;
+import net.smoofyuniverse.common.resource.ResourceManager;
+import net.smoofyuniverse.common.resource.ResourceModule;
+import net.smoofyuniverse.common.util.ReflectionUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,6 +48,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Translator {
 	private static final Logger logger = App.getLogger("Translator");
@@ -47,15 +56,41 @@ public class Translator {
 
 	public final ResourceManager manager;
 	private ResourceModule<String> defaultModule, selectionModule;
+	private Map<String, ObservableTranslation> translations = new ConcurrentHashMap<>();
 
 	private Translator(ResourceManager manager) {
 		this.manager = manager;
 	}
 
-	public String translate(String key) {
-		if (!ResourceModule.isValidKey(key))
-			return key;
+	public void fill(Class<?> receiver) throws IllegalAccessException {
+		if (receiver == null)
+			throw new IllegalArgumentException("receiver");
 
+		for (Field f : receiver.getDeclaredFields()) {
+			if (Modifier.isStatic(f.getModifiers()) && ObservableTranslation.class.isAssignableFrom(f.getType()) && ResourceModule.isValidKey(f.getName())) {
+				f.setAccessible(true);
+				ReflectionUtil.removeFinal(f);
+				f.set(null, observableTranslation(f.getName()));
+			}
+		}
+	}
+
+	public ObservableTranslation observableTranslation(String key) {
+		ResourceModule.checkKey(key);
+		ObservableTranslation t = this.translations.get(key);
+		if (t == null) {
+			t = new ObservableTranslation(this, key);
+			this.translations.put(key, t);
+		}
+		return t;
+	}
+
+	public String translate(String key) {
+		ResourceModule.checkKey(key);
+		return _translate(key);
+	}
+
+	String _translate(String key) {
 		if (this.selectionModule != null) {
 			Optional<String> value = this.selectionModule.get(key);
 			if (value.isPresent())
@@ -72,8 +107,7 @@ public class Translator {
 	}
 
 	public String translate(String key, String... parameters) {
-		if (!ResourceModule.isValidKey(key))
-			return key;
+		ResourceModule.checkKey(key);
 
 		if (this.selectionModule != null) {
 			Optional<String> value = this.selectionModule.get(key);
@@ -106,6 +140,13 @@ public class Translator {
 
 		if (this.defaultModule == this.selectionModule)
 			this.defaultModule = null;
+
+		Platform.runLater(() -> {
+			for (ObservableTranslation t : this.translations.values())
+				t.update();
+
+			App.postEvent(new TranslatorUpdateEvent(this));
+		});
 	}
 
 	public static void save(ResourceModule<String> module, Path file) throws IOException {

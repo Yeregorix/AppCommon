@@ -22,6 +22,8 @@
 
 package net.smoofyuniverse.common.task.listener;
 
+import javafx.beans.value.ObservableValue;
+
 public class IncrementalProgressListener implements IncrementalListener {
 	public final ProgressListener delegate;
 	public final long expectedTotal;
@@ -47,6 +49,11 @@ public class IncrementalProgressListener implements IncrementalListener {
 
 	@Override
 	public void setMessage(String value) {
+		this.delegate.setMessage(value);
+	}
+
+	@Override
+	public void setMessage(ObservableValue<String> value) {
 		this.delegate.setMessage(value);
 	}
 	

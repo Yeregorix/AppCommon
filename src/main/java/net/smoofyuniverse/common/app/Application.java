@@ -33,7 +33,11 @@ import net.smoofyuniverse.common.download.FileDownloadTask;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.fxui.dialog.Popup;
-import net.smoofyuniverse.common.resource.*;
+import net.smoofyuniverse.common.resource.Language;
+import net.smoofyuniverse.common.resource.Languages;
+import net.smoofyuniverse.common.resource.ResourceManager;
+import net.smoofyuniverse.common.resource.ResourceModule;
+import net.smoofyuniverse.common.resource.translator.Translator;
 import net.smoofyuniverse.common.task.Task;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
@@ -191,6 +195,12 @@ public abstract class Application {
 		}
 
 		this.translator = Translator.of(this.resourceManager);
+		try {
+			fillTranslations();
+		} catch (Exception e) {
+			this.logger.error("Failed to fill translations", e);
+			fatalError(e);
+		}
 
 		String langId = this.arguments.getFlag("language", "lang").orElse(null);
 		if (langId != null && !Language.isValidId(langId)) {
@@ -219,6 +229,10 @@ public abstract class Application {
 
 	protected void loadResources() throws Exception {
 		loadTranslations(App.getResource("lang/common"), "txt");
+	}
+
+	protected void fillTranslations() throws Exception {
+		getTranslator().fill(Translations.class);
 	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
@@ -371,7 +385,7 @@ public abstract class Application {
 
 	public boolean suggestUpdate() {
 		if (this.UIEnabled)
-			return Popup.confirmation().title(App.translate("update_available_title")).message(App.translate("update_available_message")).submitAndWait();
+			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
 
 		if (this.arguments.getFlag("autoUpdate").isPresent())
 			return true;
@@ -386,7 +400,7 @@ public abstract class Application {
 
 		Consumer<Task> consumer = (task) -> {
 			this.logger.info("Starting application update task ..");
-			task.setTitle(App.translate("update_download_title"));
+			task.setTitle(Translations.update_download_title);
 
 			if (this.updaterUpdateTask.shouldUpdate(false)) {
 				this.logger.info("Downloading latest updater ..");
@@ -394,7 +408,7 @@ public abstract class Application {
 
 				if (this.updaterUpdateTask.shouldUpdate(false)) {
 					this.logger.error("Updater file seems invalid, aborting ..");
-					Popup.error().title(App.translate("update_cancelled")).message(App.translate("updater_signature_invalid")).show();
+					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
 					return;
 				}
 			}
@@ -409,7 +423,7 @@ public abstract class Application {
 
 				if (this.jarUpdateTask.shouldUpdate(false)) {
 					this.logger.error("Application update file seems invalid, aborting ..");
-					Popup.error().title(App.translate("update_cancelled")).message(App.translate("update_signature_invalid")).show();
+					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
 					this.jarUpdateTask.setPath(appJar);
 					return;
 				}
@@ -417,8 +431,8 @@ public abstract class Application {
 			this.jarUpdateTask.setPath(appJar);
 
 			this.logger.info("Starting updater process ..");
-			task.setTitle(App.translate("update_process_title"));
-			task.setMessage(App.translate("update_process_message"));
+			task.setTitle(Translations.update_process_title);
+			task.setMessage(Translations.update_process_message);
 			task.setProgress(-1);
 
 			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
@@ -440,7 +454,7 @@ public abstract class Application {
 				ProcessUtil.builder().command(cmd).start();
 			} catch (IOException e) {
 				this.logger.error("Failed to start updater process", e);
-				Popup.error().title(App.translate("update_cancelled")).message(App.translate("update_process_error")).show();
+				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
 				return;
 			}
 
@@ -451,7 +465,7 @@ public abstract class Application {
 		};
 
 		if (this.UIEnabled)
-			Popup.consumer(consumer).title(App.translate("update_title")).submitAndWait();
+			Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
 		else
 			App.submit(consumer);
 	}

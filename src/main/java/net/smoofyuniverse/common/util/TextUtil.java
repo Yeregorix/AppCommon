@@ -22,6 +22,7 @@
 
 package net.smoofyuniverse.common.util;
 
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.text.TextAlignment;
@@ -57,29 +58,61 @@ public class TextUtil {
 		return new TextFlow(children);
 	}
 
-	public static Hyperlink openLink(String link) {
-		return openLink(link, link);
+	public static Hyperlink openLink(String text, String link) {
+		Hyperlink l = openLink(link);
+		l.setText(text);
+		return l;
 	}
 
-	public static Hyperlink openLink(String text, String link) {
+	public static Hyperlink openLink(String link) {
 		try {
-			return openLink(text, new URI(link));
+			return openLink(new URI(link));
 		} catch (URISyntaxException e) {
-			return new Hyperlink(text);
+			return new Hyperlink();
 		}
+	}
+
+	public static Hyperlink openLink(URI link) {
+		Hyperlink l = new Hyperlink();
+		l.setOnAction(e -> OperatingSystem.CURRENT.openLink(link));
+		return l;
+	}
+
+	public static Hyperlink openLink(ObservableValue<String> text, String link) {
+		Hyperlink l = openLink(link);
+		l.textProperty().bind(text);
+		return l;
 	}
 
 	public static Hyperlink openLink(String text, URL link) {
+		Hyperlink l = openLink(link);
+		l.setText(text);
+		return l;
+	}
+
+	public static Hyperlink openLink(URL link) {
 		try {
-			return openLink(text, link.toURI());
+			return openLink(link.toURI());
 		} catch (URISyntaxException e) {
-			return new Hyperlink(text);
+			return new Hyperlink();
 		}
 	}
 
+	public static Hyperlink openLink(ObservableValue<String> text, URL link) {
+		Hyperlink l = openLink(link);
+		l.textProperty().bind(text);
+		return l;
+	}
+
 	public static Hyperlink openLink(String text, URI link) {
-		Hyperlink l = new Hyperlink(text);
-		l.setOnAction(e -> OperatingSystem.CURRENT.openLink(link));
+		Hyperlink l = openLink(link);
+		l.setText(text);
+		return l;
+	}
+
+	public static Hyperlink openLink(ObservableValue<String> text, URI link) {
+		Hyperlink l = openLink(link);
+		l.textProperty().bind(text);
 		return l;
 	}
 }
