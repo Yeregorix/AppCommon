@@ -551,6 +551,10 @@ public abstract class Application {
 		return Optional.ofNullable(this.stage);
 	}
 
+	public Optional<Scene> getScene() {
+		return this.stage == null ? Optional.empty() : Optional.of(this.stage.getScene());
+	}
+
 	public static Application get() {
 		if (instance == null)
 			throw new IllegalStateException("Application instance not available");
