@@ -214,7 +214,6 @@ public abstract class Application {
 		}
 		if (langId != null)
 			this.resourceManager.setSelection(Language.of(langId));
-		this.logger.info("Selected language: " + this.resourceManager.getSelection().id);
 
 		long dur = System.currentTimeMillis() - time;
 		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");

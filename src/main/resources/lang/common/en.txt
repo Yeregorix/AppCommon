@@ -1,3 +1,5 @@
+lang_name=English
+
 ## Application update
 update_available_title=Update available
 update_available_message=An update is available.\nDo you want to install it?

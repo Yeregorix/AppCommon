@@ -1,3 +1,5 @@
+lang_name=Français
+
 ## Application update
 update_available_title=Mise à jour disponible
 update_available_message=Une mise à jour est disponible.\nSouhaitez vous l'installer ?

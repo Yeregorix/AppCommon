@@ -22,8 +22,11 @@
 
 package net.smoofyuniverse.common.resource;
 
+import net.smoofyuniverse.common.app.App;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public final class Language {
@@ -34,6 +37,10 @@ public final class Language {
 
 	private Language(String id) {
 		this.id = id;
+	}
+
+	public Optional<String> getName() {
+		return App.get().getResourceManager().getPack(this).flatMap(p -> p.getModule(String.class)).flatMap(m -> m.get("lang_name"));
 	}
 
 	public static Language of(String id) {
