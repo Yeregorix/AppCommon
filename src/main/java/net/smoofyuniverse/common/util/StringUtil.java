@@ -27,7 +27,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -219,31 +221,58 @@ public class StringUtil {
 	public static Predicate<String> regexPredicate(String arg) {
 		return Pattern.compile(arg).asPredicate();
 	}
-	
+
 	public static Predicate<String> simplePredicate(String arg) {
-		int first = arg.indexOf('*');
-		if (first == -1)
-			return (s) -> s.equals(arg);
-			
-		if (arg.length() == 1)
-			return (s) -> true;
-			
-		int last = arg.lastIndexOf('*');
-		String start = arg.substring(0, first), end = arg.substring(last +1);
-		if (first == last)
-			return (s) -> s.startsWith(start) && s.endsWith(end);
-			
-		String[] parts = arg.substring(first +1, last).split("\\*"); // TODO Order
-		
-		return (s) -> {
-			if (!(s.startsWith(start) && s.endsWith(end)))
-				return false;
-			
-			for (String p : parts) {
-				if (!s.contains(p))
-					return false;
+		List<String> l = new ArrayList<>();
+
+		boolean escape = false;
+		StringBuilder b = new StringBuilder(arg.length());
+		for (int i = 0; i < arg.length(); i++) {
+			char c = arg.charAt(i);
+			if (c == '*') {
+				if (escape) {
+					b.append('*');
+					escape = false;
+				} else {
+					l.add(b.toString());
+					b.setLength(0);
+				}
+			} else if (c == '\\') {
+				if (escape) {
+					b.append('\\');
+					escape = false;
+				} else {
+					escape = true;
+				}
+			} else {
+				b.append(c);
+				escape = false;
 			}
-			
+		}
+		l.add(b.toString());
+
+		if (l.size() == 1) {
+			String value = l.get(0);
+			return s -> s.equals(value);
+		}
+
+		String[] parts = l.toArray(new String[0]);
+		return s -> {
+			if (s.length() < parts[0].length() + parts[parts.length - 1].length())
+				return false;
+
+			if (!s.startsWith(parts[0]) || !s.endsWith(parts[parts.length - 1]))
+				return false;
+
+			int offset = parts[0].length();
+			for (int i = 1; i < parts.length - 1; i++) {
+				int j = s.indexOf(parts[i], offset);
+				if (j == -1)
+					return false;
+
+				offset = j + parts[i].length();
+			}
+
 			return true;
 		};
 	}
