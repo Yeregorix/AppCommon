@@ -25,6 +25,7 @@ package net.smoofyuniverse.common.resource;
 import net.smoofyuniverse.common.app.App;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -34,9 +35,11 @@ public final class Language {
 	private static final Map<String, Language> map = new HashMap<>();
 
 	public final String id;
+	public final Locale locale;
 
 	private Language(String id) {
 		this.id = id;
+		this.locale = new Locale(id);
 	}
 
 	public Optional<String> getName() {
