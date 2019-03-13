@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 public enum OperatingSystem {
 	WINDOWS {
@@ -51,7 +52,7 @@ public enum OperatingSystem {
 	public static final String USER_HOME = System.getProperty("user.home", ".");
 
 	private static OperatingSystem getPlatform() {
-		String osName = System.getProperty("os.name").toLowerCase();
+		String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
 		if (osName.contains("win"))
 			return WINDOWS;
 		if (osName.contains("mac"))

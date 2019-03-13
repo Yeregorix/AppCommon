@@ -34,7 +34,28 @@ public final class Arguments {
 		this.flags = flags;
 		this.args = args;
 	}
-	
+
+	public int getIntFlag(int defaultV, String... keys) {
+		for (String key : keys) {
+			String v = this.flags.get(key.toLowerCase(Locale.ROOT));
+			if (v != null)
+				try {
+					return Integer.parseInt(v);
+				} catch (NumberFormatException ignored) {
+				}
+		}
+		return defaultV;
+	}
+
+	public Optional<String> getFlag(String... keys) {
+		for (String key : keys) {
+			String v = this.flags.get(key.toLowerCase(Locale.ROOT));
+			if (v != null)
+				return Optional.of(v);
+		}
+		return Optional.empty();
+	}
+
 	public static Arguments parse(String[] rawArgs) {
 		Map<String, String> flags = new HashMap<>();
 		List<String> args = new ArrayList<>();
@@ -44,7 +65,7 @@ public final class Arguments {
 			if (arg.startsWith("--")) {
 				if (key != null)
 					flags.put(key, "");
-				key = arg.substring(2).toLowerCase();
+				key = arg.substring(2).toLowerCase(Locale.ROOT);
 			} else {
 				if (key == null)
 					args.add(arg);
@@ -61,27 +82,6 @@ public final class Arguments {
 		Arguments a = new Arguments(flags, args);
 		a.initialArgs = rawArgs;
 		return a;
-	}
-
-	public int getIntFlag(int defaultV, String... keys) {
-		for (String key : keys) {
-			String v = this.flags.get(key.toLowerCase());
-			if (v != null)
-				try {
-					return Integer.parseInt(v);
-				} catch (NumberFormatException ignored) {
-				}
-		}
-		return defaultV;
-	}
-
-	public Optional<String> getFlag(String... keys) {
-		for (String key : keys) {
-			String v = this.flags.get(key.toLowerCase());
-			if (v != null)
-				return Optional.of(v);
-		}
-		return Optional.empty();
 	}
 
 	public Optional<String> getArgument(int index) {
