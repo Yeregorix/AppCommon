@@ -20,20 +20,36 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.listener;
+package net.smoofyuniverse.common.task.impl;
 
-import javafx.beans.value.ObservableValue;
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.IncrementalTask;
 
-public interface SimpleListener {
+import java.util.Optional;
 
-	default void setMessage(String value) {}
+public class SimpleIncrementalTask extends SimpleIncrementalListener implements IncrementalTask {
+	private String title, message;
 
-	default void setMessage(ObservableValue<String> value) {
-		setMessage(value.getValue());
+	public SimpleIncrementalTask(long maximum) {
+		super(maximum);
 	}
 
-	default boolean isCancelled() {
-		return App.isShutdown();
+	@Override
+	public Optional<String> getTitle() {
+		return Optional.ofNullable(this.title);
+	}
+
+	@Override
+	public void setTitle(String value) {
+		this.title = value;
+	}
+
+	@Override
+	public Optional<String> getMessage() {
+		return Optional.ofNullable(this.message);
+	}
+
+	@Override
+	public void setMessage(String value) {
+		this.message = value;
 	}
 }

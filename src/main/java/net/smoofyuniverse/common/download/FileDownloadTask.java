@@ -23,7 +23,7 @@
 package net.smoofyuniverse.common.download;
 
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
+import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
@@ -165,6 +165,6 @@ public class FileDownloadTask {
 				return false;
 			}
 		}
-		return IOUtil.download(this.url, this.path, this.config, p.provide(this.expectedSize));
+		return IOUtil.download(this.url, this.path, this.config, p.expect(this.expectedSize));
 	}
 }

@@ -29,7 +29,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.fxui.task.ObservableTask;
-import net.smoofyuniverse.common.task.Task;
+import net.smoofyuniverse.common.task.ProgressTask;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class AlertBuilder extends AbstractBuilder<ButtonType> {
-	private Consumer<Task> consumer;
+	private Consumer<ProgressTask> consumer;
 	private ExecutorService executor;
 	private ObservableTask task;
 	private AlertType type;
@@ -58,7 +58,7 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 		return this;
 	}
 
-	public AlertBuilder consumer(Consumer<Task> value) {
+	public AlertBuilder consumer(Consumer<ProgressTask> value) {
 		this.consumer = value;
 		return this;
 	}

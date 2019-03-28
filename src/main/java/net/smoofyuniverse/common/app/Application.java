@@ -38,7 +38,8 @@ import net.smoofyuniverse.common.resource.Languages;
 import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.resource.ResourceModule;
 import net.smoofyuniverse.common.resource.translator.Translator;
-import net.smoofyuniverse.common.task.Task;
+import net.smoofyuniverse.common.task.BaseListener;
+import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
@@ -52,10 +53,8 @@ import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -68,6 +67,7 @@ public abstract class Application {
 	protected final Path workingDir;
 	protected final String name, title, version;
 	protected final boolean UIEnabled;
+	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 
 	private ConnectionConfiguration connectionConfig;
 	private LoggerFactory loggerFactory;
@@ -296,6 +296,7 @@ public abstract class Application {
 				setState(State.SHUTDOWN);
 			}
 
+			cancelListeners();
 			this.resourceLoader.close();
 
 			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
@@ -311,22 +312,14 @@ public abstract class Application {
 		return this.stage;
 	}
 
-	public void shutdown() {
-		if (this.state == State.SHUTDOWN)
-			return;
-
-		this.logger.info("Shutting down ..");
-		setState(State.SHUTDOWN);
-
-		this.resourceLoader.close();
-
-		if (this.executor != null) {
-			this.executor.shutdown();
-			this.executor = null;
+	public final void cancelListeners() {
+		for (BaseListener l : this.listeners) {
+			try {
+				l.cancel();
+			} catch (Exception ignored) {
+			}
 		}
-
-		if (this.UIEnabled)
-			Platform.runLater(Platform::exit);
+		this.listeners.clear();
 	}
 	
 	public Optional<Path> getApplicationJarFile() {
@@ -397,7 +390,7 @@ public abstract class Application {
 		if (this.updaterUpdateTask == null || this.jarUpdateTask == null)
 			throw new IllegalStateException("Update tasks not initialized");
 
-		Consumer<Task> consumer = (task) -> {
+		Consumer<ProgressTask> consumer = (task) -> {
 			this.logger.info("Starting application update task ..");
 			task.setTitle(Translations.update_download_title);
 
@@ -532,6 +525,36 @@ public abstract class Application {
 		if (this.translator == null)
 			throw new IllegalStateException("Translator not initialized");
 		return this.translator;
+	}
+
+	public void shutdown() {
+		if (this.state == State.SHUTDOWN)
+			return;
+
+		this.logger.info("Shutting down ..");
+		setState(State.SHUTDOWN);
+
+		cancelListeners();
+		this.resourceLoader.close();
+
+		if (this.executor != null) {
+			this.executor.shutdown();
+			this.executor = null;
+		}
+
+		if (this.UIEnabled)
+			Platform.runLater(Platform::exit);
+	}
+
+	public final void registerListener(BaseListener l) {
+		if (this.state == State.SHUTDOWN) {
+			try {
+				l.cancel();
+			} catch (Exception ignored) {
+			}
+		} else {
+			this.listeners.add(l);
+		}
 	}
 
 	public final String getName() {

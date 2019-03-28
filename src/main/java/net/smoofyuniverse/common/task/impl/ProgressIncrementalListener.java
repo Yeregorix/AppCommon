@@ -20,45 +20,66 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.listener;
+package net.smoofyuniverse.common.task.impl;
 
-import javafx.beans.value.ObservableValue;
+import net.smoofyuniverse.common.task.IncrementalListener;
+import net.smoofyuniverse.common.task.ProgressListener;
 
-public class IncrementalProgressListener implements IncrementalListener {
+public class ProgressIncrementalListener implements IncrementalListener {
 	public final ProgressListener delegate;
-	public final long expectedTotal;
-	private long total = 0;
+	public final long maximum;
+	public final boolean limit;
+	private long total;
 
-	public IncrementalProgressListener(ProgressListener delegate, long expectedTotal) {
+	public ProgressIncrementalListener(ProgressListener delegate, long maximum, boolean limit) {
+		if (delegate == null)
+			throw new IllegalArgumentException("delegate");
+
 		this.delegate = delegate;
-		this.expectedTotal = expectedTotal;
+		this.maximum = maximum <= 0 ? 0 : maximum;
+		this.limit = limit;
 
-		this.delegate.setProgress(expectedTotal == -1 ? -1 : 0);
+		this.delegate.setProgress(this.maximum == 0 ? ProgressListener.INDETERMINATE : 0);
 	}
-	
+
+	@Override
 	public long getTotal() {
 		return this.total;
 	}
-	
+
 	@Override
 	public void increment(long value) {
+		if (value < 0)
+			throw new IllegalArgumentException("negative value");
+
 		this.total += value;
-		if (this.expectedTotal != -1)
-			this.delegate.setProgress(this.total / (double) this.expectedTotal);
+		if (this.maximum != 0) {
+			if (this.total >= this.maximum) {
+				this.delegate.setProgress(1);
+				this.delegate.cancel();
+			} else {
+				this.delegate.setProgress(this.total / (double) this.maximum);
+			}
+		}
 	}
 
 	@Override
-	public void setMessage(String value) {
-		this.delegate.setMessage(value);
+	public boolean isCancellable() {
+		return this.delegate.isCancellable();
 	}
 
 	@Override
-	public void setMessage(ObservableValue<String> value) {
-		this.delegate.setMessage(value);
+	public void setCancellable(boolean value) {
+		this.delegate.setCancellable(value);
 	}
-	
+
 	@Override
 	public boolean isCancelled() {
 		return this.delegate.isCancelled();
+	}
+
+	@Override
+	public void setCancelled(boolean value) {
+		this.delegate.setCancelled(value);
 	}
 }

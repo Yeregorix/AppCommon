@@ -22,7 +22,6 @@
 
 package net.smoofyuniverse.common.resource;
 
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 
 import java.util.HashMap;
@@ -80,7 +79,7 @@ public class ResourceManager {
 		this.selection = lang;
 		this.selectionPack = getOrCreatePack(lang);
 
-		App.postEvent(new LanguageSelectionChangeEvent(this, prevLang, lang));
+		new LanguageSelectionChangeEvent(this, prevLang, lang).post();
 	}
 
 	public ResourcePack getSelectionPack() {

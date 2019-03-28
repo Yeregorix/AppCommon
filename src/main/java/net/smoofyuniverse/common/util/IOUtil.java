@@ -26,8 +26,8 @@ import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.OperatingSystem;
 import net.smoofyuniverse.common.download.ConnectionConfiguration;
-import net.smoofyuniverse.common.task.listener.IncrementalListener;
-import net.smoofyuniverse.common.task.listener.IncrementalListenerProvider;
+import net.smoofyuniverse.common.task.IncrementalListener;
+import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.IOException;
@@ -145,9 +145,9 @@ public class IOUtil {
 
 			IncrementalListener l;
 			try {
-				l = p.provide(Long.parseLong(co.getHeaderField("Content-Length")));
+				l = p.expect(Long.parseLong(co.getHeaderField("Content-Length")));
 			} catch (NumberFormatException e) {
-				l = p.provide(-1);
+				l = p.expect(-1);
 			}
 
 			logger.info("Downloading from url '" + co.getURL() + "' to file: " + file + " ..");

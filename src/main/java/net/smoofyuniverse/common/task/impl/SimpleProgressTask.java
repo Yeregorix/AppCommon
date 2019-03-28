@@ -20,14 +20,32 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.listener;
+package net.smoofyuniverse.common.task.impl;
 
-public interface ProgressListener extends SimpleListener, IncrementalListenerProvider {
+import net.smoofyuniverse.common.task.ProgressTask;
 
-	void setProgress(double value);
+import java.util.Optional;
+
+public class SimpleProgressTask extends SimpleProgressListener implements ProgressTask {
+	private String title, message;
 
 	@Override
-	default IncrementalListener provide(long expectedTotal) {
-		return new IncrementalProgressListener(this, expectedTotal);
+	public Optional<String> getTitle() {
+		return Optional.ofNullable(this.title);
+	}
+
+	@Override
+	public void setTitle(String value) {
+		this.title = value;
+	}
+
+	@Override
+	public Optional<String> getMessage() {
+		return Optional.ofNullable(this.message);
+	}
+
+	@Override
+	public void setMessage(String value) {
+		this.message = value;
 	}
 }

@@ -22,7 +22,6 @@
 
 package net.smoofyuniverse.common.resource;
 
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
 
 import java.util.HashMap;
@@ -58,7 +57,7 @@ public class ResourcePack {
 	private boolean remove(Class<?> type) {
 		ResourceModule<?> mod = this.modules.remove(type);
 		if (mod != null) {
-			App.postEvent(new ResourceModuleChangeEvent(this, mod, null));
+			new ResourceModuleChangeEvent(this, mod, null).post();
 			return true;
 		}
 		return false;
@@ -75,7 +74,7 @@ public class ResourcePack {
 	}
 
 	private <T> void put(ResourceModule<T> module) {
-		App.postEvent(new ResourceModuleChangeEvent(this, this.modules.put(module.type, module), module));
+		new ResourceModuleChangeEvent(this, this.modules.put(module.type, module), module).post();
 	}
 
 	public <T> void addModule(ResourceModule<T> module) {

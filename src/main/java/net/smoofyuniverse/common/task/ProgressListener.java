@@ -20,18 +20,24 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.task;
 
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.impl.ProgressIncrementalListener;
 
-public interface Event {
-	default boolean isCancelled() { return false; }
+public interface ProgressListener extends BaseListener, IncrementalListenerProvider {
+	double INDETERMINATE = -1;
 
-	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
+	double getProgress();
+
+	void setProgress(double value);
+
+	@Override
+	default ProgressIncrementalListener expect(long total) {
+		return new ProgressIncrementalListener(this, total, false);
 	}
 
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
+	@Override
+	default ProgressIncrementalListener limit(long total) {
+		return new ProgressIncrementalListener(this, total, true);
 	}
 }

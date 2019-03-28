@@ -20,18 +20,12 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.task;
 
-import net.smoofyuniverse.common.app.App;
+public interface IncrementalTaskProvider extends IncrementalListenerProvider {
+	@Override
+	IncrementalTask expect(long total);
 
-public interface Event {
-	default boolean isCancelled() { return false; }
-
-	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
-	}
-
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
-	}
+	@Override
+	IncrementalTask limit(long total);
 }

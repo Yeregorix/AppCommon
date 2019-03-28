@@ -20,18 +20,20 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.ProgressListener;
 
-public interface Event {
-	default boolean isCancelled() { return false; }
+public class SimpleProgressListener extends SimpleBaseListener implements ProgressListener {
+	private double progress;
 
-	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
+	@Override
+	public double getProgress() {
+		return this.progress;
 	}
 
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
+	@Override
+	public void setProgress(double value) {
+		this.progress = value;
 	}
 }

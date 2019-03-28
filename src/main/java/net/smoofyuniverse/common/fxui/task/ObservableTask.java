@@ -26,19 +26,12 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.app.State;
-import net.smoofyuniverse.common.event.Order;
-import net.smoofyuniverse.common.task.Task;
+import net.smoofyuniverse.common.task.ProgressTask;
 
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public final class ObservableTask implements Task {
-	private static final Set<ObservableTask> tasks = Collections.newSetFromMap(new WeakHashMap<>());
-
+public final class ObservableTask implements ProgressTask {
 	private AtomicReference<String> titleUpdate = new AtomicReference<>();
 	private AtomicReference<String> messageUpdate = new AtomicReference<>();
 	private AtomicReference<Double> progressUpdate = new AtomicReference<>();
@@ -51,7 +44,7 @@ public final class ObservableTask implements Task {
 	private BooleanProperty cancelled = new SimpleBooleanProperty(false);
 
 	public ObservableTask() {
-		tasks.add(this);
+		App.get().registerListener(this);
 	}
 
 	public StringProperty titleProperty() {
@@ -157,9 +150,5 @@ public final class ObservableTask implements Task {
 			this.cancellable.set(value);
 		else if (this.cancellableUpdate.getAndSet(value) == null)
 			Platform.runLater(() -> this.cancellable.set(this.cancellableUpdate.getAndSet(null)));
-	}
-
-	static {
-		App.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(Task::cancel), Order.EARLY));
 	}
 }

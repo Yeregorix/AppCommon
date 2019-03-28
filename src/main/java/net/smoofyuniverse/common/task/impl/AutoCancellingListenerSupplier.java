@@ -20,18 +20,26 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.BaseListener;
 
-public interface Event {
-	default boolean isCancelled() { return false; }
+import java.util.function.Supplier;
 
-	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
+public final class AutoCancellingListenerSupplier<T extends BaseListener> implements Supplier<T> {
+	private final Supplier<T> delegate;
+	private volatile T currentTask;
+
+	public AutoCancellingListenerSupplier(Supplier<T> delegate) {
+		if (delegate == null)
+			throw new IllegalArgumentException("delegate");
+		this.delegate = delegate;
 	}
 
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
+	@Override
+	public synchronized T get() {
+		if (this.currentTask != null)
+			this.currentTask.cancel();
+		return this.currentTask = this.delegate.get();
 	}
 }

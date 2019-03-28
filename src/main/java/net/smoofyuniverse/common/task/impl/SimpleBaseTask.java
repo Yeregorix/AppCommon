@@ -20,18 +20,32 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.BaseTask;
 
-public interface Event {
-	default boolean isCancelled() { return false; }
+import java.util.Optional;
 
-	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
+public class SimpleBaseTask extends SimpleBaseListener implements BaseTask {
+	private String title, message;
+
+	@Override
+	public Optional<String> getTitle() {
+		return Optional.ofNullable(this.title);
 	}
 
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
+	@Override
+	public void setTitle(String value) {
+		this.title = value;
+	}
+
+	@Override
+	public Optional<String> getMessage() {
+		return Optional.ofNullable(this.message);
+	}
+
+	@Override
+	public void setMessage(String value) {
+		this.message = value;
 	}
 }

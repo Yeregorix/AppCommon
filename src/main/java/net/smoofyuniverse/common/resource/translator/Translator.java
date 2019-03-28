@@ -145,7 +145,7 @@ public class Translator {
 			for (ObservableTranslation t : this.translations.values())
 				t.update();
 
-			App.postEvent(new TranslatorUpdateEvent(this));
+			new TranslatorUpdateEvent(this).post();
 		});
 	}
 
@@ -228,18 +228,18 @@ public class Translator {
 	}
 
 	static {
-		App.registerListener(new ListenerRegistration<>(LanguageSelectionChangeEvent.class, e -> {
+		new ListenerRegistration<>(LanguageSelectionChangeEvent.class, e -> {
 			Translator t = translators.get(e.manager);
 			if (t != null)
 				t.update();
-		}, Order.EARLY));
+		}, Order.EARLY).register();
 
-		App.registerListener(new ListenerRegistration<>(ResourceModuleChangeEvent.class, e -> {
+		new ListenerRegistration<>(ResourceModuleChangeEvent.class, e -> {
 			Translator t = translators.get(e.pack.manager);
 			if (t != null) {
 				if (e.prevModule == t.defaultModule || e.prevModule == t.selectionModule)
 					t.update();
 			}
-		}, Order.EARLY));
+		}, Order.EARLY).register();
 	}
 }

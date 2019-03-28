@@ -20,27 +20,17 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.group;
+package net.smoofyuniverse.common.task;
 
-import net.smoofyuniverse.common.task.Task;
+public interface IncrementalTask extends BaseTask, IncrementalListener, IncrementalTaskProvider {
 
-import java.util.function.Supplier;
-
-public final class SingleConcurrentTaskGroup<T extends Task> implements TaskGroup<T> {
-	private final Supplier<T> supplier;
-	private volatile T currentTask;
-
-	public SingleConcurrentTaskGroup(Supplier<T> supplier) {
-		if (supplier == null)
-			throw new IllegalArgumentException("supplier");
-		this.supplier = supplier;
+	@Override
+	default IncrementalTask expect(long total) {
+		return this;
 	}
 
 	@Override
-	public synchronized T createTask() {
-		if (this.currentTask != null)
-			this.currentTask.cancel();
-
-		return this.currentTask = this.supplier.get();
+	default IncrementalTask limit(long total) {
+		return this;
 	}
 }

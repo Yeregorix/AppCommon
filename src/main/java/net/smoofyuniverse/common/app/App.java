@@ -23,10 +23,8 @@
 package net.smoofyuniverse.common.app;
 
 import javafx.application.Platform;
-import net.smoofyuniverse.common.event.Event;
-import net.smoofyuniverse.common.event.core.ListenerRegistration;
-import net.smoofyuniverse.common.task.SimpleTask;
-import net.smoofyuniverse.common.task.Task;
+import net.smoofyuniverse.common.task.ProgressTask;
+import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.LogMessage;
@@ -52,14 +50,6 @@ public final class App {
 		return Application.get();
 	}
 
-	public static boolean registerListener(ListenerRegistration l) {
-		return get().getEventManager().register(l);
-	}
-
-	public static boolean postEvent(Event e) {
-		return get().getEventManager().postEvent(e);
-	}
-
 	public static boolean isShutdown() {
 		return get().getState() == State.SHUTDOWN;
 	}
@@ -72,11 +62,11 @@ public final class App {
 		return msg.replace(IOUtil.USER_HOME, "USER_HOME");
 	}
 
-	public static boolean submit(Consumer<Task> consumer) {
-		return submit(consumer, new SimpleTask());
+	public static boolean submit(Consumer<ProgressTask> consumer) {
+		return submit(consumer, new SimpleProgressTask());
 	}
 
-	public static boolean submit(Consumer<Task> consumer, Task task) {
+	public static boolean submit(Consumer<ProgressTask> consumer, ProgressTask task) {
 		task.setCancelled(false);
 		try {
 			consumer.accept(task);

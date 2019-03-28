@@ -20,10 +20,27 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.listener;
+package net.smoofyuniverse.common.task;
 
-public interface IncrementalListenerProvider {
+import javafx.beans.value.ObservableValue;
 
-	IncrementalListener provide(long expectedTotal);
+import java.util.Optional;
 
+public interface BaseTask extends BaseListener {
+
+	Optional<String> getTitle();
+
+	void setTitle(String value);
+
+	default void setTitle(ObservableValue<String> value) {
+		setTitle(value.getValue());
+	}
+
+	Optional<String> getMessage();
+
+	void setMessage(String value);
+
+	default void setMessage(ObservableValue<String> value) {
+		setTitle(value.getValue());
+	}
 }

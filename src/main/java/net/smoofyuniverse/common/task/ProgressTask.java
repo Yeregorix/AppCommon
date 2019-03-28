@@ -20,12 +20,18 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.listener;
+package net.smoofyuniverse.common.task;
 
-public interface IncrementalListener extends SimpleListener, IncrementalListenerProvider {
+import net.smoofyuniverse.common.task.impl.ProgressIncrementalTask;
 
-	void increment(long value);
-	
+public interface ProgressTask extends BaseTask, ProgressListener, IncrementalTaskProvider {
 	@Override
-	default IncrementalListener provide(long expectedTotal) { return this; }
+	default ProgressIncrementalTask expect(long total) {
+		return new ProgressIncrementalTask(this, total, false);
+	}
+
+	@Override
+	default ProgressIncrementalTask limit(long total) {
+		return new ProgressIncrementalTask(this, total, true);
+	}
 }

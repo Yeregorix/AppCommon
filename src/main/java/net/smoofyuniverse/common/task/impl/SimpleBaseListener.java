@@ -20,18 +20,35 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.task.impl;
 
 import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.BaseListener;
 
-public interface Event {
-	default boolean isCancelled() { return false; }
+public class SimpleBaseListener implements BaseListener {
+	private boolean cancellable = true, cancelled = false;
 
-	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
+	public SimpleBaseListener() {
+		App.get().registerListener(this);
 	}
 
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
+	@Override
+	public boolean isCancellable() {
+		return this.cancellable;
+	}
+
+	@Override
+	public void setCancellable(boolean value) {
+		this.cancellable = value;
+	}
+
+	@Override
+	public boolean isCancelled() {
+		return this.cancelled;
+	}
+
+	@Override
+	public void setCancelled(boolean value) {
+		this.cancelled = value;
 	}
 }

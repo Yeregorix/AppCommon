@@ -20,10 +20,30 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.group;
+package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.task.Task;
+import net.smoofyuniverse.common.task.IncrementalListener;
 
-public interface TaskGroup<T extends Task> {
-	T createTask();
+public class SimpleIncrementalListener extends SimpleBaseListener implements IncrementalListener {
+	public final long maximum;
+	private long total;
+
+	public SimpleIncrementalListener(long maximum) {
+		this.maximum = maximum <= 0 ? 0 : maximum;
+	}
+
+	@Override
+	public long getTotal() {
+		return this.total;
+	}
+
+	@Override
+	public void increment(long value) {
+		if (value < 0)
+			throw new IllegalArgumentException("negative value");
+
+		this.total += value;
+		if (this.maximum != 0 && this.total >= this.maximum)
+			cancel();
+	}
 }

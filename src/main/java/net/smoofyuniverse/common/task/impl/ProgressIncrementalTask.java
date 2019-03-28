@@ -20,25 +20,20 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task;
+package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.app.State;
-import net.smoofyuniverse.common.event.Order;
+import net.smoofyuniverse.common.task.IncrementalTask;
+import net.smoofyuniverse.common.task.ProgressTask;
 
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
 
-public final class SimpleTask implements Task {
-	private static final Set<SimpleTask> tasks = Collections.newSetFromMap(new WeakHashMap<>());
+public class ProgressIncrementalTask extends ProgressIncrementalListener implements IncrementalTask {
+	public final ProgressTask taskDelegate;
 	private String title, message;
-	private double progress;
-	private boolean cancellable, cancelled;
 
-	public SimpleTask() {
-		tasks.add(this);
+	public ProgressIncrementalTask(ProgressTask delegate, long maximum, boolean limit) {
+		super(delegate, maximum, limit);
+		this.taskDelegate = delegate;
 	}
 
 	@Override
@@ -59,39 +54,5 @@ public final class SimpleTask implements Task {
 	@Override
 	public void setMessage(String value) {
 		this.message = value;
-	}
-
-	@Override
-	public boolean isCancelled() {
-		return this.cancelled;
-	}
-
-	@Override
-	public void setCancelled(boolean value) {
-		this.cancelled = value;
-	}
-
-	@Override
-	public double getProgress() {
-		return this.progress;
-	}
-
-	@Override
-	public void setProgress(double value) {
-		this.progress = value;
-	}
-
-	@Override
-	public boolean isCancellable() {
-		return this.cancellable;
-	}
-
-	@Override
-	public void setCancellable(boolean value) {
-		this.cancellable = value;
-	}
-
-	static {
-		App.registerListener(State.SHUTDOWN.newListener(e -> tasks.forEach(Task::cancel), Order.EARLY));
 	}
 }

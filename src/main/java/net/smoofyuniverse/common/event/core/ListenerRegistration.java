@@ -22,6 +22,7 @@
 
 package net.smoofyuniverse.common.event.core;
 
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.event.EventListener;
 import net.smoofyuniverse.common.event.Order;
@@ -58,6 +59,10 @@ public class ListenerRegistration<T extends Event> implements Comparable<Listene
 		this.listener = listener;
 		this.order = order;
 		this.ignoreCancelled = ignoreCancelled;
+	}
+
+	public final void register() {
+		App.get().getEventManager().register(this);
 	}
 
 	@Override
