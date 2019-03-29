@@ -56,7 +56,8 @@ public class ProgressIncrementalListener implements IncrementalListener {
 		if (this.maximum != 0) {
 			if (this.total >= this.maximum) {
 				this.delegate.setProgress(1);
-				this.delegate.cancel();
+				if (this.limit)
+					this.delegate.cancel();
 			} else {
 				this.delegate.setProgress(this.total / (double) this.maximum);
 			}
