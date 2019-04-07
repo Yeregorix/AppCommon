@@ -23,40 +23,21 @@
 package net.smoofyuniverse.common.fxui.task;
 
 import javafx.application.Platform;
-import javafx.beans.property.*;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.task.ProgressTask;
+import net.smoofyuniverse.common.task.BaseListener;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public final class ObservableTask implements ProgressTask {
-	private AtomicReference<String> titleUpdate = new AtomicReference<>();
-	private AtomicReference<String> messageUpdate = new AtomicReference<>();
-	private AtomicReference<Double> progressUpdate = new AtomicReference<>();
+public class ObservableBaseListener implements BaseListener {
 	private AtomicReference<Boolean> cancellableUpdate = new AtomicReference<>();
 	private AtomicReference<Boolean> cancelledUpdate = new AtomicReference<>();
-	private StringProperty title = new SimpleStringProperty();
-	private StringProperty message = new SimpleStringProperty();
-	private DoubleProperty progress = new SimpleDoubleProperty(-1);
 	private BooleanProperty cancellable = new SimpleBooleanProperty(true);
 	private BooleanProperty cancelled = new SimpleBooleanProperty(false);
 
-	public ObservableTask() {
+	public ObservableBaseListener() {
 		App.get().registerListener(this);
-	}
-
-	public StringProperty titleProperty() {
-		return this.title;
-	}
-
-	public StringProperty messageProperty() {
-		return this.message;
-	}
-
-	public DoubleProperty progressProperty() {
-		return this.progress;
 	}
 	
 	public BooleanProperty cancellableProperty() {
@@ -65,52 +46,6 @@ public final class ObservableTask implements ProgressTask {
 
 	public BooleanProperty cancelledProperty() {
 		return this.cancelled;
-	}
-
-	@Override
-	public Optional<String> getTitle() {
-		return Optional.ofNullable(this.title.get());
-	}
-
-	@Override
-	public void setTitle(String value) {
-		if (Platform.isFxApplicationThread())
-			this.title.set(value);
-		else if (this.titleUpdate.getAndSet(value) == null)
-			Platform.runLater(() -> this.title.set(this.titleUpdate.getAndSet(null)));
-	}
-
-	@Override
-	public void setTitle(ObservableValue<String> value) {
-		if (Platform.isFxApplicationThread())
-			this.title.bind(value);
-		else {
-			this.titleUpdate.set(null);
-			Platform.runLater(() -> this.title.bind(value));
-		}
-	}
-
-	@Override
-	public Optional<String> getMessage() {
-		return Optional.ofNullable(this.message.get());
-	}
-
-	@Override
-	public void setMessage(String value) {
-		if (Platform.isFxApplicationThread())
-			this.message.set(value);
-		else if (this.messageUpdate.getAndSet(value) == null)
-			Platform.runLater(() -> this.message.set(this.messageUpdate.getAndSet(null)));
-	}
-
-	@Override
-	public void setMessage(ObservableValue<String> value) {
-		if (Platform.isFxApplicationThread())
-			this.message.bind(value);
-		else {
-			this.messageUpdate.set(null);
-			Platform.runLater(() -> this.message.bind(value));
-		}
 	}
 
 	@Override
@@ -124,19 +59,6 @@ public final class ObservableTask implements ProgressTask {
 			this.cancelled.set(value);
 		else if (this.cancelledUpdate.getAndSet(value) == null)
 			Platform.runLater(() -> this.cancelled.set(this.cancelledUpdate.getAndSet(null)));
-	}
-
-	@Override
-	public double getProgress() {
-		return this.progress.get();
-	}
-
-	@Override
-	public void setProgress(double value) {
-		if (Platform.isFxApplicationThread())
-			this.progress.set(value);
-		else if (this.progressUpdate.getAndSet(value) == null)
-			Platform.runLater(() -> this.progress.set(this.progressUpdate.getAndSet(null)));
 	}
 
 	@Override

@@ -20,21 +20,33 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.util;
+package net.smoofyuniverse.common.fxui.task;
 
-public class ArrayUtil {
-	
-	public static boolean contains(char[] array, char key) {
-		for (char value : array)
-			if (value == key)
-				return true;
-		return false;
+import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import net.smoofyuniverse.common.task.ProgressListener;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+public class ObservableProgressListener extends ObservableBaseListener implements ProgressListener {
+	private AtomicReference<Double> progressUpdate = new AtomicReference<>();
+	private DoubleProperty progress = new SimpleDoubleProperty(-1);
+
+	public DoubleProperty progressProperty() {
+		return this.progress;
 	}
 
-	public static <T> boolean contains(T[] array, T key) {
-		for (T value : array)
-			if (value.equals(key))
-				return true;
-		return false;
+	@Override
+	public double getProgress() {
+		return this.progress.get();
+	}
+
+	@Override
+	public void setProgress(double value) {
+		if (Platform.isFxApplicationThread())
+			this.progress.set(value);
+		else if (this.progressUpdate.getAndSet(value) == null)
+			Platform.runLater(() -> this.progress.set(this.progressUpdate.getAndSet(null)));
 	}
 }

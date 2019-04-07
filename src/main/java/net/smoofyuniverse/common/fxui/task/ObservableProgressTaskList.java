@@ -34,19 +34,19 @@ import net.smoofyuniverse.common.app.Translations;
 import net.smoofyuniverse.common.fxui.control.EmptySelectionModel;
 import net.smoofyuniverse.common.util.GridUtil;
 
-public class ObservableTaskList extends ListView<ObservableTask> {
-	
-	public ObservableTaskList() {
+public class ObservableProgressTaskList extends ListView<ObservableProgressTask> {
+
+	public ObservableProgressTaskList() {
 		this(FXCollections.observableArrayList());
 	}
-	
-	public ObservableTaskList(ObservableList<ObservableTask> tasks) {
+
+	public ObservableProgressTaskList(ObservableList<ObservableProgressTask> tasks) {
 		super(tasks);
 		setCellFactory(l -> new TaskCell());
 		setSelectionModel(new EmptySelectionModel<>());
 	}
-	
-	private static class TaskCell extends ListCell<ObservableTask> {
+
+	private static class TaskCell extends ListCell<ObservableProgressTask> {
 		private static final Font FONT_14 = new Font("Monospaced", 14), FONT_12 = new Font("Monospaced", 12);
 		
 		private ProgressBar progressBar = new ProgressBar();
@@ -67,7 +67,7 @@ public class ObservableTaskList extends ListView<ObservableTask> {
 			this.cancel.textProperty().bind(Translations.task_list_cancel);
 			this.cancel.setPrefWidth(80);
 			this.cancel.setOnAction((e) -> {
-				ObservableTask t = getItem();
+				ObservableProgressTask t = getItem();
 				if (t != null)
 					t.setCancelled(true);
 			});
@@ -90,7 +90,7 @@ public class ObservableTaskList extends ListView<ObservableTask> {
 		}
 		
 		@Override
-		protected void updateItem(ObservableTask item, boolean empty) {
+		protected void updateItem(ObservableProgressTask item, boolean empty) {
 			super.updateItem(item, empty);
 			
 			if (empty || item == null) {
