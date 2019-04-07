@@ -23,8 +23,6 @@
 package net.smoofyuniverse.common.fx.task;
 
 import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -37,11 +35,6 @@ import net.smoofyuniverse.common.util.GridUtil;
 public class ObservableProgressTaskList extends ListView<ObservableProgressTask> {
 
 	public ObservableProgressTaskList() {
-		this(FXCollections.observableArrayList());
-	}
-
-	public ObservableProgressTaskList(ObservableList<ObservableProgressTask> tasks) {
-		super(tasks);
 		setCellFactory(l -> new TaskCell());
 		setSelectionModel(new EmptySelectionModel<>());
 	}
