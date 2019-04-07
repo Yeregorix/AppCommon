@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.control;
+package net.smoofyuniverse.common.fx.control;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

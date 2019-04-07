@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog.builder;
+package net.smoofyuniverse.common.fx.dialog.builder;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;

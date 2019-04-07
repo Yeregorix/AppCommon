@@ -20,31 +20,25 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.field;
+package net.smoofyuniverse.common.fx.field;
 
-import javafx.beans.property.FloatProperty;
-import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.ParsePosition;
+public class IntegerField extends NumberField {
+	public final int min, max;
+	private IntegerProperty value = new SimpleIntegerProperty();
 
-public class FloatField extends NumberField {
-	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
-
-	public final float min, max;
-	private FloatProperty value = new SimpleFloatProperty();
-
-	public FloatField(float value) {
-		this(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, value);
+	public IntegerField(int value) {
+		this(Integer.MIN_VALUE, Integer.MAX_VALUE, value);
 	}
 
-	public FloatField(float min, float max) {
+	public IntegerField(int min, int max) {
 		this(min, max, min);
 	}
 
-	public FloatField(float min, float max, float value) {
-		super(format(value));
+	public IntegerField(int min, int max, int value) {
+		super(Integer.toString(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -54,11 +48,11 @@ public class FloatField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(format(newV.floatValue())));
+		this.value.addListener((v, oldV, newV) -> setText(Integer.toString(newV.intValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
-				float defaultV = this.min > 0 ? this.min : 0;
+				int defaultV = this.min > 0 ? this.min : 0;
 				if (this.value.get() == defaultV)
 					setText(oldV);
 				else
@@ -67,44 +61,27 @@ public class FloatField extends NumberField {
 			}
 
 			try {
-				float floatV = parse(newV);
-				if (floatV < this.min || floatV > this.max)
+				int intV = Integer.parseInt(newV);
+				if (intV < this.min || intV > this.max)
 					setText(oldV);
 				else
-					this.value.set(floatV);
-			} catch (ParseException e) {
+					this.value.set(intV);
+			} catch (NumberFormatException e) {
 				setText(oldV);
 			}
 		});
 	}
 
 	@Override
-	public FloatProperty valueProperty() {
+	public IntegerProperty valueProperty() {
 		return this.value;
 	}
 
-	public float getValue() {
+	public int getValue() {
 		return this.value.get();
 	}
 
-	public static String format(float value) {
-		return DECIMAL_FORMAT.format(value);
-	}
-
-	public static float parse(String value) throws ParseException {
-		ParsePosition position = new ParsePosition(0);
-		Number number = DECIMAL_FORMAT.parse(value, position);
-		if (position.getIndex() != value.length())
-			throw new ParseException("Failed to parse the entire string: " + value, position.getIndex());
-		return number.floatValue();
-	}
-
-	public void setValue(float value) {
+	public void setValue(int value) {
 		this.value.set(value);
-	}
-
-	static {
-		DECIMAL_FORMAT.setMaximumFractionDigits(Integer.MAX_VALUE);
-		DECIMAL_FORMAT.setGroupingUsed(false);
 	}
 }

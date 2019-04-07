@@ -20,22 +20,30 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog.builder;
+package net.smoofyuniverse.common.fx.dialog.builder;
 
 import javafx.scene.control.Dialog;
-import javafx.scene.control.TextField;
-import net.smoofyuniverse.common.fxui.dialog.TextInputDialog;
+import net.smoofyuniverse.common.fx.dialog.NumberInputDialog;
+import net.smoofyuniverse.common.fx.field.NumberField;
 
-public class TextInputBuilder extends AbstractBuilder<String> {
-	private TextField field;
-	
-	public TextInputBuilder field(TextField f) {
-		this.field = f;
+public class NumberInputBuilder extends AbstractBuilder<Number> {
+	private NumberField field;
+
+	public NumberInputBuilder field(NumberField field) {
+		this.field = field;
 		return this;
+	}
+	
+	@Override
+	protected void validate() {
+		super.validate();
+
+		if (this.field == null)
+			throw new IllegalArgumentException("field");
 	}
 
 	@Override
-	protected Dialog<String> provide() {
-		return new TextInputDialog(this.field == null ? new TextField() : this.field);
+	protected Dialog<Number> provide() {
+		return new NumberInputDialog(this.field);
 	}
 }

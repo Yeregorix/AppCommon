@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog;
+package net.smoofyuniverse.common.fx.dialog;
 
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;

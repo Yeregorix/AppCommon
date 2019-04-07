@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.task;
+package net.smoofyuniverse.common.fx.task;
 
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -31,7 +31,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
 import net.smoofyuniverse.common.app.Translations;
-import net.smoofyuniverse.common.fxui.control.EmptySelectionModel;
+import net.smoofyuniverse.common.fx.control.EmptySelectionModel;
 import net.smoofyuniverse.common.util.GridUtil;
 
 public class ObservableProgressTaskList extends ListView<ObservableProgressTask> {

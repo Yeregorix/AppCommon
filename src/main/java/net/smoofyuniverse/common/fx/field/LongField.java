@@ -20,25 +20,25 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.field;
+package net.smoofyuniverse.common.fx.field;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleLongProperty;
 
-public class IntegerField extends NumberField {
-	public final int min, max;
-	private IntegerProperty value = new SimpleIntegerProperty();
+public class LongField extends NumberField {
+	public final long min, max;
+	private LongProperty value = new SimpleLongProperty();
 
-	public IntegerField(int value) {
-		this(Integer.MIN_VALUE, Integer.MAX_VALUE, value);
+	public LongField(long value) {
+		this(Long.MIN_VALUE, Long.MAX_VALUE, value);
 	}
 
-	public IntegerField(int min, int max) {
+	public LongField(long min, long max) {
 		this(min, max, min);
 	}
 
-	public IntegerField(int min, int max, int value) {
-		super(Integer.toString(value));
+	public LongField(long min, long max, long value) {
+		super(Long.toString(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -48,11 +48,11 @@ public class IntegerField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(Integer.toString(newV.intValue())));
+		this.value.addListener((v, oldV, newV) -> setText(Long.toString(newV.longValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
-				int defaultV = this.min > 0 ? this.min : 0;
+				long defaultV = this.min > 0 ? this.min : 0;
 				if (this.value.get() == defaultV)
 					setText(oldV);
 				else
@@ -61,11 +61,11 @@ public class IntegerField extends NumberField {
 			}
 
 			try {
-				int intV = Integer.parseInt(newV);
-				if (intV < this.min || intV > this.max)
+				long longV = Long.parseLong(newV);
+				if (longV < min || longV > max)
 					setText(oldV);
 				else
-					this.value.set(intV);
+					this.value.set(longV);
 			} catch (NumberFormatException e) {
 				setText(oldV);
 			}
@@ -73,15 +73,15 @@ public class IntegerField extends NumberField {
 	}
 
 	@Override
-	public IntegerProperty valueProperty() {
+	public LongProperty valueProperty() {
 		return this.value;
 	}
 
-	public int getValue() {
+	public long getValue() {
 		return this.value.get();
 	}
 
-	public void setValue(int value) {
+	public void setValue(long value) {
 		this.value.set(value);
 	}
 }

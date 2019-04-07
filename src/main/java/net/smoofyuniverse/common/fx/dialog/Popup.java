@@ -20,14 +20,14 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog;
+package net.smoofyuniverse.common.fx.dialog;
 
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextField;
-import net.smoofyuniverse.common.fxui.dialog.builder.AlertBuilder;
-import net.smoofyuniverse.common.fxui.dialog.builder.NumberInputBuilder;
-import net.smoofyuniverse.common.fxui.dialog.builder.TextInputBuilder;
-import net.smoofyuniverse.common.fxui.field.NumberField;
+import net.smoofyuniverse.common.fx.dialog.builder.AlertBuilder;
+import net.smoofyuniverse.common.fx.dialog.builder.NumberInputBuilder;
+import net.smoofyuniverse.common.fx.dialog.builder.TextInputBuilder;
+import net.smoofyuniverse.common.fx.field.NumberField;
 import net.smoofyuniverse.common.task.ProgressTask;
 
 import java.util.function.Consumer;

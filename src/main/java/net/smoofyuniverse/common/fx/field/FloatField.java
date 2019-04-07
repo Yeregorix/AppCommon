@@ -20,25 +20,31 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.field;
+package net.smoofyuniverse.common.fx.field;
 
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.SimpleFloatProperty;
 
-public class LongField extends NumberField {
-	public final long min, max;
-	private LongProperty value = new SimpleLongProperty();
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
 
-	public LongField(long value) {
-		this(Long.MIN_VALUE, Long.MAX_VALUE, value);
+public class FloatField extends NumberField {
+	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
+
+	public final float min, max;
+	private FloatProperty value = new SimpleFloatProperty();
+
+	public FloatField(float value) {
+		this(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, value);
 	}
 
-	public LongField(long min, long max) {
+	public FloatField(float min, float max) {
 		this(min, max, min);
 	}
 
-	public LongField(long min, long max, long value) {
-		super(Long.toString(value));
+	public FloatField(float min, float max, float value) {
+		super(format(value));
 		if (min > max)
 			throw new IllegalArgumentException();
 		if (value < min || value > max)
@@ -48,11 +54,11 @@ public class LongField extends NumberField {
 		this.min = min;
 		this.max = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(Long.toString(newV.longValue())));
+		this.value.addListener((v, oldV, newV) -> setText(format(newV.floatValue())));
 
 		textProperty().addListener((v, oldV, newV) -> {
 			if (newV.isEmpty()) {
-				long defaultV = this.min > 0 ? this.min : 0;
+				float defaultV = this.min > 0 ? this.min : 0;
 				if (this.value.get() == defaultV)
 					setText(oldV);
 				else
@@ -61,27 +67,44 @@ public class LongField extends NumberField {
 			}
 
 			try {
-				long longV = Long.parseLong(newV);
-				if (longV < min || longV > max)
+				float floatV = parse(newV);
+				if (floatV < this.min || floatV > this.max)
 					setText(oldV);
 				else
-					this.value.set(longV);
-			} catch (NumberFormatException e) {
+					this.value.set(floatV);
+			} catch (ParseException e) {
 				setText(oldV);
 			}
 		});
 	}
 
 	@Override
-	public LongProperty valueProperty() {
+	public FloatProperty valueProperty() {
 		return this.value;
 	}
 
-	public long getValue() {
+	public float getValue() {
 		return this.value.get();
 	}
 
-	public void setValue(long value) {
+	public static String format(float value) {
+		return DECIMAL_FORMAT.format(value);
+	}
+
+	public static float parse(String value) throws ParseException {
+		ParsePosition position = new ParsePosition(0);
+		Number number = DECIMAL_FORMAT.parse(value, position);
+		if (position.getIndex() != value.length())
+			throw new ParseException("Failed to parse the entire string: " + value, position.getIndex());
+		return number.floatValue();
+	}
+
+	public void setValue(float value) {
 		this.value.set(value);
+	}
+
+	static {
+		DECIMAL_FORMAT.setMaximumFractionDigits(Integer.MAX_VALUE);
+		DECIMAL_FORMAT.setGroupingUsed(false);
 	}
 }

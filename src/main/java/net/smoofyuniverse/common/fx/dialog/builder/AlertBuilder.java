@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog.builder;
+package net.smoofyuniverse.common.fx.dialog.builder;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -28,7 +28,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.fxui.task.ObservableProgressTask;
+import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
 import net.smoofyuniverse.common.task.ProgressTask;
 
 import java.util.concurrent.CountDownLatch;

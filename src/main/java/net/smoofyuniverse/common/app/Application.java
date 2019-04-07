@@ -32,7 +32,7 @@ import net.smoofyuniverse.common.download.ConnectionConfiguration;
 import net.smoofyuniverse.common.download.FileDownloadTask;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
-import net.smoofyuniverse.common.fxui.dialog.Popup;
+import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.resource.Language;
 import net.smoofyuniverse.common.resource.Languages;
 import net.smoofyuniverse.common.resource.ResourceManager;

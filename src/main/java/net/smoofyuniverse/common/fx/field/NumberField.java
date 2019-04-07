@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.field;
+package net.smoofyuniverse.common.fx.field;
 
 import javafx.beans.property.Property;
 import javafx.scene.control.TextField;

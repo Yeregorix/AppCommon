@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.task;
+package net.smoofyuniverse.common.fx.task;
 
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.dialog;
+package net.smoofyuniverse.common.fx.dialog;
 
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
@@ -32,7 +32,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import net.smoofyuniverse.common.fxui.field.NumberField;
+import net.smoofyuniverse.common.fx.field.NumberField;
 
 public class NumberInputDialog extends Dialog<Number> {
 	private GridPane grid;

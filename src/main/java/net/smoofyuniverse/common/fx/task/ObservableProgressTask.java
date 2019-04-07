@@ -20,18 +20,18 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.fxui.task;
+package net.smoofyuniverse.common.fx.task;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
-import net.smoofyuniverse.common.task.BaseTask;
+import net.smoofyuniverse.common.task.ProgressTask;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ObservableBaseTask extends ObservableBaseListener implements BaseTask {
+public class ObservableProgressTask extends ObservableProgressListener implements ProgressTask {
 	private AtomicReference<String> titleUpdate = new AtomicReference<>();
 	private AtomicReference<String> messageUpdate = new AtomicReference<>();
 	private StringProperty title = new SimpleStringProperty();
