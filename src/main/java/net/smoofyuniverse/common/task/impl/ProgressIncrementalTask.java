@@ -22,6 +22,7 @@
 
 package net.smoofyuniverse.common.task.impl;
 
+import javafx.beans.value.ObservableValue;
 import net.smoofyuniverse.common.task.IncrementalTask;
 import net.smoofyuniverse.common.task.ProgressTask;
 
@@ -29,7 +30,6 @@ import java.util.Optional;
 
 public class ProgressIncrementalTask extends ProgressIncrementalListener implements IncrementalTask {
 	public final ProgressTask taskDelegate;
-	private String title, message;
 
 	public ProgressIncrementalTask(ProgressTask delegate, long maximum, boolean limit) {
 		super(delegate, maximum, limit);
@@ -38,21 +38,31 @@ public class ProgressIncrementalTask extends ProgressIncrementalListener impleme
 
 	@Override
 	public Optional<String> getTitle() {
-		return Optional.ofNullable(this.title);
+		return this.taskDelegate.getTitle();
 	}
 
 	@Override
 	public void setTitle(String value) {
-		this.title = value;
+		this.taskDelegate.setTitle(value);
+	}
+
+	@Override
+	public void setTitle(ObservableValue<String> value) {
+		this.taskDelegate.setTitle(value);
 	}
 
 	@Override
 	public Optional<String> getMessage() {
-		return Optional.ofNullable(this.message);
+		return this.taskDelegate.getMessage();
 	}
 
 	@Override
 	public void setMessage(String value) {
-		this.message = value;
+		this.taskDelegate.setMessage(value);
+	}
+
+	@Override
+	public void setMessage(ObservableValue<String> value) {
+		this.taskDelegate.setMessage(value);
 	}
 }
