@@ -26,7 +26,7 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 
 public class LongField extends NumberField {
-	public final long min, max;
+	public final long minValue, maxValue;
 	private LongProperty value = new SimpleLongProperty();
 
 	public LongField(long value) {
@@ -38,38 +38,48 @@ public class LongField extends NumberField {
 	}
 
 	public LongField(long min, long max, long value) {
-		super(Long.toString(value));
 		if (min > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("min, max");
 		if (value < min || value > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("value");
 
-		this.value.set(value);
-		this.min = min;
-		this.max = max;
+		this.minValue = min;
+		this.maxValue = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(Long.toString(newV.longValue())));
+		this.value.addListener((v, oldV, newV) -> setText(newV.toString()));
+		setValue(value);
+	}
 
-		textProperty().addListener((v, oldV, newV) -> {
-			if (newV.isEmpty()) {
-				long defaultV = this.min > 0 ? this.min : 0;
-				if (this.value.get() == defaultV)
-					setText(oldV);
-				else
-					this.value.set(defaultV);
-				return;
+	@Override
+	public void replaceText(int start, int end, String text) {
+		String newText, curText = getText();
+		int newPos;
+
+		if (text.equals("-")) {
+			if (curText.startsWith("-")) {
+				newText = curText.substring(1);
+				newPos = start - 1;
+			} else {
+				newText = "-" + curText;
+				newPos = start + 1;
 			}
+		} else {
+			newText = curText.substring(0, start) + text + curText.substring(end);
+			newPos = start + text.length();
+		}
 
-			try {
-				long longV = Long.parseLong(newV);
-				if (longV < min || longV > max)
-					setText(oldV);
-				else
-					this.value.set(longV);
-			} catch (NumberFormatException e) {
-				setText(oldV);
-			}
-		});
+		long newValue;
+		try {
+			newValue = Long.parseLong(newText);
+		} catch (NumberFormatException e) {
+			return;
+		}
+
+		if (newValue < this.minValue || newValue > this.maxValue)
+			return;
+
+		setValue(newValue);
+		selectRange(newPos, newPos);
 	}
 
 	@Override

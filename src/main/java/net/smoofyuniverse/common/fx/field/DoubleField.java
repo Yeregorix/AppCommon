@@ -26,13 +26,12 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.ParsePosition;
 
 public class DoubleField extends NumberField {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
-	public final double min, max;
+	public final double minValue, maxValue;
 	private DoubleProperty value = new SimpleDoubleProperty();
 
 	public DoubleField(double value) {
@@ -44,38 +43,20 @@ public class DoubleField extends NumberField {
 	}
 
 	public DoubleField(double min, double max, double value) {
-		super(format(value));
 		if (min > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("min, max");
 		if (value < min || value > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("value");
 
-		this.value.set(value);
-		this.min = min;
-		this.max = max;
+		this.minValue = min;
+		this.maxValue = max;
 
 		this.value.addListener((v, oldV, newV) -> setText(format(newV.doubleValue())));
+		setValue(value);
+	}
 
-		textProperty().addListener((v, oldV, newV) -> {
-			if (newV.isEmpty()) {
-				double defaultV = this.min > 0 ? this.min : 0;
-				if (this.value.get() == defaultV)
-					setText(oldV);
-				else
-					this.value.set(defaultV);
-				return;
-			}
-
-			try {
-				double doubleV = parse(newV);
-				if (doubleV < this.min || doubleV > this.max)
-					setText(oldV);
-				else
-					this.value.set(doubleV);
-			} catch (ParseException e) {
-				setText(oldV);
-			}
-		});
+	private static String format(double value) {
+		return DECIMAL_FORMAT.format(value);
 	}
 
 	@Override
@@ -87,20 +68,44 @@ public class DoubleField extends NumberField {
 		return this.value.get();
 	}
 
-	public static String format(double value) {
-		return DECIMAL_FORMAT.format(value);
-	}
-
-	public static double parse(String value) throws ParseException {
-		ParsePosition position = new ParsePosition(0);
-		Number number = DECIMAL_FORMAT.parse(value, position);
-		if (position.getIndex() != value.length())
-			throw new ParseException("Failed to parse the entire string: " + value, position.getIndex());
-		return number.doubleValue();
-	}
-
 	public void setValue(double value) {
 		this.value.set(value);
+	}
+
+	@Override
+	public void replaceText(int start, int end, String text) {
+		String newText, curText = getText();
+		int newPos;
+
+		if (text.equals("-")) {
+			if (curText.startsWith("-")) {
+				newText = curText.substring(1);
+				newPos = start - 1;
+			} else {
+				newText = "-" + curText;
+				newPos = start + 1;
+			}
+		} else {
+			newText = curText.substring(0, start) + text + curText.substring(end);
+			newPos = start + text.length();
+		}
+
+		Number n = parse(newText);
+		if (n == null)
+			return;
+
+		double newValue = n.doubleValue();
+		if (newValue < this.minValue || newValue > this.maxValue)
+			return;
+
+		setValue(newValue);
+		selectRange(newPos, newPos);
+	}
+
+	private static Number parse(String value) {
+		ParsePosition position = new ParsePosition(0);
+		Number number = DECIMAL_FORMAT.parse(value, position);
+		return position.getIndex() == value.length() ? number : null;
 	}
 
 	static {

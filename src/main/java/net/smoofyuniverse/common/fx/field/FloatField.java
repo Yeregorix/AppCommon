@@ -26,13 +26,12 @@ import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
 
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.ParsePosition;
 
 public class FloatField extends NumberField {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
-	public final float min, max;
+	public final float minValue, maxValue;
 	private FloatProperty value = new SimpleFloatProperty();
 
 	public FloatField(float value) {
@@ -44,38 +43,20 @@ public class FloatField extends NumberField {
 	}
 
 	public FloatField(float min, float max, float value) {
-		super(format(value));
 		if (min > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("min, max");
 		if (value < min || value > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("value");
 
-		this.value.set(value);
-		this.min = min;
-		this.max = max;
+		this.minValue = min;
+		this.maxValue = max;
 
 		this.value.addListener((v, oldV, newV) -> setText(format(newV.floatValue())));
+		setValue(value);
+	}
 
-		textProperty().addListener((v, oldV, newV) -> {
-			if (newV.isEmpty()) {
-				float defaultV = this.min > 0 ? this.min : 0;
-				if (this.value.get() == defaultV)
-					setText(oldV);
-				else
-					this.value.set(defaultV);
-				return;
-			}
-
-			try {
-				float floatV = parse(newV);
-				if (floatV < this.min || floatV > this.max)
-					setText(oldV);
-				else
-					this.value.set(floatV);
-			} catch (ParseException e) {
-				setText(oldV);
-			}
-		});
+	private static String format(float value) {
+		return DECIMAL_FORMAT.format(value);
 	}
 
 	@Override
@@ -87,20 +68,44 @@ public class FloatField extends NumberField {
 		return this.value.get();
 	}
 
-	public static String format(float value) {
-		return DECIMAL_FORMAT.format(value);
-	}
-
-	public static float parse(String value) throws ParseException {
-		ParsePosition position = new ParsePosition(0);
-		Number number = DECIMAL_FORMAT.parse(value, position);
-		if (position.getIndex() != value.length())
-			throw new ParseException("Failed to parse the entire string: " + value, position.getIndex());
-		return number.floatValue();
-	}
-
 	public void setValue(float value) {
 		this.value.set(value);
+	}
+
+	@Override
+	public void replaceText(int start, int end, String text) {
+		String newText, curText = getText();
+		int newPos;
+
+		if (text.equals("-")) {
+			if (curText.startsWith("-")) {
+				newText = curText.substring(1);
+				newPos = start - 1;
+			} else {
+				newText = "-" + curText;
+				newPos = start + 1;
+			}
+		} else {
+			newText = curText.substring(0, start) + text + curText.substring(end);
+			newPos = start + text.length();
+		}
+
+		Number n = parse(newText);
+		if (n == null)
+			return;
+
+		float newValue = n.floatValue();
+		if (newValue < this.minValue || newValue > this.maxValue)
+			return;
+
+		setValue(newValue);
+		selectRange(newPos, newPos);
+	}
+
+	private static Number parse(String value) {
+		ParsePosition position = new ParsePosition(0);
+		Number number = DECIMAL_FORMAT.parse(value, position);
+		return position.getIndex() == value.length() ? number : null;
 	}
 
 	static {

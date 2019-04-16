@@ -45,7 +45,7 @@ public class Popup {
 	public static NumberInputBuilder numberInput(NumberField f) {
 		return numberInput().field(f);
 	}
-	
+
 	public static NumberInputBuilder numberInput() {
 		return new NumberInputBuilder();
 	}

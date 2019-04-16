@@ -26,7 +26,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 public class IntegerField extends NumberField {
-	public final int min, max;
+	public final int minValue, maxValue;
 	private IntegerProperty value = new SimpleIntegerProperty();
 
 	public IntegerField(int value) {
@@ -38,38 +38,48 @@ public class IntegerField extends NumberField {
 	}
 
 	public IntegerField(int min, int max, int value) {
-		super(Integer.toString(value));
 		if (min > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("min, max");
 		if (value < min || value > max)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("value");
 
-		this.value.set(value);
-		this.min = min;
-		this.max = max;
+		this.minValue = min;
+		this.maxValue = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(Integer.toString(newV.intValue())));
+		this.value.addListener((v, oldV, newV) -> setText(newV.toString()));
+		setValue(value);
+	}
 
-		textProperty().addListener((v, oldV, newV) -> {
-			if (newV.isEmpty()) {
-				int defaultV = this.min > 0 ? this.min : 0;
-				if (this.value.get() == defaultV)
-					setText(oldV);
-				else
-					this.value.set(defaultV);
-				return;
+	@Override
+	public void replaceText(int start, int end, String text) {
+		String newText, curText = getText();
+		int newPos;
+
+		if (text.equals("-")) {
+			if (curText.startsWith("-")) {
+				newText = curText.substring(1);
+				newPos = start - 1;
+			} else {
+				newText = "-" + curText;
+				newPos = start + 1;
 			}
+		} else {
+			newText = curText.substring(0, start) + text + curText.substring(end);
+			newPos = start + text.length();
+		}
 
-			try {
-				int intV = Integer.parseInt(newV);
-				if (intV < this.min || intV > this.max)
-					setText(oldV);
-				else
-					this.value.set(intV);
-			} catch (NumberFormatException e) {
-				setText(oldV);
-			}
-		});
+		int newValue;
+		try {
+			newValue = Integer.parseInt(newText);
+		} catch (NumberFormatException e) {
+			return;
+		}
+
+		if (newValue < this.minValue || newValue > this.maxValue)
+			return;
+
+		setValue(newValue);
+		selectRange(newPos, newPos);
 	}
 
 	@Override
