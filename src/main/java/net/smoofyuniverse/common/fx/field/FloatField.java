@@ -33,6 +33,7 @@ public class FloatField extends NumberField {
 
 	public final float minValue, maxValue;
 	private FloatProperty value = new SimpleFloatProperty();
+	private boolean ignore = false;
 
 	public FloatField(float value) {
 		this(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, value);
@@ -51,7 +52,10 @@ public class FloatField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(format(newV.floatValue())));
+		this.value.addListener((v, oldV, newV) -> {
+			if (!this.ignore)
+				setText(format(newV.floatValue()));
+		});
 		setValue(value);
 	}
 
@@ -98,8 +102,11 @@ public class FloatField extends NumberField {
 		if (newValue < this.minValue || newValue > this.maxValue)
 			return;
 
+		this.ignore = true;
 		setValue(newValue);
+		setText(newText);
 		selectRange(newPos, newPos);
+		this.ignore = false;
 	}
 
 	private static Number parse(String value) {

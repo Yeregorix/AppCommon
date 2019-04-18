@@ -28,6 +28,7 @@ import javafx.beans.property.SimpleLongProperty;
 public class LongField extends NumberField {
 	public final long minValue, maxValue;
 	private LongProperty value = new SimpleLongProperty();
+	private boolean ignore = false;
 
 	public LongField(long value) {
 		this(Long.MIN_VALUE, Long.MAX_VALUE, value);
@@ -46,7 +47,10 @@ public class LongField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(newV.toString()));
+		this.value.addListener((v, oldV, newV) -> {
+			if (!this.ignore)
+				setText(newV.toString());
+		});
 		setValue(value);
 	}
 
@@ -78,8 +82,11 @@ public class LongField extends NumberField {
 		if (newValue < this.minValue || newValue > this.maxValue)
 			return;
 
+		this.ignore = true;
 		setValue(newValue);
+		setText(newText);
 		selectRange(newPos, newPos);
+		this.ignore = false;
 	}
 
 	@Override

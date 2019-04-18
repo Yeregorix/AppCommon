@@ -33,6 +33,7 @@ public class DoubleField extends NumberField {
 
 	public final double minValue, maxValue;
 	private DoubleProperty value = new SimpleDoubleProperty();
+	private boolean ignore = false;
 
 	public DoubleField(double value) {
 		this(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, value);
@@ -51,7 +52,10 @@ public class DoubleField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(format(newV.doubleValue())));
+		this.value.addListener((v, oldV, newV) -> {
+			if (!this.ignore)
+				setText(format(newV.doubleValue()));
+		});
 		setValue(value);
 	}
 
@@ -98,8 +102,11 @@ public class DoubleField extends NumberField {
 		if (newValue < this.minValue || newValue > this.maxValue)
 			return;
 
+		this.ignore = true;
 		setValue(newValue);
+		setText(newText);
 		selectRange(newPos, newPos);
+		this.ignore = false;
 	}
 
 	private static Number parse(String value) {

@@ -28,6 +28,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 public class IntegerField extends NumberField {
 	public final int minValue, maxValue;
 	private IntegerProperty value = new SimpleIntegerProperty();
+	private boolean ignore = false;
 
 	public IntegerField(int value) {
 		this(Integer.MIN_VALUE, Integer.MAX_VALUE, value);
@@ -46,7 +47,10 @@ public class IntegerField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
-		this.value.addListener((v, oldV, newV) -> setText(newV.toString()));
+		this.value.addListener((v, oldV, newV) -> {
+			if (!this.ignore)
+				setText(newV.toString());
+		});
 		setValue(value);
 	}
 
@@ -78,8 +82,11 @@ public class IntegerField extends NumberField {
 		if (newValue < this.minValue || newValue > this.maxValue)
 			return;
 
+		this.ignore = true;
 		setValue(newValue);
+		setText(newText);
 		selectRange(newPos, newPos);
+		this.ignore = false;
 	}
 
 	@Override
