@@ -29,7 +29,6 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.download.ConnectionConfig;
-import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
 import net.smoofyuniverse.common.environment.source.EmptyReleaseSource;
 import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
@@ -43,7 +42,6 @@ import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.resource.ResourceModule;
 import net.smoofyuniverse.common.resource.translator.Translator;
 import net.smoofyuniverse.common.task.BaseListener;
-import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
@@ -241,70 +239,6 @@ public abstract class Application {
 		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
 
 		setState(State.ENVIRONMENT_UPDATE);
-	}
-
-	protected final void loadLibraries(Collection<DependencyInfo> libs) throws Exception {
-		if (libs.isEmpty() || this.arguments.getFlag("development", "dev").isPresent())
-			return;
-
-		Path libsDir = this.workingDir.resolve("libraries");
-		Files.createDirectory(libsDir);
-
-		List<DependencyInfo> toUpdate = new ArrayList<>();
-		long totalSize = 0;
-
-		this.logger.info("Verifying libraries ..");
-		for (DependencyInfo info : libs) {
-			info.file = libsDir.resolve(info.path);
-			if (!info.matches()) {
-				toUpdate.add(info);
-				totalSize += info.size;
-			}
-		}
-
-		if (!toUpdate.isEmpty()) {
-			long totalSizeF = totalSize;
-			Consumer<ProgressTask> consumer = task -> {
-				this.logger.info("Downloading missing libraries ..");
-				task.setTitle(Translations.libraries_download_title);
-				IncrementalListener listener = task.expect(totalSizeF);
-
-				for (DependencyInfo info : toUpdate) {
-					if (task.isCancelled())
-						return;
-
-					this.logger.info("Downloading library " + info.path + " ..");
-					task.setMessage(info.path);
-
-					IOUtil.download(info.url, info.file, listener);
-
-					if (task.isCancelled())
-						return;
-
-					if (!info.matches()) {
-						task.cancel();
-						this.logger.error("Downloaded library seems invalid, aborting ..");
-						Popup.error().title(Translations.launch_cancelled).message(Translations.library_signature_invalid.format("path", info.path)).showAndWait();
-						return;
-					}
-				}
-			};
-
-			boolean r;
-			if (this.UIEnabled)
-				r = Popup.consumer(consumer).title(Translations.launch_title).submitAndWait();
-			else
-				r = App.submit(consumer);
-
-			if (!r) {
-				this.logger.info("Some libraries have not been downloaded correctly. The launch is cancelled.");
-				shutdownNow();
-			}
-		}
-
-		this.logger.info("Loading libraries ..");
-		for (DependencyInfo info : libs)
-			IOUtil.addToClasspath(info.file);
 	}
 
 	protected void loadResources() throws Exception {
