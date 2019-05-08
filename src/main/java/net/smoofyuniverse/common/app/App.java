@@ -25,9 +25,6 @@ package net.smoofyuniverse.common.app;
 import javafx.application.Platform;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
-import net.smoofyuniverse.common.util.IOUtil;
-import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.IOException;
@@ -52,14 +49,6 @@ public final class App {
 
 	public static boolean isShutdown() {
 		return get().getState() == State.SHUTDOWN;
-	}
-
-	public static String formatLog(LogMessage msg) {
-		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
-	}
-
-	public static String transformLog(String msg) {
-		return msg.replace(IOUtil.USER_HOME, "USER_HOME");
 	}
 
 	public static boolean submit(Consumer<ProgressTask> consumer) {

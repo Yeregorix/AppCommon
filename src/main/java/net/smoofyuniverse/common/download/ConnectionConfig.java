@@ -31,25 +31,32 @@ import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class ConnectionConfiguration {
+public class ConnectionConfig {
 	public final int connectTimeout, readTimeout, bufferSize;
 	public final String userAgent;
 	public final Proxy proxy;
-	
-	private ConnectionConfiguration(Proxy proxy, String userAgent, int connectTimeout, int readTimeout, int bufferSize) {
+
+	public ConnectionConfig(Proxy proxy, String userAgent, int connectTimeout, int readTimeout, int bufferSize) {
+		if (connectTimeout < 0)
+			throw new IllegalArgumentException("connectTimeout");
+		if (readTimeout < 0)
+			throw new IllegalArgumentException("readTimeout");
+		if (bufferSize < 64)
+			throw new IllegalArgumentException("bufferSize");
+
+		this.proxy = proxy == null ? Proxy.NO_PROXY : proxy;
+		this.userAgent = userAgent;
 		this.connectTimeout = connectTimeout;
 		this.readTimeout = readTimeout;
 		this.bufferSize = bufferSize;
-		this.userAgent = userAgent;
-		this.proxy = proxy;
-	}
-
-	public static Builder builder() {
-		return new Builder();
 	}
 	
 	public BufferedReader openBufferedReader(URL url) throws IOException {
-		return new BufferedReader(new InputStreamReader(openStream(url)));
+		return new BufferedReader(openReader(url));
+	}
+
+	public InputStreamReader openReader(URL url) throws IOException {
+		return new InputStreamReader(openStream(url));
 	}
 	
 	public InputStream openStream(URL url) throws IOException {
@@ -87,6 +94,10 @@ public class ConnectionConfiguration {
 		b.proxy = this.proxy;
 		return b;
 	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
 	
 	public static class Builder {
 		private int connectTimeout, readTimeout, bufferSize;
@@ -117,15 +128,9 @@ public class ConnectionConfiguration {
 			this.proxy = v;
 			return this;
 		}
-		
-		public ConnectionConfiguration build() {
-			if (this.connectTimeout < 0)
-				throw new IllegalArgumentException("connectTimeout");
-			if (this.readTimeout < 0)
-				throw new IllegalArgumentException("readTimeout");
-			if (this.bufferSize <= 0)
-				throw new IllegalArgumentException("bufferSize");
-			return new ConnectionConfiguration(this.proxy == null ? Proxy.NO_PROXY : this.proxy, this.userAgent, this.connectTimeout, this.readTimeout, this.bufferSize);
+
+		public ConnectionConfig build() {
+			return new ConnectionConfig(this.proxy, this.userAgent, this.connectTimeout, this.readTimeout, this.bufferSize);
 		}
 	}
 }

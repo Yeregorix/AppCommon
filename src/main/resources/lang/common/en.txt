@@ -1,11 +1,17 @@
 lang_name=English
 
+## Application libraries
+libraries_download_title=Downloading missing libraries ..
+launch_cancelled=Launch cancelled
+library_signature_invalid=The downloaded library {path} has an incorrect signature.\nFor security, the launch has been cancelled.
+launch_title=Application launch ..
+
 ## Application update
 update_available_title=Update available
 update_available_message=An update is available.\nDo you want to install it?
 update_download_title=Downloading the update ..
 update_cancelled=Update cancelled
-updater_signature_invalid=The update applicator has an incorrect signature.\nFor security, the update has been cancelled.
+updater_signature_invalid=The update installer has an incorrect signature.\nFor security, the update has been cancelled.
 update_signature_invalid=The downloaded update has an incorrect signature.\nFor security, the update has been cancelled.
 update_process_title=Update process ..
 update_process_message=Starting the process ..

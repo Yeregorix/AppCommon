@@ -20,18 +20,28 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.app;
+package net.smoofyuniverse.common.environment;
 
-import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
+import com.grack.nanojson.JsonObject;
+import net.smoofyuniverse.common.download.FileInfo;
 
-import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
+import java.net.URL;
+import java.time.Instant;
 
-public final class Translations {
+public final class ReleaseInfo extends FileInfo {
+	public final String version;
+	public final Instant date;
+	public final JsonObject extraData;
 
-	public static final ObservableTranslation
-			libraries_download_title = DUMMY, launch_cancelled = DUMMY, library_signature_invalid = DUMMY,
-			launch_title = DUMMY, update_available_title = DUMMY, update_available_message = DUMMY,
-			update_download_title = DUMMY, update_cancelled = DUMMY, updater_signature_invalid = DUMMY,
-			update_signature_invalid = DUMMY, update_process_title = DUMMY, update_process_message = DUMMY,
-			update_process_error = DUMMY, update_title = DUMMY, task_list_cancel = DUMMY;
+	public ReleaseInfo(String version, Instant date, JsonObject extraData, URL url, long size, String digest, String digestInst) {
+		super(url, size, digest, digestInst);
+		if (version == null || version.isEmpty())
+			throw new IllegalArgumentException("version");
+		if (date == null)
+			throw new IllegalArgumentException("date");
+
+		this.version = version;
+		this.date = date;
+		this.extraData = extraData;
+	}
 }

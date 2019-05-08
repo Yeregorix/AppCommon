@@ -20,18 +20,26 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.app;
+package net.smoofyuniverse.common.environment.source;
 
-import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
+import net.smoofyuniverse.common.environment.ReleaseInfo;
 
-import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
+import java.util.Optional;
 
-public final class Translations {
+public class EmptyReleaseSource implements ReleaseSource {
 
-	public static final ObservableTranslation
-			libraries_download_title = DUMMY, launch_cancelled = DUMMY, library_signature_invalid = DUMMY,
-			launch_title = DUMMY, update_available_title = DUMMY, update_available_message = DUMMY,
-			update_download_title = DUMMY, update_cancelled = DUMMY, updater_signature_invalid = DUMMY,
-			update_signature_invalid = DUMMY, update_process_title = DUMMY, update_process_message = DUMMY,
-			update_process_error = DUMMY, update_title = DUMMY, task_list_cancel = DUMMY;
+	@Override
+	public Optional<String> getLatestVersion() {
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<ReleaseInfo> getLatestRelease() {
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<ReleaseInfo> getRelease(String version) {
+		return Optional.empty();
+	}
 }

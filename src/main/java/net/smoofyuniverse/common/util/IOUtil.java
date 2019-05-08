@@ -25,7 +25,7 @@ package net.smoofyuniverse.common.util;
 import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.OperatingSystem;
-import net.smoofyuniverse.common.download.ConnectionConfiguration;
+import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.logger.core.Logger;
@@ -33,9 +33,12 @@ import net.smoofyuniverse.logger.core.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
@@ -72,6 +75,36 @@ public class IOUtil {
 			return FileVisitResult.CONTINUE;
 		}
 	};
+
+	private static Method addURL;
+
+	public static URL newURL(String url) {
+		try {
+			return new URL(url);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void addToClasspath(Path file) {
+		try {
+			addToClasspath(file.toUri().toURL());
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void addToClasspath(URL url) {
+		addToClasspath((URLClassLoader) ClassLoader.getSystemClassLoader(), url);
+	}
+
+	public static void addToClasspath(URLClassLoader classLoader, URL url) {
+		try {
+			addURL.invoke(classLoader, url);
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	public static void deleteRecursively(Path dir) throws IOException {
 		Files.walkFileTree(dir, DIRECTORY_REMOVER);
@@ -123,10 +156,11 @@ public class IOUtil {
 		return download(url, file, App.get().getConnectionConfig(), p);
 	}
 
-	public static boolean download(URL url, Path file, ConnectionConfiguration config, IncrementalListenerProvider p) {
+	public static boolean download(URL url, Path file, ConnectionConfig config, IncrementalListenerProvider p) {
 		HttpURLConnection co;
 		try {
 			co = config.openHttpConnection(url);
+			co.setRequestProperty("Accept", "application/octet-stream");
 		} catch (IOException e) {
 			logger.warn("Download from url '" + url + "' failed.", e);
 			return false;
@@ -197,5 +231,15 @@ public class IOUtil {
 		if (url == null)
 			throw new IllegalArgumentException("localPath");
 		return new Image(url.toString());
+	}
+
+	static {
+		try {
+			addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+			addURL.setAccessible(true);
+		} catch (Exception e) {
+			logger.warn("Failed to access method addURL", e);
+			addURL = null;
+		}
 	}
 }

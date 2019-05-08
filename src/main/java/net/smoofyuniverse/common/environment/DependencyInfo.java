@@ -20,18 +20,24 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.app;
+package net.smoofyuniverse.common.environment;
 
-import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
+import net.smoofyuniverse.common.download.FileInfo;
+import net.smoofyuniverse.common.util.IOUtil;
 
-import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
+import java.net.URL;
 
-public final class Translations {
+public class DependencyInfo extends FileInfo {
+	public final String path;
 
-	public static final ObservableTranslation
-			libraries_download_title = DUMMY, launch_cancelled = DUMMY, library_signature_invalid = DUMMY,
-			launch_title = DUMMY, update_available_title = DUMMY, update_available_message = DUMMY,
-			update_download_title = DUMMY, update_cancelled = DUMMY, updater_signature_invalid = DUMMY,
-			update_signature_invalid = DUMMY, update_process_title = DUMMY, update_process_message = DUMMY,
-			update_process_error = DUMMY, update_title = DUMMY, task_list_cancel = DUMMY;
+	public DependencyInfo(String path, String url, long size, String digest, String digestInst) {
+		this(path, IOUtil.newURL(url), size, digest, digestInst);
+	}
+
+	public DependencyInfo(String path, URL url, long size, String digest, String digestInst) {
+		super(url, size, digest, digestInst);
+		if (path == null || path.isEmpty())
+			throw new IllegalArgumentException("path");
+		this.path = path;
+	}
 }

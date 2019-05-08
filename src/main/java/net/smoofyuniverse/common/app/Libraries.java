@@ -22,16 +22,8 @@
 
 package net.smoofyuniverse.common.app;
 
-import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
+import net.smoofyuniverse.common.environment.DependencyInfo;
 
-import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
-
-public final class Translations {
-
-	public static final ObservableTranslation
-			libraries_download_title = DUMMY, launch_cancelled = DUMMY, library_signature_invalid = DUMMY,
-			launch_title = DUMMY, update_available_title = DUMMY, update_available_message = DUMMY,
-			update_download_title = DUMMY, update_cancelled = DUMMY, updater_signature_invalid = DUMMY,
-			update_signature_invalid = DUMMY, update_process_title = DUMMY, update_process_message = DUMMY,
-			update_process_error = DUMMY, update_title = DUMMY, task_list_cancel = DUMMY;
+public final class Libraries {
+	public static final DependencyInfo NANOJSON = new DependencyInfo("com/grack/nanojson/1.3", "http://central.maven.org/maven2/com/grack/nanojson/1.3/nanojson-1.3.jar", 29758, "6c3afa3de7c16bc4048fdfd85a7c4244c71fa79c", "sha1");
 }

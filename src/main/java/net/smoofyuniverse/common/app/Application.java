@@ -28,8 +28,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import net.smoofyuniverse.common.download.ConnectionConfiguration;
-import net.smoofyuniverse.common.download.FileDownloadTask;
+import net.smoofyuniverse.common.download.ConnectionConfig;
+import net.smoofyuniverse.common.environment.DependencyInfo;
+import net.smoofyuniverse.common.environment.ReleaseInfo;
+import net.smoofyuniverse.common.environment.source.EmptyReleaseSource;
+import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
+import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.EventManager;
 import net.smoofyuniverse.common.fx.dialog.Popup;
@@ -39,17 +43,22 @@ import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.resource.ResourceModule;
 import net.smoofyuniverse.common.resource.translator.Translator;
 import net.smoofyuniverse.common.task.BaseListener;
+import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
+import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.appender.*;
 import net.smoofyuniverse.logger.core.LogLevel;
+import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 import net.smoofyuniverse.logger.core.LoggerFactory;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,16 +77,18 @@ public abstract class Application {
 	protected final String name, title, version;
 	protected final boolean UIEnabled;
 	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
+	protected final Map<String, String> logBlacklist = new HashMap<>();
 
-	private ConnectionConfiguration connectionConfig;
+	private ConnectionConfig connectionConfig;
 	private LoggerFactory loggerFactory;
 	private EventManager eventManager;
 	private ResourceManager resourceManager;
 	private ExecutorService executor;
 	private Logger logger;
 	private Translator translator;
+	private ReleaseSource appSource, updaterSource;
 	private Stage stage;
-	private FileDownloadTask jarUpdateTask, updaterUpdateTask;
+	private Optional<Path> applicationJar;
 	
 	public Application(Arguments args, String name, String version) {
 		this(args, name, name, version);
@@ -141,6 +152,16 @@ public abstract class Application {
 		Platform.setImplicitExit(false);
 		new JFXPanel();
 	}
+
+	protected final void initServices(ExecutorService executor) {
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), this::transformLog)), this::formatLog), executor);
+	}
+
+	public String transformLog(String msg) {
+		for (Entry<String, String> e : this.logBlacklist.entrySet())
+			msg = msg.replace(e.getKey(), e.getValue());
+		return msg;
+	}
 	
 	public void checkState(State state) {
 		if (this.state != state)
@@ -152,9 +173,9 @@ public abstract class Application {
 	}
 
 	public abstract void init() throws Exception;
-	
-	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), App::transformLog)), App::formatLog), executor);
+
+	public String formatLog(LogMessage msg) {
+		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
 	}
 	
 	protected final void initServices(LogAppender appender, ExecutorService executor) {
@@ -175,6 +196,7 @@ public abstract class Application {
 		this.resourceManager = resourceManager;
 		this.executor = executor;
 		this.logger = loggerFactory.provideLogger("Application");
+		this.logBlacklist.put(IOUtil.USER_HOME, "USER_HOME");
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
 
@@ -184,6 +206,15 @@ public abstract class Application {
 		} catch (IOException e) {
 			this.logger.error("Failed to create working directory", e);
 			fatalError(e);
+		}
+
+		if (!this.arguments.getFlag("development", "dev").isPresent()) {
+			try {
+				loadLibraries();
+			} catch (Exception e) {
+				this.logger.error("Failed to load libraries", e);
+				fatalError(e);
+			}
 		}
 
 		this.logger.info("Loading resources ..");
@@ -217,8 +248,81 @@ public abstract class Application {
 
 		long dur = System.currentTimeMillis() - time;
 		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
+	}
 
-		setState(State.STAGE_INIT);
+	protected final void loadLibraries() throws Exception {
+		Set<DependencyInfo> libs = new HashSet<>();
+		getLibraries(libs);
+
+		if (libs.isEmpty())
+			return;
+
+		Path libsDir = this.workingDir.resolve("libraries");
+		Files.createDirectory(libsDir);
+
+		List<DependencyInfo> toUpdate = new ArrayList<>();
+		long totalSize = 0;
+
+		this.logger.info("Verifying libraries ..");
+		for (DependencyInfo info : libs) {
+			info.file = libsDir.resolve(info.path);
+			if (!info.matches()) {
+				toUpdate.add(info);
+				totalSize += info.size;
+			}
+		}
+
+		if (!toUpdate.isEmpty()) {
+			long totalSizeF = totalSize;
+			Consumer<ProgressTask> consumer = task -> {
+				this.logger.info("Downloading missing libraries ..");
+				task.setTitle(Translations.libraries_download_title);
+				IncrementalListener listener = task.expect(totalSizeF);
+
+				for (DependencyInfo info : toUpdate) {
+					if (task.isCancelled())
+						return;
+
+					this.logger.info("Downloading library " + info.path + " ..");
+					task.setMessage(info.path);
+
+					IOUtil.download(info.url, info.file, listener);
+
+					if (task.isCancelled())
+						return;
+
+					if (!info.matches()) {
+						task.cancel();
+						this.logger.error("Downloaded library seems invalid, aborting ..");
+						Popup.error().title(Translations.launch_cancelled).message(Translations.library_signature_invalid.format("path", info.path)).showAndWait();
+						return;
+					}
+				}
+			};
+
+			boolean r;
+			if (this.UIEnabled)
+				r = Popup.consumer(consumer).title(Translations.launch_title).submitAndWait();
+			else
+				r = App.submit(consumer);
+
+			if (!r) {
+				this.logger.info("Some libraries have not been downloaded correctly. The launch is cancelled.");
+				shutdownNow();
+			}
+		}
+
+		this.logger.info("Loading libraries ..");
+		for (DependencyInfo info : libs)
+			IOUtil.addToClasspath(info.file);
+	}
+
+	protected void loadResources() throws Exception {
+		loadTranslations(App.getResource("lang/common"), "txt");
+	}
+
+	protected void getLibraries(Collection<DependencyInfo> col) throws Exception {
+		col.add(Libraries.NANOJSON);
 	}
 
 	protected final void loadTranslations(Path dir, String extension) {
@@ -226,12 +330,64 @@ public abstract class Application {
 			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
 	}
 
-	protected void loadResources() throws Exception {
-		loadTranslations(App.getResource("lang/common"), "txt");
-	}
-
 	protected void fillTranslations() throws Exception {
 		getTranslator().fill(Translations.class);
+	}
+
+	protected final void skipEnvironment() {
+		updateEnvironment(new EmptyReleaseSource());
+	}
+
+	protected final void updateEnvironment(ReleaseSource appSource) {
+		updateEnvironment(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", "Updater", null));
+	}
+
+	protected final void updateEnvironment(ReleaseSource appSource, ReleaseSource updaterSource) {
+		checkState(State.ENVIRONMENT_UPDATE);
+
+		this.appSource = appSource;
+		this.updaterSource = updaterSource;
+
+		if (!this.arguments.getFlag("noUpdateCheck").isPresent()) {
+			Path appJar = getApplicationJar().orElse(null);
+			if (appJar != null) {
+				ReleaseInfo latestApp = this.appSource.getLatestRelease().orElse(null);
+				if (latestApp != null && !this.version.equals(latestApp.version)) {
+					ReleaseInfo latestUpdater = this.updaterSource.getLatestRelease().orElse(null);
+					if (latestUpdater != null && suggestApplicationUpdate())
+						updateApplication(appJar, latestApp, latestUpdater);
+				}
+			}
+		}
+
+		setState(State.STAGE_INIT);
+	}
+
+	public Optional<Path> getApplicationJar() {
+		if (this.applicationJar == null) {
+			try {
+				Path p = Paths.get(Application.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+				if (p.getFileName().toString().endsWith(".jar"))
+					this.applicationJar = Optional.of(p);
+				else
+					this.applicationJar = Optional.empty();
+			} catch (URISyntaxException e) {
+				this.logger.warn("Can't get application's jar", e);
+				this.applicationJar = Optional.empty();
+			}
+		}
+		return this.applicationJar;
+	}
+
+	protected final boolean suggestApplicationUpdate() {
+		if (this.UIEnabled)
+			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
+
+		if (this.arguments.getFlag("autoUpdate").isPresent())
+			return true;
+
+		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
+		return false;
 	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
@@ -321,21 +477,75 @@ public abstract class Application {
 		}
 		this.listeners.clear();
 	}
-	
-	public Optional<Path> getApplicationJarFile() {
-		try {
-			Path p = Paths.get(Application.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-			if (p.getFileName().toString().endsWith(".jar"))
-				return Optional.of(p);
-			return Optional.empty();
-		} catch (URISyntaxException e) {
-			this.logger.warn("Can't get application's jar file", e);
-			return Optional.empty();
-		}
+
+	protected final void updateApplication(Path appJar, ReleaseInfo latestApp, ReleaseInfo latestUpdater) {
+		Consumer<ProgressTask> consumer = task -> {
+			this.logger.info("Starting application update task ..");
+			task.setTitle(Translations.update_download_title);
+
+			Path updaterJar = this.workingDir.resolve("Updater.jar");
+			if (!latestUpdater.matches(updaterJar)) {
+				this.logger.info("Downloading latest updater ..");
+				IOUtil.download(latestUpdater.url, updaterJar, task);
+
+				if (!latestUpdater.matches(updaterJar)) {
+					this.logger.error("Updater file seems invalid, aborting ..");
+					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
+					return;
+				}
+			}
+
+			Path appUpdateJar = this.workingDir.resolve(this.name + "-Update.jar");
+			if (!latestApp.matches(appUpdateJar)) {
+				this.logger.info("Downloading latest application update ..");
+				IOUtil.download(latestApp.url, appUpdateJar, task);
+
+				if (!latestApp.matches(appUpdateJar)) {
+					this.logger.error("Application update file seems invalid, aborting ..");
+					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
+					return;
+				}
+			}
+
+			logger.info("Starting updater process ..");
+			task.setTitle(Translations.update_process_title);
+			task.setMessage(Translations.update_process_message);
+			task.setProgress(-1);
+
+			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
+			if (!launch)
+				logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
+
+			List<String> cmd = new ArrayList<>();
+			cmd.add("java");
+			cmd.add("-jar");
+			cmd.add(updaterJar.toAbsolutePath().toString());
+			cmd.add("1"); // version
+			cmd.add(appUpdateJar.toAbsolutePath().toString()); // source
+			cmd.add(appJar.toAbsolutePath().toString()); // target
+			cmd.add(String.valueOf(launch)); // launch
+			for (String arg : this.arguments.getInitialArguments()) // args
+				cmd.add(arg);
+
+			try {
+				ProcessUtil.builder().command(cmd).start();
+			} catch (IOException e) {
+				logger.error("Failed to start updater process", e);
+				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
+				return;
+			}
+
+			shutdownNow();
+		};
+
+		if (this.UIEnabled)
+			Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
+		else
+			App.submit(consumer);
 	}
-	
-	public boolean shouldUpdate() {
-		return this.jarUpdateTask != null && this.jarUpdateTask.shouldUpdate(false);
+
+	public Map<String, String> getLogBlacklist() {
+		return this.logBlacklist;
 	}
 
 	protected final void skipStage() {
@@ -348,118 +558,6 @@ public abstract class Application {
 	public final void requireUI() {
 		if (!this.UIEnabled)
 			throw new IllegalStateException("UI is not enabled");
-	}
-
-	protected final void checkForUpdate() {
-		try {
-			checkForUpdate(new URL("https://files.smoofyuniverse.net/apps/" + this.name + ".jar"), new URL("https://files.smoofyuniverse.net/apps/updater/Updater.jar"));
-		} catch (MalformedURLException e) {
-			this.logger.warn("Failed to form update url", e);
-		}
-	}
-
-	protected final void checkForUpdate(URL jarUrl, URL updaterUrl) {
-		checkState(State.RUNNING);
-		if (this.arguments.getFlag("noUpdateCheck").isPresent())
-			return;
-
-		Path jarFile = getApplicationJarFile().orElse(null);
-		if (jarFile != null) {
-			this.jarUpdateTask = new FileDownloadTask(jarUrl, jarFile, -1, null, null);
-			this.jarUpdateTask.syncExpectedInfo();
-			this.updaterUpdateTask = new FileDownloadTask(updaterUrl, this.workingDir.resolve("Updater.jar"), -1, null, null);
-			this.updaterUpdateTask.syncExpectedInfo();
-		}
-
-		if (shouldUpdate() && suggestUpdate())
-			update();
-	}
-
-	public boolean suggestUpdate() {
-		if (this.UIEnabled)
-			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
-
-		if (this.arguments.getFlag("autoUpdate").isPresent())
-			return true;
-
-		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
-		return false;
-	}
-
-	public void update() {
-		if (this.updaterUpdateTask == null || this.jarUpdateTask == null)
-			throw new IllegalStateException("Update tasks not initialized");
-
-		Consumer<ProgressTask> consumer = (task) -> {
-			this.logger.info("Starting application update task ..");
-			task.setTitle(Translations.update_download_title);
-
-			if (this.updaterUpdateTask.shouldUpdate(false)) {
-				this.logger.info("Downloading latest updater ..");
-				this.updaterUpdateTask.update(task);
-
-				if (this.updaterUpdateTask.shouldUpdate(false)) {
-					this.logger.error("Updater file seems invalid, aborting ..");
-					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
-					return;
-				}
-			}
-
-			Path appJar = this.jarUpdateTask.getPath();
-			Path updateJar = this.workingDir.resolve(this.name + "-Update.jar");
-
-			this.jarUpdateTask.setPath(updateJar);
-			if (this.jarUpdateTask.shouldUpdate(false)) {
-				this.logger.info("Downloading latest application update ..");
-				this.jarUpdateTask.update(task);
-
-				if (this.jarUpdateTask.shouldUpdate(false)) {
-					this.logger.error("Application update file seems invalid, aborting ..");
-					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
-					this.jarUpdateTask.setPath(appJar);
-					return;
-				}
-			}
-			this.jarUpdateTask.setPath(appJar);
-
-			this.logger.info("Starting updater process ..");
-			task.setTitle(Translations.update_process_title);
-			task.setMessage(Translations.update_process_message);
-			task.setProgress(-1);
-
-			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
-			if (!launch)
-				this.logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
-
-			List<String> cmd = new ArrayList<>();
-			cmd.add("java");
-			cmd.add("-jar");
-			cmd.add(this.updaterUpdateTask.getPath().toAbsolutePath().toString());
-			cmd.add("1"); // version
-			cmd.add(updateJar.toAbsolutePath().toString()); // source
-			cmd.add(appJar.toAbsolutePath().toString()); // target
-			cmd.add(String.valueOf(launch)); // launch
-			for (String arg : this.arguments.getInitialArguments()) // args
-				cmd.add(arg);
-
-			try {
-				ProcessUtil.builder().command(cmd).start();
-			} catch (IOException e) {
-				this.logger.error("Failed to start updater process", e);
-				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
-				return;
-			}
-
-			if (this.UIEnabled)
-				Platform.runLater(this::shutdown);
-			else
-				shutdown();
-		};
-
-		if (this.UIEnabled)
-			Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
-		else
-			App.submit(consumer);
 	}
 
 	public final ResourceLoader getResourceLoader() {
@@ -504,10 +602,10 @@ public abstract class Application {
 		return this.resourceManager;
 	}
 
-	public ConnectionConfiguration getConnectionConfig() {
+	public ConnectionConfig getConnectionConfig() {
 		if (this.connectionConfig == null) {
 			Optional<String> host = this.arguments.getFlag("proxyHost");
-			ConnectionConfiguration.Builder b = ConnectionConfiguration.builder();
+			ConnectionConfig.Builder b = ConnectionConfig.builder();
 			host.ifPresent(s -> b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(s, this.arguments.getIntFlag(8080, "proxyPort")))));
 			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
 					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
