@@ -44,6 +44,10 @@ public class SimpleReleaseSource implements ReleaseSource {
 	private final URL baseUrl;
 	private final ConnectionConfig config;
 
+	public SimpleReleaseSource(String baseUrl, String appName) {
+		this(IOUtil.newURL(baseUrl), appName);
+	}
+
 	public SimpleReleaseSource(URL baseUrl, String appName) {
 		this(baseUrl, appName, App.get().getConnectionConfig());
 	}

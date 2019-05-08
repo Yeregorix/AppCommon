@@ -208,15 +208,6 @@ public abstract class Application {
 			fatalError(e);
 		}
 
-		if (!this.arguments.getFlag("development", "dev").isPresent()) {
-			try {
-				loadLibraries();
-			} catch (Exception e) {
-				this.logger.error("Failed to load libraries", e);
-				fatalError(e);
-			}
-		}
-
 		this.logger.info("Loading resources ..");
 		try {
 			loadResources();
@@ -248,13 +239,12 @@ public abstract class Application {
 
 		long dur = System.currentTimeMillis() - time;
 		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
+
+		setState(State.ENVIRONMENT_UPDATE);
 	}
 
-	protected final void loadLibraries() throws Exception {
-		Set<DependencyInfo> libs = new HashSet<>();
-		getLibraries(libs);
-
-		if (libs.isEmpty())
+	protected final void loadLibraries(Collection<DependencyInfo> libs) throws Exception {
+		if (libs.isEmpty() || this.arguments.getFlag("development", "dev").isPresent())
 			return;
 
 		Path libsDir = this.workingDir.resolve("libraries");
@@ -321,10 +311,6 @@ public abstract class Application {
 		loadTranslations(App.getResource("lang/common"), "txt");
 	}
 
-	protected void getLibraries(Collection<DependencyInfo> col) throws Exception {
-		col.add(Libraries.NANOJSON);
-	}
-
 	protected final void loadTranslations(Path dir, String extension) {
 		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
 			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
@@ -339,7 +325,7 @@ public abstract class Application {
 	}
 
 	protected final void updateEnvironment(ReleaseSource appSource) {
-		updateEnvironment(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", "Updater", null));
+		updateEnvironment(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
 	}
 
 	protected final void updateEnvironment(ReleaseSource appSource, ReleaseSource updaterSource) {
@@ -488,24 +474,36 @@ public abstract class Application {
 				this.logger.info("Downloading latest updater ..");
 				IOUtil.download(latestUpdater.url, updaterJar, task);
 
+				if (task.isCancelled())
+					return;
+
 				if (!latestUpdater.matches(updaterJar)) {
+					task.cancel();
 					this.logger.error("Updater file seems invalid, aborting ..");
 					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
-					return;
 				}
 			}
+
+			if (task.isCancelled())
+				return;
 
 			Path appUpdateJar = this.workingDir.resolve(this.name + "-Update.jar");
 			if (!latestApp.matches(appUpdateJar)) {
 				this.logger.info("Downloading latest application update ..");
 				IOUtil.download(latestApp.url, appUpdateJar, task);
 
+				if (task.isCancelled())
+					return;
+
 				if (!latestApp.matches(appUpdateJar)) {
+					task.cancel();
 					this.logger.error("Application update file seems invalid, aborting ..");
 					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
-					return;
 				}
 			}
+
+			if (task.isCancelled())
+				return;
 
 			logger.info("Starting updater process ..");
 			task.setTitle(Translations.update_process_title);
@@ -527,21 +525,28 @@ public abstract class Application {
 			for (String arg : this.arguments.getInitialArguments()) // args
 				cmd.add(arg);
 
+			if (task.isCancelled())
+				return;
+
 			try {
 				ProcessUtil.builder().command(cmd).start();
 			} catch (IOException e) {
+				task.cancel();
 				logger.error("Failed to start updater process", e);
 				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
-				return;
 			}
-
-			shutdownNow();
 		};
 
+		boolean r;
 		if (this.UIEnabled)
-			Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
+			r = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
 		else
-			App.submit(consumer);
+			r = App.submit(consumer);
+
+		if (r)
+			shutdownNow();
+		else
+			this.logger.info("Update task has been cancelled.");
 	}
 
 	public Map<String, String> getLogBlacklist() {
