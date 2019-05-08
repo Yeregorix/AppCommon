@@ -338,7 +338,7 @@ public abstract class Application {
 			Path appJar = getApplicationJar().orElse(null);
 			if (appJar != null) {
 				ReleaseInfo latestApp = this.appSource.getLatestRelease().orElse(null);
-				if (latestApp != null && !this.version.equals(latestApp.version)) {
+				if (latestApp != null && !latestApp.matches(appJar)) {
 					ReleaseInfo latestUpdater = this.updaterSource.getLatestRelease().orElse(null);
 					if (latestUpdater != null && suggestApplicationUpdate())
 						updateApplication(appJar, latestApp, latestUpdater);
