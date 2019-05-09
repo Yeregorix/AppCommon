@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
 public class IOUtil {
 	private static final Logger logger = App.getLogger("IOUtil");
 
-	public static final Pattern ILLEGAL_PATH_CHARACTERS = Pattern.compile("[:\\\\/*?|<>]\"");
+	public static final Pattern ILLEGAL_PATH = Pattern.compile("[:\\\\/*?|<>\"]+");
 	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
 
 	public static final FileVisitor<Path> DIRECTORY_REMOVER = new FileVisitor<Path>() {
