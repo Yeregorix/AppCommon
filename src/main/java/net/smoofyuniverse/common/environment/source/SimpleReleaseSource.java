@@ -40,9 +40,9 @@ import java.util.Optional;
 public class SimpleReleaseSource implements ReleaseSource {
 	private static final Logger logger = App.getLogger("SimpleReleaseSource");
 
-	private final String appName;
-	private final URL baseUrl;
-	private final ConnectionConfig config;
+	protected final String appName;
+	protected final URL baseUrl;
+	protected final ConnectionConfig config;
 
 	public SimpleReleaseSource(String baseUrl, String appName) {
 		this(IOUtil.newURL(baseUrl), appName);

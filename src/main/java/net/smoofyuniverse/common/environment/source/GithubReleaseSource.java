@@ -37,10 +37,11 @@ import java.time.Instant;
 import java.util.Optional;
 
 public class GithubReleaseSource implements ReleaseSource {
-	public static final URL URL_BASE;
 	private static final Logger logger = App.getLogger("GithubReleaseSource");
-	private final String owner, repo, accessToken, appName;
-	private final ConnectionConfig config;
+	public static final URL URL_BASE;
+
+	protected final String owner, repo, accessToken, appName;
+	protected final ConnectionConfig config;
 
 	public GithubReleaseSource(String owner, String repo, String accessToken, String appName) {
 		this(owner, repo, accessToken, appName, App.get().getConnectionConfig());
