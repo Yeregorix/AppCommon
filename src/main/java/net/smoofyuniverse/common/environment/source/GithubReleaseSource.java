@@ -126,7 +126,7 @@ public class GithubReleaseSource implements ReleaseSource {
 		String digest = null;
 
 		if (jsonAsset != null) {
-			try (Reader r = this.config.openReader(url)) {
+			try (Reader r = this.config.openReader(newURL(jsonAsset.getString("url")))) {
 				JsonObject data = JsonParser.object().withLazyNumbers().from(r);
 				digest = data.getString("sha1");
 				extraData = data.getObject("extra");
