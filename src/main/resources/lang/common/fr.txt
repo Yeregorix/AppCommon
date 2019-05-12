@@ -7,10 +7,16 @@ update_download_title=Téléchargement de la mise à jour ..
 update_cancelled=Mise à jour annulée
 updater_signature_invalid=L'installateur de mise à jour possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.
 update_signature_invalid=La mise à jour téléchargée possède une signature incorrecte.\nPar sécurité, la mise à jour a été annulée.
-update_process_title=Processus de mise à jour ..
+update_process_title=Mise à jour ..
 update_process_message=Démarrage du processus ..
 update_process_error=Une erreur est survenue lors du démarrage du processus de mise à jour.
-update_title=Mise à jour de l'application ..
+update_title=Mise à jour de l'application
+
+## Dependencies update
+dependencies_download_title=Téléchargement des dépendances manquantes ..
+dependencies_update_title=Mise à jour des dépendances
+failed_dependencies_title=Dépendances échouées
+failed_dependencies_message=Les dépendances suivantes n'ont pas été téléchargées correctement:{list}
 
 ## Task list
 task_list_cancel=Annuler

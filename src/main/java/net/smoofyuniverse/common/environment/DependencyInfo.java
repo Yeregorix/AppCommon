@@ -20,18 +20,32 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.app;
+package net.smoofyuniverse.common.environment;
 
-import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
+import net.smoofyuniverse.common.download.FileInfo;
 
-import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-public final class Translations {
+public class DependencyInfo extends FileInfo {
+	public final String name;
 
-	public static final ObservableTranslation
-			dependencies_download_title = DUMMY, dependencies_update_title = DUMMY, failed_dependencies_title = DUMMY,
-			failed_dependencies_message = DUMMY, update_available_title = DUMMY, update_available_message = DUMMY,
-			update_download_title = DUMMY, update_cancelled = DUMMY, updater_signature_invalid = DUMMY,
-			update_signature_invalid = DUMMY, update_process_title = DUMMY, update_process_message = DUMMY,
-			update_process_error = DUMMY, update_title = DUMMY, task_list_cancel = DUMMY;
+	public DependencyInfo(String name, String url, long size, String digest, String digestInst) {
+		this(name, newURL(url), size, digest, digestInst);
+	}
+
+	public DependencyInfo(String name, URL url, long size, String digest, String digestInst) {
+		super(url, size, digest, digestInst);
+		if (name == null || name.isEmpty())
+			throw new IllegalArgumentException("name");
+		this.name = name;
+	}
+
+	private static URL newURL(String url) {
+		try {
+			return new URL(url);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

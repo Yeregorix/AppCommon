@@ -29,6 +29,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.download.ConnectionConfig;
+import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
 import net.smoofyuniverse.common.environment.source.EmptyReleaseSource;
 import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
@@ -42,6 +43,7 @@ import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.resource.ResourceModule;
 import net.smoofyuniverse.common.resource.translator.Translator;
 import net.smoofyuniverse.common.task.BaseListener;
+import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
@@ -73,7 +75,7 @@ public abstract class Application {
 	protected final Arguments arguments;
 	protected final Path workingDir;
 	protected final String name, title, version;
-	protected final boolean UIEnabled;
+	protected final boolean UIEnabled, devEnvironment;
 	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 	protected final Map<String, String> logBlacklist = new HashMap<>();
 
@@ -108,6 +110,7 @@ public abstract class Application {
 		this.title = title;
 		this.version = version;
 		this.UIEnabled = enableUI;
+		this.devEnvironment = args.getFlag("development", "dev").isPresent();
 		this.logger = new Logger(PrintStreamAppender.system(), "Application");
 		
 		System.setProperty("java.net.preferIPv4Stack", "true");
@@ -281,6 +284,100 @@ public abstract class Application {
 		}
 
 		setState(State.STAGE_INIT);
+	}
+
+	protected final boolean updateDependencies(Path defaultDir, DependencyInfo... deps) {
+		List<DependencyInfo> list = new LinkedList<>();
+		for (DependencyInfo info : deps)
+			list.add(info);
+
+		updateDependencies(defaultDir, list);
+		return list.isEmpty();
+	}
+
+	protected final void updateDependencies(Path defaultDir, Collection<DependencyInfo> deps) {
+		if (deps.isEmpty())
+			return;
+
+		long totalSize = 0;
+		Iterator<DependencyInfo> it = deps.iterator();
+		while (it.hasNext()) {
+			DependencyInfo info = it.next();
+
+			if (info.file == null)
+				info.file = IOUtil.getMavenPath(defaultDir, info.name, ".jar");
+
+			if (info.matches())
+				it.remove();
+			else
+				totalSize += info.size;
+		}
+
+		if (deps.isEmpty())
+			return;
+
+		long totalSizeF = totalSize;
+		Consumer<ProgressTask> consumer = task -> {
+			this.logger.info("Downloading missing dependencies ..");
+			task.setTitle(Translations.dependencies_download_title);
+			IncrementalListener listener = task.expect(totalSizeF);
+
+			Iterator<DependencyInfo> it2 = deps.iterator();
+			while (it2.hasNext()) {
+				if (task.isCancelled())
+					return;
+
+				DependencyInfo info = it2.next();
+				this.logger.info("Downloading dependency " + info.name + " ..");
+				task.setMessage(info.name);
+
+				Path dir = info.file.getParent();
+				if (!Files.isDirectory(dir)) {
+					try {
+						Files.createDirectories(dir);
+					} catch (IOException e) {
+						this.logger.warn("Failed to create directory " + dir, e);
+						continue;
+					}
+				}
+
+				if (!IOUtil.download(info.url, info.file, listener))
+					continue;
+
+				if (task.isCancelled())
+					return;
+
+				if (info.matches())
+					it2.remove();
+				else
+					this.logger.warn("The downloaded dependency has an incorrect signature.");
+			}
+		};
+
+		boolean r;
+		if (this.UIEnabled)
+			r = Popup.consumer(consumer).title(Translations.dependencies_update_title).submitAndWait();
+		else
+			r = App.submit(consumer);
+
+		if (!r || deps.isEmpty())
+			return;
+
+		StringBuilder b = new StringBuilder();
+		for (DependencyInfo info : deps)
+			b.append("\n- ").append(info.name);
+
+		Popup.error().title(Translations.failed_dependencies_title).message(Translations.failed_dependencies_message.format("list", b.toString())).showAndWait();
+	}
+
+	protected final void loadDependencies(DependencyInfo... deps) {
+		for (DependencyInfo info : deps)
+			IOUtil.addToClasspath(info.file);
+	}
+
+	protected final void loadDependencies(Collection<DependencyInfo> deps) {
+		for (DependencyInfo info : deps)
+			IOUtil.addToClasspath(info.file);
 	}
 
 	public Optional<Path> getApplicationJar() {
@@ -622,5 +719,9 @@ public abstract class Application {
 
 	public final boolean isUIEnabled() {
 		return this.UIEnabled;
+	}
+
+	public final boolean isDevEnvironment() {
+		return this.devEnvironment;
 	}
 }

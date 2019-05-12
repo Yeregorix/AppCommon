@@ -45,7 +45,7 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected final ConnectionConfig config;
 
 	public SimpleReleaseSource(String baseUrl, String appName) {
-		this(IOUtil.newURL(baseUrl), appName);
+		this(newURL(baseUrl), appName);
 	}
 
 	public SimpleReleaseSource(URL baseUrl, String appName) {
@@ -103,5 +103,13 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected ReleaseInfo getRelease(String version, JsonObject obj) throws Exception {
 		return new ReleaseInfo(version, Instant.parse(obj.getString("date")), obj.getObject("extra"),
 				getURL(version + "/" + this.appName + "-" + version + ".jar"), obj.getNumber("size").longValue(), obj.getString("sha1"), "sha1");
+	}
+
+	private static URL newURL(String url) {
+		try {
+			return new URL(url);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

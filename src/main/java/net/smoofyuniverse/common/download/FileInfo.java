@@ -25,15 +25,12 @@ package net.smoofyuniverse.common.download;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.core.Logger;
 
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class FileInfo {
-	private static final Logger logger = App.getLogger("FileInfo");
-
 	public final URL url;
 	public final long size;
 	public final String digest, digestInst;
@@ -67,7 +64,7 @@ public class FileInfo {
 			if (this.digest != null && this.digestInst != null && !this.digest.equals(StringUtil.toHexString(IOUtil.digest(file, this.digestInst))))
 				return false;
 		} catch (Exception e) {
-			logger.warn("Failed to check file " + file, e);
+			App.getLogger("FileInfo").warn("Failed to check file " + file, e);
 			return false;
 		}
 		return true;

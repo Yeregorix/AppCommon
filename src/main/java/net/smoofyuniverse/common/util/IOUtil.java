@@ -78,12 +78,13 @@ public class IOUtil {
 
 	private static Method addURL;
 
-	public static URL newURL(String url) {
-		try {
-			return new URL(url);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
+	public static Path getMavenPath(Path dir, String fname, String ext) {
+		String[] a = fname.split(":");
+		return getMavenPath(dir, a[0], a[1], a[2], ext);
+	}
+
+	public static Path getMavenPath(Path dir, String group, String name, String version, String ext) {
+		return dir.resolve(group.replace('.', '/')).resolve(name).resolve(version).resolve(name + "-" + version + ext);
 	}
 
 	public static void addToClasspath(Path file) {
