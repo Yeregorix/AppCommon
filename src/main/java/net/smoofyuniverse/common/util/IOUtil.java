@@ -78,30 +78,37 @@ public class IOUtil {
 
 	private static Method addURL;
 
-	public static Path getMavenPath(Path dir, String fname, String ext) {
+	public static Path getMavenPath(Path dir, String fname, String suffix) {
 		String[] a = fname.split(":");
-		return getMavenPath(dir, a[0], a[1], a[2], ext);
+		if (a.length < 3)
+			throw new IllegalArgumentException("fname");
+
+		if (a.length > 3) {
+			StringBuilder b = new StringBuilder();
+			for (int i = 3; i < a.length; i++)
+				b.append('-').append(a[i]);
+			b.append(suffix);
+			suffix = b.toString();
+		}
+
+		return getMavenPath(dir, a[0], a[1], a[2], suffix);
 	}
 
-	public static Path getMavenPath(Path dir, String group, String name, String version, String ext) {
-		return dir.resolve(group.replace('.', '/')).resolve(name).resolve(version).resolve(name + "-" + version + ext);
+	public static Path getMavenPath(Path dir, String group, String name, String version, String suffix) {
+		return dir.resolve(group.replace('.', '/')).resolve(name).resolve(version).resolve(name + "-" + version + suffix);
 	}
 
-	public static void addToClasspath(Path file) {
+	public static void addToClasspath(URLClassLoader cl, Path file) {
 		try {
-			addToClasspath(file.toUri().toURL());
+			addToClasspath(cl, file.toUri().toURL());
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public static void addToClasspath(URL url) {
-		addToClasspath((URLClassLoader) ClassLoader.getSystemClassLoader(), url);
-	}
-
-	public static void addToClasspath(URLClassLoader classLoader, URL url) {
+	public static void addToClasspath(URLClassLoader cl, URL url) {
 		try {
-			addURL.invoke(classLoader, url);
+			addURL.invoke(cl, url);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}

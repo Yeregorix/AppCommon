@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URISyntaxException;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -143,9 +144,9 @@ public abstract class Application {
 			if (this.UIEnabled)
 				initJavaFX();
 			init();
-		} catch (Exception e) {
-			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", e);
-			fatalError(e);
+		} catch (Throwable t) {
+			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
+			fatalError(t);
 		}
 	}
 
@@ -371,13 +372,21 @@ public abstract class Application {
 	}
 
 	protected final void loadDependencies(DependencyInfo... deps) {
+		loadDependencies((URLClassLoader) ClassLoader.getSystemClassLoader(), deps);
+	}
+
+	protected final void loadDependencies(URLClassLoader cl, DependencyInfo... deps) {
 		for (DependencyInfo info : deps)
-			IOUtil.addToClasspath(info.file);
+			IOUtil.addToClasspath(cl, info.file);
 	}
 
 	protected final void loadDependencies(Collection<DependencyInfo> deps) {
+		loadDependencies((URLClassLoader) ClassLoader.getSystemClassLoader(), deps);
+	}
+
+	protected final void loadDependencies(URLClassLoader cl, Collection<DependencyInfo> deps) {
 		for (DependencyInfo info : deps)
-			IOUtil.addToClasspath(info.file);
+			IOUtil.addToClasspath(cl, info.file);
 	}
 
 	public Optional<Path> getApplicationJar() {
