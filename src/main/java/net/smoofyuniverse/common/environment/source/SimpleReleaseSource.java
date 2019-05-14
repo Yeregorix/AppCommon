@@ -31,7 +31,7 @@ import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
@@ -95,8 +95,8 @@ public class SimpleReleaseSource implements ReleaseSource {
 	}
 
 	protected ReleaseInfo getRelease(String version, URL url) throws Exception {
-		try (Reader r = this.config.openReader(url)) {
-			return getRelease(version, JsonParser.object().withLazyNumbers().from(r));
+		try (InputStream in = this.config.openStream(url)) {
+			return getRelease(version, JsonParser.object().withLazyNumbers().from(in));
 		}
 	}
 

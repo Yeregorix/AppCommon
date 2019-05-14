@@ -52,11 +52,7 @@ public class ConnectionConfig {
 	}
 	
 	public BufferedReader openBufferedReader(URL url) throws IOException {
-		return new BufferedReader(openReader(url));
-	}
-
-	public InputStreamReader openReader(URL url) throws IOException {
-		return new InputStreamReader(openStream(url));
+		return new BufferedReader(new InputStreamReader(openStream(url)));
 	}
 	
 	public InputStream openStream(URL url) throws IOException {

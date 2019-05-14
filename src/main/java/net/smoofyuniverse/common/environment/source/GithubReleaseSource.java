@@ -30,8 +30,7 @@ import net.smoofyuniverse.common.environment.ReleaseInfo;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -90,8 +89,8 @@ public class GithubReleaseSource implements ReleaseSource {
 	}
 
 	protected ReleaseInfo getRelease(URL url) throws Exception {
-		try (Reader r = this.config.openReader(url)) {
-			return getRelease(JsonParser.object().withLazyNumbers().from(r));
+		try (InputStream in = this.config.openStream(url)) {
+			return getRelease(JsonParser.object().withLazyNumbers().from(in));
 		}
 	}
 
@@ -131,8 +130,8 @@ public class GithubReleaseSource implements ReleaseSource {
 			HttpURLConnection co = this.config.openHttpConnection(newURL(jsonAsset.getString("url")));
 			try {
 				co.setRequestProperty("Accept", "application/octet-stream");
-				try (Reader r = new InputStreamReader(co.getInputStream())) {
-					JsonObject data = JsonParser.object().withLazyNumbers().from(r);
+				try (InputStream in = co.getInputStream()) {
+					JsonObject data = JsonParser.object().withLazyNumbers().from(in);
 					digest = data.getString("sha1");
 					extraData = data.getObject("extra");
 				}
