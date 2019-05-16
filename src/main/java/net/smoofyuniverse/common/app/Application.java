@@ -31,7 +31,6 @@ import javafx.stage.Stage;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
-import net.smoofyuniverse.common.environment.source.EmptyReleaseSource;
 import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
@@ -87,7 +86,6 @@ public abstract class Application {
 	private ExecutorService executor;
 	private Logger logger;
 	private Translator translator;
-	private ReleaseSource appSource, updaterSource;
 	private Stage stage;
 	private Optional<Path> applicationJar;
 	
@@ -242,7 +240,7 @@ public abstract class Application {
 		long dur = System.currentTimeMillis() - time;
 		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
 
-		setState(State.ENVIRONMENT_UPDATE);
+		setState(State.STAGE_INIT);
 	}
 
 	protected void loadResources() throws Exception {
@@ -258,33 +256,119 @@ public abstract class Application {
 		getTranslator().fill(Translations.class);
 	}
 
-	protected final void skipEnvironment() {
-		updateEnvironment(new EmptyReleaseSource());
+	protected final void updateApplication(ReleaseSource appSource) {
+		updateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
 	}
 
-	protected final void updateEnvironment(ReleaseSource appSource) {
-		updateEnvironment(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
-	}
+	protected final void updateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {
+		if (this.arguments.getFlag("noUpdateCheck").isPresent())
+			return;
 
-	protected final void updateEnvironment(ReleaseSource appSource, ReleaseSource updaterSource) {
-		checkState(State.ENVIRONMENT_UPDATE);
-
-		this.appSource = appSource;
-		this.updaterSource = updaterSource;
-
-		if (!this.arguments.getFlag("noUpdateCheck").isPresent()) {
-			Path appJar = getApplicationJar().orElse(null);
-			if (appJar != null) {
-				ReleaseInfo latestApp = this.appSource.getLatestRelease().orElse(null);
-				if (latestApp != null && !latestApp.matches(appJar)) {
-					ReleaseInfo latestUpdater = this.updaterSource.getLatestRelease().orElse(null);
-					if (latestUpdater != null && suggestApplicationUpdate())
-						updateApplication(appJar, latestApp, latestUpdater);
-				}
+		Path appJar = getApplicationJar().orElse(null);
+		if (appJar != null) {
+			ReleaseInfo latestApp = appSource.getLatestRelease().orElse(null);
+			if (latestApp != null && !latestApp.matches(appJar)) {
+				ReleaseInfo latestUpdater = updaterSource.getLatestRelease().orElse(null);
+				if (latestUpdater != null && suggestApplicationUpdate())
+					updateApplication(appJar, latestApp, latestUpdater);
 			}
 		}
+	}
 
-		setState(State.STAGE_INIT);
+	protected final boolean suggestApplicationUpdate() {
+		if (this.UIEnabled)
+			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
+
+		if (this.arguments.getFlag("autoUpdate").isPresent())
+			return true;
+
+		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
+		return false;
+	}
+
+	protected final void updateApplication(Path appJar, ReleaseInfo latestApp, ReleaseInfo latestUpdater) {
+		Consumer<ProgressTask> consumer = task -> {
+			this.logger.info("Starting application update task ..");
+			task.setTitle(Translations.update_download_title);
+
+			Path updaterJar = this.workingDir.resolve("Updater.jar");
+			if (!latestUpdater.matches(updaterJar)) {
+				this.logger.info("Downloading latest updater ..");
+				IOUtil.download(latestUpdater.url, updaterJar, task);
+
+				if (task.isCancelled())
+					return;
+
+				if (!latestUpdater.matches(updaterJar)) {
+					task.cancel();
+					this.logger.error("Updater file seems invalid, aborting ..");
+					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
+				}
+			}
+
+			if (task.isCancelled())
+				return;
+
+			Path appUpdateJar = this.workingDir.resolve(this.name + "-Update.jar");
+			if (!latestApp.matches(appUpdateJar)) {
+				this.logger.info("Downloading latest application update ..");
+				IOUtil.download(latestApp.url, appUpdateJar, task);
+
+				if (task.isCancelled())
+					return;
+
+				if (!latestApp.matches(appUpdateJar)) {
+					task.cancel();
+					this.logger.error("Application update file seems invalid, aborting ..");
+					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
+				}
+			}
+
+			if (task.isCancelled())
+				return;
+
+			logger.info("Starting updater process ..");
+			task.setTitle(Translations.update_process_title);
+			task.setMessage(Translations.update_process_message);
+			task.setProgress(-1);
+
+			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
+			if (!launch)
+				logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
+
+			List<String> cmd = new ArrayList<>();
+			cmd.add("java");
+			cmd.add("-jar");
+			cmd.add(updaterJar.toAbsolutePath().toString());
+			cmd.add("1"); // version
+			cmd.add(appUpdateJar.toAbsolutePath().toString()); // source
+			cmd.add(appJar.toAbsolutePath().toString()); // target
+			cmd.add(String.valueOf(launch)); // launch
+			for (String arg : this.arguments.getInitialArguments()) // args
+				cmd.add(arg);
+
+			if (task.isCancelled())
+				return;
+
+			try {
+				ProcessUtil.builder().command(cmd).start();
+			} catch (IOException e) {
+				task.cancel();
+				logger.error("Failed to start updater process", e);
+				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
+			}
+		};
+
+		boolean r;
+		if (this.UIEnabled)
+			r = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
+		else
+			r = App.submit(consumer);
+
+		if (r)
+			shutdownNow();
+		else
+			this.logger.info("Update task has been cancelled.");
 	}
 
 	protected final boolean updateDependencies(Path defaultDir, DependencyInfo... deps) {
@@ -404,17 +488,6 @@ public abstract class Application {
 		}
 		return this.applicationJar;
 	}
-
-	protected final boolean suggestApplicationUpdate() {
-		if (this.UIEnabled)
-			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
-
-		if (this.arguments.getFlag("autoUpdate").isPresent())
-			return true;
-
-		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
-		return false;
-	}
 	
 	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
 		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
@@ -502,91 +575,6 @@ public abstract class Application {
 			}
 		}
 		this.listeners.clear();
-	}
-
-	protected final void updateApplication(Path appJar, ReleaseInfo latestApp, ReleaseInfo latestUpdater) {
-		Consumer<ProgressTask> consumer = task -> {
-			this.logger.info("Starting application update task ..");
-			task.setTitle(Translations.update_download_title);
-
-			Path updaterJar = this.workingDir.resolve("Updater.jar");
-			if (!latestUpdater.matches(updaterJar)) {
-				this.logger.info("Downloading latest updater ..");
-				IOUtil.download(latestUpdater.url, updaterJar, task);
-
-				if (task.isCancelled())
-					return;
-
-				if (!latestUpdater.matches(updaterJar)) {
-					task.cancel();
-					this.logger.error("Updater file seems invalid, aborting ..");
-					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
-				}
-			}
-
-			if (task.isCancelled())
-				return;
-
-			Path appUpdateJar = this.workingDir.resolve(this.name + "-Update.jar");
-			if (!latestApp.matches(appUpdateJar)) {
-				this.logger.info("Downloading latest application update ..");
-				IOUtil.download(latestApp.url, appUpdateJar, task);
-
-				if (task.isCancelled())
-					return;
-
-				if (!latestApp.matches(appUpdateJar)) {
-					task.cancel();
-					this.logger.error("Application update file seems invalid, aborting ..");
-					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
-				}
-			}
-
-			if (task.isCancelled())
-				return;
-
-			logger.info("Starting updater process ..");
-			task.setTitle(Translations.update_process_title);
-			task.setMessage(Translations.update_process_message);
-			task.setProgress(-1);
-
-			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
-			if (!launch)
-				logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
-
-			List<String> cmd = new ArrayList<>();
-			cmd.add("java");
-			cmd.add("-jar");
-			cmd.add(updaterJar.toAbsolutePath().toString());
-			cmd.add("1"); // version
-			cmd.add(appUpdateJar.toAbsolutePath().toString()); // source
-			cmd.add(appJar.toAbsolutePath().toString()); // target
-			cmd.add(String.valueOf(launch)); // launch
-			for (String arg : this.arguments.getInitialArguments()) // args
-				cmd.add(arg);
-
-			if (task.isCancelled())
-				return;
-
-			try {
-				ProcessUtil.builder().command(cmd).start();
-			} catch (IOException e) {
-				task.cancel();
-				logger.error("Failed to start updater process", e);
-				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
-			}
-		};
-
-		boolean r;
-		if (this.UIEnabled)
-			r = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
-		else
-			r = App.submit(consumer);
-
-		if (r)
-			shutdownNow();
-		else
-			this.logger.info("Update task has been cancelled.");
 	}
 
 	public Map<String, String> getLogBlacklist() {

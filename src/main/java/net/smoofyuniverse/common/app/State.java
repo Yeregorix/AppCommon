@@ -28,7 +28,7 @@ import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.event.core.ListenerRegistration;
 
 public enum State {
-	CREATION, SERVICES_INIT, ENVIRONMENT_UPDATE, STAGE_INIT, RUNNING, SHUTDOWN;
+	CREATION, SERVICES_INIT, STAGE_INIT, RUNNING, SHUTDOWN;
 
 	public ListenerRegistration<ApplicationStateChangeEvent> newListener(EventListener<ApplicationStateChangeEvent> listener, Order order) {
 		return new ListenerRegistration<>(ApplicationStateChangeEvent.class, e -> {
