@@ -52,11 +52,13 @@ public class FloatField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
+		setValue(value);
+		setText(format(value));
+
 		this.value.addListener((v, oldV, newV) -> {
 			if (!this.ignore)
 				setText(format(newV.floatValue()));
 		});
-		setValue(value);
 	}
 
 	private static String format(float value) {

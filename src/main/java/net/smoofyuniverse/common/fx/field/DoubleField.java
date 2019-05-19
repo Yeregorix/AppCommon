@@ -52,11 +52,13 @@ public class DoubleField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
+		setValue(value);
+		setText(format(value));
+
 		this.value.addListener((v, oldV, newV) -> {
 			if (!this.ignore)
 				setText(format(newV.doubleValue()));
 		});
-		setValue(value);
 	}
 
 	private static String format(double value) {

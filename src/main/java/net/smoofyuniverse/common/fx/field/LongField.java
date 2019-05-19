@@ -47,11 +47,13 @@ public class LongField extends NumberField {
 		this.minValue = min;
 		this.maxValue = max;
 
+		setValue(value);
+		setText(Long.toString(value));
+
 		this.value.addListener((v, oldV, newV) -> {
 			if (!this.ignore)
 				setText(newV.toString());
 		});
-		setValue(value);
 	}
 
 	@Override
