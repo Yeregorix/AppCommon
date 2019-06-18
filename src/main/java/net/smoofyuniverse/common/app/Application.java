@@ -54,6 +54,8 @@ import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 import net.smoofyuniverse.logger.core.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -72,13 +74,14 @@ public abstract class Application {
 
 	private State state = State.CREATION;
 	protected final ResourceLoader resourceLoader;
-	protected final Arguments arguments;
-	protected final Path workingDir;
+	protected final Arguments originalArguments;
+	protected final Path workingDir, staticArgumentsFile;
 	protected final String name, title, version;
 	protected final boolean UIEnabled, devEnvironment;
 	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 	protected final Map<String, String> logBlacklist = new HashMap<>();
 
+	private Arguments staticArguments, arguments;
 	private ConnectionConfig connectionConfig;
 	private LoggerFactory loggerFactory;
 	private EventManager eventManager;
@@ -92,98 +95,71 @@ public abstract class Application {
 	public Application(Arguments args, String name, String version) {
 		this(args, name, name, version);
 	}
-	
-	public Application(Arguments args, String name, String title, String version) {
-		this(args, getDirectory(args, name), name, title, version, !args.getFlag("disableUI").isPresent());
-	}
 
-	public Application(Arguments args, Path dir, String name, String title, String version, boolean enableUI) {
+	public Application(Arguments arguments, String name, String title, String version) {
 		if (instance != null)
 			throw new IllegalStateException("An application instance already exists");
 		instance = this;
 
-		this.resourceLoader = new ResourceLoader();
-		this.arguments = args;
-		this.workingDir = dir.toAbsolutePath();
 		this.name = name;
 		this.title = title;
 		this.version = version;
-		this.UIEnabled = enableUI;
-		this.devEnvironment = args.getFlag("development", "dev").isPresent();
+
+		this.originalArguments = arguments;
+		this.devEnvironment = arguments.getBoolean("development", "dev");
+		this.workingDir = resolveDirectory().toAbsolutePath();
+		this.staticArgumentsFile = this.workingDir.resolve("static-arguments.txt");
+
+		this.resourceLoader = new ResourceLoader();
 		this.logger = new Logger(PrintStreamAppender.system(), "Application");
-		
 		System.setProperty("java.net.preferIPv4Stack", "true");
+
+		loadStaticArguments();
+		this.UIEnabled = enableUI();
 		
 		setState(State.SERVICES_INIT);
 	}
 
-	private static Path getDirectory(Arguments args, String defaultDir) {
-		String dirName = args.getFlag("directory", "dir").orElse("");
+	protected Path resolveDirectory() {
+		String dirName = this.originalArguments.getString("directory", "dir").orElse("");
 		if (!dirName.isEmpty())
 			return Paths.get(dirName);
-		dirName = args.getFlag("directoryName", "dirName").orElse("");
+
+		dirName = this.originalArguments.getString("directoryName", "dirName").orElse("");
 		if (dirName.isEmpty())
-			dirName = defaultDir;
-		if (args.getFlag("development", "dev").isPresent())
+			dirName = this.name;
+
+		if (this.devEnvironment)
 			dirName += "-dev";
+
 		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
 	}
 
-	private void setState(State state) {
-		if (this.state == state)
-			return;
-		if (this.eventManager != null)
-			this.eventManager.postEvent(new ApplicationStateChangeEvent(this, this.state, state));
-		this.state = state;
-	}
+	private void loadStaticArguments() {
+		Arguments args = Arguments.empty();
 
-	public final void launch() {
-		try {
-			if (this.UIEnabled)
-				initJavaFX();
-			init();
-		} catch (Throwable t) {
-			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
-			fatalError(t);
+		if (Files.exists(this.staticArgumentsFile)) {
+			try (BufferedReader reader = Files.newBufferedReader(this.staticArgumentsFile)) {
+				Arguments tmp = Arguments.builder().parse(reader.readLine()).build();
+				if (tmp.getParametersCount() == 0)
+					args = tmp;
+				else
+					this.logger.warn("Static arguments cannot contains parameters");
+			} catch (IOException e) {
+				this.logger.warn("Failed to load static arguments", e);
+			}
 		}
+
+		_setStaticArguments(args);
 	}
 
-	private static void initJavaFX() {
-		Platform.setImplicitExit(false);
-		new JFXPanel();
+	protected boolean enableUI() {
+		return !this.arguments.getBoolean("disableUI");
 	}
 
-	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), this::transformLog)), this::formatLog), executor);
-	}
-
-	public String transformLog(String msg) {
-		for (Entry<String, String> e : this.logBlacklist.entrySet())
-			msg = msg.replace(e.getKey(), e.getValue());
-		return msg;
-	}
-	
-	public void checkState(State state) {
-		if (this.state != state)
-			throw new IllegalStateException();
-	}
-	
-	public State getState() {
-		return this.state;
-	}
-
-	public abstract void init() throws Exception;
-
-	public String formatLog(LogMessage msg) {
-		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
-	}
-	
-	protected final void initServices(LogAppender appender, ExecutorService executor) {
-		initServices(new LoggerFactory(appender), executor);
-	}
-	
-	protected final void initServices(LoggerFactory loggerFactory, ExecutorService executor) {
-		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
+	private void _setStaticArguments(Arguments arguments) {
+		this.staticArguments = arguments;
+		this.arguments = this.originalArguments.toBuilder().add(arguments).build();
 	}
 
 	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
@@ -224,7 +200,7 @@ public abstract class Application {
 			fatalError(e);
 		}
 
-		String langId = this.arguments.getFlag("language", "lang").orElse(null);
+		String langId = this.arguments.getString("language", "lang").orElse(null);
 		if (langId != null && !Language.isValidId(langId)) {
 			this.logger.warn("Argument '" + langId + "' is not a valid language identifier.");
 			langId = null;
@@ -241,6 +217,78 @@ public abstract class Application {
 		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
 
 		setState(State.STAGE_INIT);
+	}
+
+	private void setState(State state) {
+		if (this.state == state)
+			return;
+		if (this.eventManager != null)
+			this.eventManager.postEvent(new ApplicationStateChangeEvent(this, this.state, state));
+		this.state = state;
+	}
+
+	public final void launch() {
+		try {
+			if (this.UIEnabled)
+				initJavaFX();
+			init();
+		} catch (Throwable t) {
+			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
+			fatalError(t);
+		}
+	}
+
+	private static void initJavaFX() {
+		Platform.setImplicitExit(false);
+		new JFXPanel();
+	}
+
+	protected final void initServices(ExecutorService executor) {
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), this::transformLog)), this::formatLog), executor);
+	}
+
+	public String transformLog(String msg) {
+		for (Entry<String, String> e : this.logBlacklist.entrySet())
+			msg = msg.replace(e.getKey(), e.getValue());
+		return msg;
+	}
+
+	public void checkState(State state) {
+		if (this.state != state)
+			throw new IllegalStateException();
+	}
+
+	public State getState() {
+		return this.state;
+	}
+
+	public abstract void init() throws Exception;
+
+	public String formatLog(LogMessage msg) {
+		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
+	}
+
+	protected final void initServices(LogAppender appender, ExecutorService executor) {
+		initServices(new LoggerFactory(appender), executor);
+	}
+
+	protected final void initServices(LoggerFactory loggerFactory, ExecutorService executor) {
+		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
+	}
+
+	protected final void updateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {
+		if (this.arguments.getBoolean("noUpdateCheck"))
+			return;
+
+		Path appJar = getApplicationJar().orElse(null);
+		if (appJar != null) {
+			ReleaseInfo latestApp = appSource.getLatestRelease().orElse(null);
+			if (latestApp != null && !latestApp.matches(appJar)) {
+				ReleaseInfo latestUpdater = updaterSource.getLatestRelease().orElse(null);
+				if (latestUpdater != null && suggestApplicationUpdate())
+					updateApplication(appJar, latestApp, latestUpdater);
+			}
+		}
 	}
 
 	protected void loadResources() throws Exception {
@@ -260,26 +308,11 @@ public abstract class Application {
 		updateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
 	}
 
-	protected final void updateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {
-		if (this.arguments.getFlag("noUpdateCheck").isPresent())
-			return;
-
-		Path appJar = getApplicationJar().orElse(null);
-		if (appJar != null) {
-			ReleaseInfo latestApp = appSource.getLatestRelease().orElse(null);
-			if (latestApp != null && !latestApp.matches(appJar)) {
-				ReleaseInfo latestUpdater = updaterSource.getLatestRelease().orElse(null);
-				if (latestUpdater != null && suggestApplicationUpdate())
-					updateApplication(appJar, latestApp, latestUpdater);
-			}
-		}
-	}
-
 	protected final boolean suggestApplicationUpdate() {
 		if (this.UIEnabled)
 			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
 
-		if (this.arguments.getFlag("autoUpdate").isPresent())
+		if (this.arguments.getBoolean("autoUpdate"))
 			return true;
 
 		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
@@ -332,7 +365,7 @@ public abstract class Application {
 			task.setMessage(Translations.update_process_message);
 			task.setProgress(-1);
 
-			boolean launch = this.UIEnabled && !this.arguments.getFlag("noUpdateLaunch").isPresent();
+			boolean launch = this.UIEnabled && !this.arguments.getBoolean("noUpdateLaunch");
 			if (!launch)
 				logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
 
@@ -344,8 +377,7 @@ public abstract class Application {
 			cmd.add(appUpdateJar.toAbsolutePath().toString()); // source
 			cmd.add(appJar.toAbsolutePath().toString()); // target
 			cmd.add(String.valueOf(launch)); // launch
-			for (String arg : this.arguments.getInitialArguments()) // args
-				cmd.add(arg);
+			this.originalArguments.export(cmd::add);
 
 			if (task.isCancelled())
 				return;
@@ -369,6 +401,10 @@ public abstract class Application {
 			shutdownNow();
 		else
 			this.logger.info("Update task has been cancelled.");
+	}
+
+	public final Arguments getOriginalArguments() {
+		return this.originalArguments;
 	}
 
 	protected final boolean updateDependencies(Path defaultDir, DependencyInfo... deps) {
@@ -597,6 +633,22 @@ public abstract class Application {
 		return this.resourceLoader;
 	}
 
+	public final Arguments getStaticArguments() {
+		return this.staticArguments;
+	}
+
+	public final void setStaticArguments(Arguments arguments) {
+		if (arguments.getParametersCount() != 0)
+			throw new IllegalArgumentException("Parameters are not allowed");
+		_setStaticArguments(arguments);
+
+		try (BufferedWriter writer = Files.newBufferedWriter(this.staticArgumentsFile)) {
+			writer.write(arguments.toString());
+		} catch (IOException e) {
+			this.logger.warn("Failed to save static arguments", e);
+		}
+	}
+
 	public final Arguments getArguments() {
 		return this.arguments;
 	}
@@ -637,11 +689,11 @@ public abstract class Application {
 
 	public ConnectionConfig getConnectionConfig() {
 		if (this.connectionConfig == null) {
-			Optional<String> host = this.arguments.getFlag("proxyHost");
+			Optional<String> host = this.arguments.getString("proxyHost");
 			ConnectionConfig.Builder b = ConnectionConfig.builder();
-			host.ifPresent(s -> b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(s, this.arguments.getIntFlag(8080, "proxyPort")))));
-			this.connectionConfig = b.connectTimeout(this.arguments.getIntFlag(3000, "connectTimeout")).readTimeout(this.arguments.getIntFlag(3000, "readTimeout"))
-					.userAgent(this.arguments.getFlag("userAgent").orElse(null)).bufferSize(this.arguments.getIntFlag(65536, "bufferSize")).build();
+			host.ifPresent(s -> b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(s, this.arguments.getInt("proxyPort").orElse(8080)))));
+			this.connectionConfig = b.connectTimeout(this.arguments.getInt("connectTimeout").orElse(3000)).readTimeout(this.arguments.getInt("readTimeout").orElse(3000))
+					.userAgent(this.arguments.getString("userAgent").orElse(null)).bufferSize(this.arguments.getInt("bufferSize").orElse(65536)).build();
 		}
 		return this.connectionConfig;
 	}

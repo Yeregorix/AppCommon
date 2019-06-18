@@ -42,6 +42,93 @@ public class StringUtil {
 	
 	private static final char[] hexchars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
+	public static List<String> parseCommandLine(String line) {
+		List<String> args = new ArrayList<>();
+		StringBuilder b = new StringBuilder();
+
+		boolean inQuote = false;
+		int backslashs = 0;
+
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+
+			if (c == '\\')
+				backslashs++;
+			else if (c == '"') {
+				int count = backslashs / 2;
+				for (int j = 0; j < count; j++)
+					b.append('\\');
+
+				if (backslashs % 2 == 0)
+					inQuote = !inQuote;
+				else
+					b.append('"');
+
+				backslashs = 0;
+			} else {
+				for (int j = 0; j < backslashs; j++)
+					b.append('\\');
+				backslashs = 0;
+
+				if (c == ' ' && !inQuote) {
+					args.add(b.toString());
+					b.setLength(0);
+				} else
+					b.append(c);
+			}
+		}
+
+		for (int j = 0; j < backslashs; j++)
+			b.append('\\');
+
+		args.add(b.toString());
+		return args;
+	}
+
+	public static String toCommandLine(Iterable<String> arguments) {
+		StringBuilder b = new StringBuilder();
+		int lastEnd = 0;
+
+		for (String arg : arguments) {
+			boolean quote = false;
+			int backslashs = 0;
+
+			for (int i = 0; i < arg.length(); i++) {
+				char c = arg.charAt(i);
+
+				if (c == '\\')
+					backslashs++;
+				else {
+					if (c == '"') {
+						for (int j = -1; j < backslashs; j++)
+							b.append('\\');
+					} else if (c == ' ') {
+						quote = true;
+					}
+
+					backslashs = 0;
+				}
+
+				b.append(c);
+			}
+
+			if (arg.length() == 0)
+				quote = true;
+
+			if (quote) {
+				b.insert(lastEnd, '"');
+				b.append('"');
+			}
+
+			b.append(' ');
+			lastEnd = b.length();
+		}
+
+		if (lastEnd != 0)
+			b.setLength(lastEnd - 1);
+		return b.toString();
+	}
+
 	public static String replaceParameters(String value, String... parameters) {
 		int size = parameters.length;
 		if (size == 0)
