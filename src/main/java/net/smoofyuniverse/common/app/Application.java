@@ -276,19 +276,8 @@ public abstract class Application {
 		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
 	}
 
-	protected final void updateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {
-		if (this.arguments.getBoolean("noUpdateCheck"))
-			return;
-
-		Path appJar = getApplicationJar().orElse(null);
-		if (appJar != null) {
-			ReleaseInfo latestApp = appSource.getLatestRelease().orElse(null);
-			if (latestApp != null && !latestApp.matches(appJar)) {
-				ReleaseInfo latestUpdater = updaterSource.getLatestRelease().orElse(null);
-				if (latestUpdater != null && suggestApplicationUpdate())
-					updateApplication(appJar, latestApp, latestUpdater);
-			}
-		}
+	protected final void tryUpdateApplication(ReleaseSource appSource) {
+		tryUpdateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
 	}
 
 	protected void loadResources() throws Exception {
@@ -304,8 +293,19 @@ public abstract class Application {
 		getTranslator().fill(Translations.class);
 	}
 
-	protected final void updateApplication(ReleaseSource appSource) {
-		updateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
+	protected final void tryUpdateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {
+		if (this.arguments.getBoolean("noUpdateCheck"))
+			return;
+
+		Path appJar = getApplicationJar().orElse(null);
+		if (appJar != null) {
+			ReleaseInfo latestApp = appSource.getLatestRelease().orElse(null);
+			if (latestApp != null && !latestApp.matches(appJar)) {
+				ReleaseInfo latestUpdater = updaterSource.getLatestRelease().orElse(null);
+				if (latestUpdater != null && suggestApplicationUpdate())
+					updateApplication(appJar, latestApp, latestUpdater);
+			}
+		}
 	}
 
 	protected final boolean suggestApplicationUpdate() {
