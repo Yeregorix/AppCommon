@@ -44,6 +44,10 @@ public class StringUtil {
 
 	public static List<String> parseCommandLine(String line) {
 		List<String> args = new ArrayList<>();
+
+		if (line == null)
+			return args;
+
 		StringBuilder b = new StringBuilder();
 
 		boolean inQuote = false;
