@@ -527,7 +527,7 @@ public abstract class Application {
 	public Optional<Path> getApplicationJar() {
 		if (this.applicationJar == null) {
 			try {
-				Path p = Paths.get(Application.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+				Path p = Paths.get(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
 				if (p.getFileName().toString().endsWith(".jar"))
 					this.applicationJar = Optional.of(p);
 				else
