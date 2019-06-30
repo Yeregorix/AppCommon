@@ -157,10 +157,26 @@ public final class Arguments {
 			return this;
 		}
 
+		public Builder removeParameter(String value) {
+			if (value == null)
+				throw new IllegalArgumentException("value");
+			this.parameters.remove(value);
+			return this;
+		}
+
 		public Builder setFlag(String key, String value) {
+			if (key == null)
+				throw new IllegalArgumentException("key");
 			if (value == null)
 				throw new IllegalArgumentException("value");
 			this.flags.put(key.toLowerCase(Locale.ROOT), value);
+			return this;
+		}
+
+		public Builder unsetFlag(String key) {
+			if (key == null)
+				throw new IllegalArgumentException("key");
+			this.flags.remove(key.toLowerCase(Locale.ROOT));
 			return this;
 		}
 
