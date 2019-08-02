@@ -38,12 +38,15 @@ repositories {
     maven {
         url 'https://oss.sonatype.org/content/repositories/snapshots'
     }
+    maven {
+        url 'https://jitpack.io'
+    }
 }
 
 dependencies {
     compile 'net.smoofyuniverse:appcommon-main:1.0.0-SNAPSHOT'
     compile 'net.smoofyuniverse:smoofylogger:1.0.0-SNAPSHOT'
-    compile 'com.grack:nanojson:1.3'
+    compile 'com.github.yeregorix:nanojson:4d8b4ee9dd'
 }
 
 task javadocJar(type: Jar) {
