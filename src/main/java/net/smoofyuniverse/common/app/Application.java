@@ -26,13 +26,8 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
@@ -94,7 +89,7 @@ public abstract class Application {
 	private ExecutorService executor;
 	private Logger logger;
 	private Translator translator;
-	private Stage stage, loadingStage;
+	private Stage stage;
 	private Optional<Path> applicationJar;
 	
 	public Application(Arguments args, String name, String version) {
@@ -180,16 +175,6 @@ public abstract class Application {
 		this.logBlacklist.put(IOUtil.USER_HOME, "USER_HOME");
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
-
-		if (this.UIEnabled) {
-			Platform.runLater(() -> {
-				this.loadingStage = new Stage(StageStyle.TRANSPARENT);
-				ProgressIndicator p = new ProgressIndicator();
-				p.setBackground(new Background(new BackgroundFill(null, null, null)));
-				this.loadingStage.setScene(new Scene(p, 200, 200, Color.TRANSPARENT));
-				this.loadingStage.show();
-			});
-		}
 
 		this.logger.info("Working directory: " + this.workingDir);
 		try {
@@ -587,8 +572,6 @@ public abstract class Application {
 	protected final Stage setScene(Scene scene) {
 		checkState(State.STAGE_INIT);
 		this.stage.setScene(scene);
-
-		hideLoadingStage();
 		setState(State.RUNNING);
 		return this.stage;
 	}
@@ -611,21 +594,6 @@ public abstract class Application {
 		} catch (Exception ignored) {
 		}
 		System.exit(code);
-	}
-
-	private void hideLoadingStage() {
-		if (this.loadingStage == null)
-			return;
-
-		if (Platform.isFxApplicationThread()) {
-			this.loadingStage.hide();
-			this.loadingStage = null;
-		} else {
-			Platform.runLater(() -> {
-				this.loadingStage.hide();
-				this.loadingStage = null;
-			});
-		}
 	}
 
 	protected final Stage initStage(Stage stage) {
@@ -653,8 +621,6 @@ public abstract class Application {
 		checkState(State.STAGE_INIT);
 		if (this.stage != null)
 			throw new IllegalStateException();
-
-		hideLoadingStage();
 		setState(State.RUNNING);
 	}
 
