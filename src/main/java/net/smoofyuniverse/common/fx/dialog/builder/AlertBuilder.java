@@ -120,11 +120,20 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 			if (this.task == null)
 				return d.showAndWait().orElse(null) == ButtonType.OK;
 
+			Node cancel = d.getDialogPane().lookupButton(ButtonType.CANCEL);
+			if (cancel != null)
+				cancel.disableProperty().bind(this.task.cancellableProperty().not());
+
 			AtomicBoolean ended = new AtomicBoolean(false);
 			Future<?> future = this.executor.submit(() -> {
 				App.submit(this.consumer, this.task);
 				ended.set(true);
 				Platform.runLater(d::hide);
+			});
+
+			d.setOnCloseRequest(e -> {
+				if (!ended.get() && !this.task.isCancellable())
+					e.consume();
 			});
 
 			d.showAndWait();
