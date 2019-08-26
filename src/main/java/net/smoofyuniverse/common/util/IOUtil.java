@@ -30,6 +30,7 @@ import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.logger.core.Logger;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,6 +78,27 @@ public class IOUtil {
 	};
 
 	private static Method addURL;
+
+	public static boolean contentEquals(InputStream in1, InputStream in2) throws IOException {
+		if (in1 == in2)
+			return true;
+
+		if (!(in1 instanceof BufferedInputStream))
+			in1 = new BufferedInputStream(in1);
+
+		if (!(in2 instanceof BufferedInputStream))
+			in2 = new BufferedInputStream(in2);
+
+		int b1 = in1.read();
+		while (b1 != -1) {
+			int b2 = in2.read();
+			if (b1 != b2)
+				return false;
+			b1 = in1.read();
+		}
+
+		return in2.read() == -1;
+	}
 
 	public static Path getMavenPath(Path dir, String fname, String suffix) {
 		String[] a = fname.split(":");
