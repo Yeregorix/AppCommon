@@ -28,6 +28,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.fx.dialog.fix.CloseRequestFixer;
 import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
 import net.smoofyuniverse.common.task.ProgressTask;
 
@@ -131,6 +132,7 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 				Platform.runLater(d::hide);
 			});
 
+			CloseRequestFixer.apply(d);
 			d.setOnCloseRequest(e -> {
 				if (!ended.get() && !this.task.isCancellable())
 					e.consume();
