@@ -524,36 +524,6 @@ public abstract class Application {
 		}
 		return this.applicationJar;
 	}
-	
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, String... icons) {
-		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
-	}
-	
-	protected final Stage initStage(String title, double minWidth, double minHeight, boolean resizable, String... icons) {
-		Image[] images = new Image[icons.length];
-		for (int i = 0; i < icons.length; i++)
-			images[i] = IOUtil.loadImage(icons[i]);
-		return initStage(title, minWidth, minHeight, resizable, images);
-	}
-	
-	protected final Stage initStage(String title, double minWidth, double minHeight, boolean resizable, Image... icons) {
-		Stage stage = initStage(title, minWidth, minHeight, resizable);
-		stage.getIcons().addAll(icons);
-		return stage;
-	}
-	
-	protected final Stage initStage(String title, double minWidth, double minHeight, boolean resizable) {
-		Stage stage = new Stage();
-		stage.setTitle(title);
-
-		stage.setMinWidth(minWidth);
-		stage.setMinHeight(minHeight);
-		stage.setWidth(minWidth);
-		stage.setHeight(minHeight);
-		stage.setResizable(resizable);
-
-		return initStage(stage);
-	}
 
 	public final void fatalError(Throwable t) {
 		if (this.UIEnabled) {
@@ -596,13 +566,6 @@ public abstract class Application {
 		System.exit(code);
 	}
 
-	protected final Stage initStage(Stage stage) {
-		checkState(State.STAGE_INIT);
-		this.stage = stage;
-		this.stage.setOnCloseRequest(e -> shutdown());
-		return this.stage;
-	}
-
 	public final void cancelListeners() {
 		for (BaseListener l : this.listeners) {
 			try {
@@ -615,6 +578,34 @@ public abstract class Application {
 
 	public Map<String, String> getLogBlacklist() {
 		return this.logBlacklist;
+	}
+
+	protected final Stage initStage(double width, double height, String... icons) {
+		Image[] images = new Image[icons.length];
+		for (int i = 0; i < icons.length; i++)
+			images[i] = IOUtil.loadImage(icons[i]);
+		return initStage(width, height, images);
+	}
+
+	protected final Stage initStage(double width, double height, Image... icons) {
+		Stage stage = initStage(width, height);
+		stage.getIcons().addAll(icons);
+		return stage;
+	}
+
+	protected final Stage initStage(double width, double height) {
+		Stage stage = new Stage();
+		stage.setTitle(this.title + " " + this.version);
+		stage.setWidth(width);
+		stage.setHeight(height);
+		return initStage(stage);
+	}
+
+	protected final Stage initStage(Stage stage) {
+		checkState(State.STAGE_INIT);
+		this.stage = stage;
+		this.stage.setOnCloseRequest(e -> shutdown());
+		return this.stage;
 	}
 
 	protected final void skipStage() {
@@ -655,14 +646,6 @@ public abstract class Application {
 
 	public final Path getWorkingDirectory() {
 		return this.workingDir;
-	}
-
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable, Image... icons) {
-		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable, icons);
-	}
-
-	protected final Stage initStage(double minWidth, double minHeight, boolean resizable) {
-		return initStage(this.title + " " + this.version, minWidth, minHeight, resizable);
 	}
 
 	public Logger getLogger() {
