@@ -676,9 +676,13 @@ public abstract class Application {
 			ConnectionConfig.Builder b = ConnectionConfig.builder();
 			host.ifPresent(s -> b.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(s, this.arguments.getInt("proxyPort").orElse(8080)))));
 			this.connectionConfig = b.connectTimeout(this.arguments.getInt("connectTimeout").orElse(3000)).readTimeout(this.arguments.getInt("readTimeout").orElse(3000))
-					.userAgent(this.arguments.getString("userAgent").orElse(null)).bufferSize(this.arguments.getInt("bufferSize").orElse(65536)).build();
+					.userAgent(this.arguments.getString("userAgent").orElseGet(this::getDefaultUserAgent)).bufferSize(this.arguments.getInt("bufferSize").orElse(65536)).build();
 		}
 		return this.connectionConfig;
+	}
+
+	protected String getDefaultUserAgent() {
+		return null;
 	}
 
 	public ExecutorService getExecutor() {
