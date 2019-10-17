@@ -681,8 +681,8 @@ public abstract class Application {
 		return this.connectionConfig;
 	}
 
-	protected String getDefaultUserAgent() {
-		return null;
+	public String getDefaultUserAgent() {
+		return this.name + "/" + this.version;
 	}
 
 	public ExecutorService getExecutor() {
