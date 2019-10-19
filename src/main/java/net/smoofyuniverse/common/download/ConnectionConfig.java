@@ -58,23 +58,24 @@ public class ConnectionConfig {
 	public InputStream openStream(URL url) throws IOException {
 		return openConnection(url).getInputStream();
 	}
-	
-	public URLConnection openConnection(URL url) throws IOException {
-		return url.openConnection(this.proxy);
+
+	public HttpURLConnection openHttpConnection(URL url) throws IOException {
+		return (HttpURLConnection) openConnection(url);
 	}
 	
-	public HttpURLConnection openHttpConnection(URL url) throws IOException {
-		HttpURLConnection co = (HttpURLConnection) openConnection(url);
+	public URLConnection openConnection(URL url) throws IOException {
+		URLConnection co = url.openConnection(this.proxy);
 		configure(co);
 		return co;
 	}
-	
-	public void configure(HttpURLConnection co) {
+
+	public void configure(URLConnection co) {
 		co.setUseCaches(false);
 		co.setDefaultUseCaches(false);
 		co.setRequestProperty("Cache-Control", "no-store,max-age=0,no-cache");
 		co.setRequestProperty("Pragma", "no-cache");
 		co.setRequestProperty("Expires", "0");
+
 		if (this.userAgent != null)
 			co.setRequestProperty("User-Agent", this.userAgent);
 		co.setConnectTimeout(this.connectTimeout);
