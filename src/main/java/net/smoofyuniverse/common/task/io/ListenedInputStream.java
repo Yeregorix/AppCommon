@@ -20,29 +20,61 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task;
+package net.smoofyuniverse.common.task.io;
 
-import net.smoofyuniverse.common.task.io.ListenedInputStream;
+import net.smoofyuniverse.common.task.IncrementalListener;
 
+import java.io.IOException;
 import java.io.InputStream;
 
-public interface IncrementalListener extends BaseListener, IncrementalListenerProvider {
+public class ListenedInputStream extends InputStream {
+	public final InputStream delegate;
+	public final IncrementalListener listener;
 
-	long getTotal();
-
-	void increment(long value);
-
-	@Override
-	default IncrementalListener expect(long total) {
-		return this;
+	public ListenedInputStream(InputStream delegate, IncrementalListener listener) {
+		this.delegate = delegate;
+		this.listener = listener;
 	}
 
 	@Override
-	default IncrementalListener limit(long total) {
-		return this;
+	public int read() throws IOException {
+		if (this.listener.isCancelled())
+			return -1;
+
+		int r = this.delegate.read();
+		if (r != -1)
+			this.listener.increment(1);
+		return r;
 	}
 
-	default ListenedInputStream wrap(InputStream in) {
-		return new ListenedInputStream(in, this);
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException {
+		if (this.listener.isCancelled())
+			return -1;
+
+		int c = this.delegate.read(b, off, len);
+		if (c != -1)
+			this.listener.increment(c);
+		return c;
+	}
+
+	@Override
+	public long skip(long n) throws IOException {
+		if (this.listener.isCancelled())
+			return 0;
+
+		long c = this.delegate.skip(n);
+		this.listener.increment(c);
+		return c;
+	}
+
+	@Override
+	public int available() throws IOException {
+		return this.delegate.available();
+	}
+
+	@Override
+	public void close() throws IOException {
+		this.delegate.close();
 	}
 }

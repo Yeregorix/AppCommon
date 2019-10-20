@@ -22,9 +22,24 @@
 
 package net.smoofyuniverse.common.task;
 
+import net.smoofyuniverse.common.task.io.ListenedInputStream;
+
+import java.io.IOException;
+import java.net.URLConnection;
+
 public interface IncrementalListenerProvider {
 
 	IncrementalListener expect(long total);
 
 	IncrementalListener limit(long total);
+
+	default ListenedInputStream getInputStream(URLConnection co) throws IOException {
+		IncrementalListener l;
+		try {
+			l = expect(Long.parseLong(co.getHeaderField("Content-Length")));
+		} catch (NumberFormatException e) {
+			l = expect(-1);
+		}
+		return l.wrap(co.getInputStream());
+	}
 }

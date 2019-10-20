@@ -26,8 +26,8 @@ import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.OperatingSystem;
 import net.smoofyuniverse.common.download.ConnectionConfig;
-import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
+import net.smoofyuniverse.common.task.io.ListenedInputStream;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedInputStream;
@@ -207,29 +207,22 @@ public class IOUtil {
 				return false;
 			}
 
-			IncrementalListener l;
-			try {
-				l = p.expect(Long.parseLong(co.getHeaderField("Content-Length")));
-			} catch (NumberFormatException e) {
-				l = p.expect(-1);
-			}
-
 			logger.info("Downloading from url '" + co.getURL() + "' to file: " + file + " ..");
 			long time = System.currentTimeMillis();
 
-			try (InputStream in = co.getInputStream();
+			try (ListenedInputStream in = p.getInputStream(co);
 				 OutputStream out = Files.newOutputStream(file)) {
 				byte[] buffer = new byte[bufferSize];
 				int length;
-				while ((length = in.read(buffer)) > 0) {
-					if (l.isCancelled()) {
-						logger.debug("Download cancelled (" + (System.currentTimeMillis() - time) / 1000F + "s).");
-						return false;
-					}
+				while ((length = in.read(buffer)) != -1)
 					out.write(buffer, 0, length);
-					l.increment(length);
+
+				if (in.listener.isCancelled()) {
+					logger.debug("Download cancelled (" + (System.currentTimeMillis() - time) / 1000F + "s).");
+					return false;
 				}
 			}
+
 			logger.debug("Download ended (" + (System.currentTimeMillis() - time) / 1000F + "s).");
 			return true;
 		} catch (IOException e) {
