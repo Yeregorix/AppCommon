@@ -30,10 +30,12 @@ import net.smoofyuniverse.common.environment.ReleaseInfo;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -89,14 +91,20 @@ public class GithubReleaseSource implements ReleaseSource {
 	}
 
 	protected ReleaseInfo getRelease(URL url) throws Exception {
-		try (InputStream in = this.config.openStream(url)) {
+		URLConnection co = this.config.openConnection(url);
+		configureToken(co);
+
+		try (InputStream in = co.getInputStream()) {
 			return getRelease(JsonParser.object().withLazyNumbers().from(in));
 		}
 	}
 
-	protected URL getURL(String path) throws MalformedURLException {
+	protected void configureToken(URLConnection co) throws IOException {
 		if (this.accessToken != null)
-			path += "?access_token=" + this.accessToken;
+			co.setRequestProperty("Authorization", "token " + this.accessToken);
+	}
+
+	protected URL getURL(String path) throws MalformedURLException {
 		return IOUtil.appendSuffix(URL_BASE, this.owner + "/" + this.repo + "/" + path);
 	}
 
