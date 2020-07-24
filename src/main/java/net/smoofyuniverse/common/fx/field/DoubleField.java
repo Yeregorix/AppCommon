@@ -32,7 +32,7 @@ public class DoubleField extends NumberField {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
 	public final double minValue, maxValue;
-	private DoubleProperty value = new SimpleDoubleProperty();
+	private final DoubleProperty value = new SimpleDoubleProperty();
 	private boolean ignore = false;
 
 	public DoubleField(double value) {

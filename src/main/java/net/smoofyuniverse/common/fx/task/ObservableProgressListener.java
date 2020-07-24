@@ -30,8 +30,8 @@ import net.smoofyuniverse.common.task.ProgressListener;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ObservableProgressListener extends ObservableBaseListener implements ProgressListener {
-	private AtomicReference<Double> progressUpdate = new AtomicReference<>();
-	private DoubleProperty progress = new SimpleDoubleProperty(-1);
+	private final AtomicReference<Double> progressUpdate = new AtomicReference<>();
+	private final DoubleProperty progress = new SimpleDoubleProperty(-1);
 
 	public DoubleProperty progressProperty() {
 		return this.progress;

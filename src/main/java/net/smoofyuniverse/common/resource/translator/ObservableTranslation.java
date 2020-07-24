@@ -106,9 +106,9 @@ public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
 	}
 
 	public static class FormatBuilder {
-		private ObservableTranslation parent;
-		private List<ObservableValue<String>> dependencies = new ArrayList<>();
-		private Map<String, Supplier<String>> map = new HashMap<>();
+		private final ObservableTranslation parent;
+		private final List<ObservableValue<String>> dependencies = new ArrayList<>();
+		private final Map<String, Supplier<String>> map = new HashMap<>();
 
 		private FormatBuilder(ObservableTranslation parent) {
 			this.parent = parent;

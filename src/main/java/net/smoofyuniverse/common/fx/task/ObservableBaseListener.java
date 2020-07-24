@@ -31,15 +31,15 @@ import net.smoofyuniverse.common.task.BaseListener;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ObservableBaseListener implements BaseListener {
-	private AtomicReference<Boolean> cancellableUpdate = new AtomicReference<>();
-	private AtomicReference<Boolean> cancelledUpdate = new AtomicReference<>();
-	private BooleanProperty cancellable = new SimpleBooleanProperty(true);
-	private BooleanProperty cancelled = new SimpleBooleanProperty(false);
+	private final AtomicReference<Boolean> cancellableUpdate = new AtomicReference<>();
+	private final AtomicReference<Boolean> cancelledUpdate = new AtomicReference<>();
+	private final BooleanProperty cancellable = new SimpleBooleanProperty(true);
+	private final BooleanProperty cancelled = new SimpleBooleanProperty(false);
 
 	public ObservableBaseListener() {
 		App.get().registerListener(this);
 	}
-	
+
 	public BooleanProperty cancellableProperty() {
 		return this.cancellable;
 	}

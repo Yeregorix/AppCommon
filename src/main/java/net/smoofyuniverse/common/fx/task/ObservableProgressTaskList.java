@@ -41,18 +41,18 @@ public class ObservableProgressTaskList extends ListView<ObservableProgressTask>
 
 	private static class TaskCell extends ListCell<ObservableProgressTask> {
 		private static final Font FONT_14 = new Font("Monospaced", 14), FONT_12 = new Font("Monospaced", 12);
-		
-		private ProgressBar progressBar = new ProgressBar();
-		private Button cancel = new Button();
-		private Label title = new Label();
-		private Label message = new Label();
-		
-		private GridPane pane = new GridPane();
-		
+
+		private final ProgressBar progressBar = new ProgressBar();
+		private final Button cancel = new Button();
+		private final Label title = new Label();
+		private final Label message = new Label();
+
+		private final GridPane pane = new GridPane();
+
 		public TaskCell() {
 			this.title.setFont(FONT_14);
 			this.message.setFont(FONT_12);
-			
+
 			this.progressBar.setPadding(new Insets(6, 0, 6, 0));
 			this.progressBar.setMaxWidth(Double.MAX_VALUE);
 			this.progressBar.setMaxHeight(8);

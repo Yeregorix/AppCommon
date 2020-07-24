@@ -27,7 +27,7 @@ import javafx.beans.property.SimpleLongProperty;
 
 public class LongField extends NumberField {
 	public final long minValue, maxValue;
-	private LongProperty value = new SimpleLongProperty();
+	private final LongProperty value = new SimpleLongProperty();
 	private boolean ignore = false;
 
 	public LongField(long value) {

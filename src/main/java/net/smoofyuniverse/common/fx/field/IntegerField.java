@@ -27,7 +27,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 
 public class IntegerField extends NumberField {
 	public final int minValue, maxValue;
-	private IntegerProperty value = new SimpleIntegerProperty();
+	private final IntegerProperty value = new SimpleIntegerProperty();
 	private boolean ignore = false;
 
 	public IntegerField(int value) {

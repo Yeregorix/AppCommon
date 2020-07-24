@@ -31,19 +31,20 @@ import javafx.beans.property.StringProperty;
 import javafx.util.Duration;
 
 public class Chrono {
-	private StringProperty text = new SimpleStringProperty(format(0));
-	private Timeline timeline;
-	private long interval, total;
-	
-	public Chrono(long millis) {
-		this.interval = millis;
+	private final StringProperty text = new SimpleStringProperty(format(0));
+	private final Timeline timeline;
+	private final long interval;
+	private long total;
+
+	public Chrono(long intervalMillis) {
+		this.interval = intervalMillis;
 		this.total = 0;
-		
+
 		this.timeline = new Timeline();
-		this.timeline.getKeyFrames().add(new KeyFrame(Duration.millis(millis), e -> increment()));
+		this.timeline.getKeyFrames().add(new KeyFrame(Duration.millis(intervalMillis), e -> increment()));
 		this.timeline.setCycleCount(Animation.INDEFINITE);
 	}
-	
+
 	public ReadOnlyStringProperty textProperty() {
 		return this.text;
 	}

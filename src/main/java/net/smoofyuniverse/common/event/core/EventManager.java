@@ -31,19 +31,19 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class EventManager {
-	private Set<ListenerRegistration<?>> listenerRegistrations = Collections.newSetFromMap(new IdentityHashMap<>());
-	private Set<ObjectRegistration<?>> objectRegistrations = Collections.newSetFromMap(new IdentityHashMap<>());
-	
-	private Logger logger;
-	
+	private final Set<ListenerRegistration<?>> listenerRegistrations = Collections.newSetFromMap(new IdentityHashMap<>());
+	private final Set<ObjectRegistration<?>> objectRegistrations = Collections.newSetFromMap(new IdentityHashMap<>());
+
+	private final Logger logger;
+
 	public EventManager(LoggerFactory loggerFactory) {
 		this(loggerFactory.provideLogger("EventManager"));
 	}
-	
+
 	public EventManager(Logger logger) {
 		this.logger = logger;
 	}
-	
+
 	public boolean register(ListenerRegistration<?> l) {
 		return l instanceof ObjectRegistration ? this.objectRegistrations.add((ObjectRegistration) l) : this.listenerRegistrations.add(l);
 	}

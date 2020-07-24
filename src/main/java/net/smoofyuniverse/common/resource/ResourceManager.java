@@ -31,8 +31,10 @@ import java.util.Optional;
 public class ResourceManager {
 	public final boolean allowOverwrite;
 	private final Map<Language, ResourcePack> map = new HashMap<>();
-	private Language defaultLang, selection;
-	private ResourcePack defaultPack, selectionPack;
+	private final Language defaultLang;
+	private final ResourcePack defaultPack;
+	private Language selection;
+	private ResourcePack selectionPack;
 
 	public ResourceManager(Language defaultLang, boolean allowOverwrite) {
 		this.allowOverwrite = allowOverwrite;

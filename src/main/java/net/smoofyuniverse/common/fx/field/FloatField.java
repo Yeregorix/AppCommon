@@ -32,7 +32,7 @@ public class FloatField extends NumberField {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
 	public final float minValue, maxValue;
-	private FloatProperty value = new SimpleFloatProperty();
+	private final FloatProperty value = new SimpleFloatProperty();
 	private boolean ignore = false;
 
 	public FloatField(float value) {

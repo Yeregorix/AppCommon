@@ -35,29 +35,29 @@ import javafx.scene.layout.Region;
 import net.smoofyuniverse.common.fx.field.NumberField;
 
 public class NumberInputDialog extends Dialog<Number> {
-	private GridPane grid;
-	private Label label;
-	private NumberField field;
-	
+	private final GridPane grid;
+	private final Label label;
+	private final NumberField field;
+
 	public NumberInputDialog(NumberField f) {
-        DialogPane dialogPane = getDialogPane();
-        
-        this.field = f;
-        this.field.setMaxWidth(Double.MAX_VALUE);
-        GridPane.setHgrow(this.field, Priority.ALWAYS);
-        GridPane.setFillWidth(this.field, true);
-        
-        this.label = new Label();
-        this.label.setMaxWidth(Double.MAX_VALUE);
-        this.label.setMaxHeight(Double.MAX_VALUE);
-        this.label.getStyleClass().add("content");
-        this.label.setWrapText(true);
-        this.label.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        this.label.textProperty().bind(dialogPane.contentTextProperty());
-        
-        this.grid = new GridPane();
-        this.grid.setHgap(10);
-        this.grid.setMaxWidth(Double.MAX_VALUE);
+		DialogPane dialogPane = getDialogPane();
+
+		this.field = f;
+		this.field.setMaxWidth(Double.MAX_VALUE);
+		GridPane.setHgrow(this.field, Priority.ALWAYS);
+		GridPane.setFillWidth(this.field, true);
+
+		this.label = new Label();
+		this.label.setMaxWidth(Double.MAX_VALUE);
+		this.label.setMaxHeight(Double.MAX_VALUE);
+		this.label.getStyleClass().add("content");
+		this.label.setWrapText(true);
+		this.label.setPrefWidth(Region.USE_COMPUTED_SIZE);
+		this.label.textProperty().bind(dialogPane.contentTextProperty());
+
+		this.grid = new GridPane();
+		this.grid.setHgap(10);
+		this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
         
         dialogPane.contentTextProperty().addListener(o -> updateGrid());

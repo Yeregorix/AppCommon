@@ -32,10 +32,10 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ObservableProgressTask extends ObservableProgressListener implements ProgressTask {
-	private AtomicReference<String> titleUpdate = new AtomicReference<>();
-	private AtomicReference<String> messageUpdate = new AtomicReference<>();
-	private StringProperty title = new SimpleStringProperty();
-	private StringProperty message = new SimpleStringProperty();
+	private final AtomicReference<String> titleUpdate = new AtomicReference<>();
+	private final AtomicReference<String> messageUpdate = new AtomicReference<>();
+	private final StringProperty title = new SimpleStringProperty();
+	private final StringProperty message = new SimpleStringProperty();
 
 	public StringProperty titleProperty() {
 		return this.title;

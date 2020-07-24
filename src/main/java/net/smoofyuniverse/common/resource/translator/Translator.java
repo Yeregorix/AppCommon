@@ -56,7 +56,7 @@ public class Translator {
 
 	public final ResourceManager manager;
 	private ResourceModule<String> defaultModule, selectionModule;
-	private Map<String, ObservableTranslation> translations = new ConcurrentHashMap<>();
+	private final Map<String, ObservableTranslation> translations = new ConcurrentHashMap<>();
 
 	private Translator(ResourceManager manager) {
 		this.manager = manager;
