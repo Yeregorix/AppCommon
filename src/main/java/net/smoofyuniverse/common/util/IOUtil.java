@@ -40,8 +40,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.function.UnaryOperator;
@@ -52,30 +53,6 @@ public class IOUtil {
 
 	public static final Pattern ILLEGAL_PATH = Pattern.compile("[:\\\\/*?|<>\"]+");
 	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
-
-	public static final FileVisitor<Path> DIRECTORY_REMOVER = new FileVisitor<Path>() {
-		@Override
-		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-			return FileVisitResult.CONTINUE;
-		}
-
-		@Override
-		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-			Files.delete(file);
-			return FileVisitResult.CONTINUE;
-		}
-
-		@Override
-		public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
-			throw e;
-		}
-
-		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
-			Files.delete(dir);
-			return FileVisitResult.CONTINUE;
-		}
-	};
 
 	private static Method addURL;
 
@@ -134,44 +111,6 @@ public class IOUtil {
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static void deleteRecursively(Path dir) throws IOException {
-		Files.walkFileTree(dir, DIRECTORY_REMOVER);
-	}
-
-	public static void copyRecursively(Path from, Path to, CopyOption... options) throws IOException {
-		Path source = from.toAbsolutePath(), target = to.toAbsolutePath();
-		int i = source.toString().length();
-
-		Files.walkFileTree(source, new FileVisitor<Path>() {
-
-			private Path getDestination(Path sourcePath) {
-				return target.resolve(sourcePath.toString().substring(i));
-			}
-
-			@Override
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-				Files.createDirectory(getDestination(dir));
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				Files.copy(file, getDestination(file), options);
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
-				throw e;
-			}
-
-			@Override
-			public FileVisitResult postVisitDirectory(Path dir, IOException e) {
-				return FileVisitResult.CONTINUE;
-			}
-		});
 	}
 
 	public static URL appendSuffix(URL url, String suffix) throws MalformedURLException {
