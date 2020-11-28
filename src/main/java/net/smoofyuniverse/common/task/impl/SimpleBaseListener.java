@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.task.BaseListener;
 
 /**
@@ -32,11 +32,11 @@ public class SimpleBaseListener implements BaseListener {
 	private boolean cancellable = true, cancelled = false;
 
 	/**
-	 * Creates a listener and register it (weak reference).
-	 * This listener will be automatically cancelled when the application shutdowns.
+	 * Creates a listener and registers it (weak reference).
+	 * See {@link Application#registerListener(BaseListener)}.
 	 */
 	public SimpleBaseListener() {
-		App.get().registerListener(this);
+		Application.get().registerListener(this);
 	}
 
 	@Override

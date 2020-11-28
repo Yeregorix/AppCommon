@@ -74,7 +74,7 @@ public class TextUtil {
 
 	public static Hyperlink openLink(URI link) {
 		Hyperlink l = new Hyperlink();
-		l.setOnAction(e -> OperatingSystem.CURRENT.openLink(link));
+		l.setOnAction(e -> OperatingSystem.CURRENT.browse(link));
 		return l;
 	}
 

@@ -33,28 +33,58 @@ import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
+/**
+ * A static helper with essential application methods.
+ */
 public final class App {
 
-	public static Logger getLogger(String name) {
-		return get().getLoggerFactory().provideLogger(name);
-	}
-
+	/**
+	 * Gets path to local resource.
+	 *
+	 * @param localResource The local resource.
+	 * @return The path.
+	 */
 	public static Path getResource(String localResource) throws IOException, URISyntaxException {
 		return get().getResourceLoader().toPath(App.class, localResource);
 	}
 
+	/**
+	 * Gets the application.
+	 *
+	 * @return The application.
+	 */
 	public static Application get() {
 		return Application.get();
 	}
 
+	/**
+	 * Gets whether the application is shut down.
+	 *
+	 * @return Whether the application is shut down.
+	 */
 	public static boolean isShutdown() {
 		return get().getState() == State.SHUTDOWN;
 	}
 
+	/**
+	 * Passes a task to the consumer.
+	 * Handles any exceptions the may occur during execution.
+	 *
+	 * @param consumer The consumer.
+	 * @return Whether the task has been cancelled.
+	 */
 	public static boolean submit(Consumer<ProgressTask> consumer) {
 		return submit(consumer, new SimpleProgressTask());
 	}
 
+	/**
+	 * Passes the task to the consumer.
+	 * Handles any exceptions the may occur during execution.
+	 *
+	 * @param consumer The consumer.
+	 * @param task     The task.
+	 * @return Whether the task has been cancelled.
+	 */
 	public static boolean submit(Consumer<ProgressTask> consumer, ProgressTask task) {
 		task.setCancelled(false);
 		try {
@@ -66,12 +96,32 @@ public final class App {
 		return task.isCancelled();
 	}
 
+	/**
+	 * Gets the logger for the given name.
+	 *
+	 * @param name The name.
+	 * @return The logger.
+	 */
+	public static Logger getLogger(String name) {
+		return get().getLoggerFactory().provideLogger(name);
+	}
+
+	/**
+	 * Delegates to {@link Platform#runLater(Runnable)} and blocks until execution is complete.
+	 *
+	 * @param runnable The runnable.
+	 */
 	public static void runLater(Runnable runnable) {
 		CountDownLatch lock = new CountDownLatch(1);
+
 		Platform.runLater(() -> {
-			runnable.run();
-			lock.countDown();
+			try {
+				runnable.run();
+			} finally {
+				lock.countDown();
+			}
 		});
+
 		try {
 			lock.await();
 		} catch (InterruptedException e) {

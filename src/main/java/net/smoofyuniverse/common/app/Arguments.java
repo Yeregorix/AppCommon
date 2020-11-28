@@ -28,6 +28,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
+/**
+ * Collections of paramaters and flags.
+ */
 public final class Arguments {
 	private final List<String> parameters;
 	private final Map<String, String> flags;
@@ -37,21 +40,45 @@ public final class Arguments {
 		this.flags = new LinkedHashMap<>(flags);
 	}
 
+	/**
+	 * Gets parameters count.
+	 *
+	 * @return Parameters count.
+	 */
 	public int getParametersCount() {
 		return this.parameters.size();
 	}
 
+	/**
+	 * Gets paramater by index.
+	 *
+	 * @param index The index.
+	 * @return The parameter.
+	 */
 	public Optional<String> getParameter(int index) {
 		if (index < 0 || index >= this.parameters.size())
 			return Optional.empty();
 		return Optional.of(this.parameters.get(index));
 	}
 
+	/**
+	 * Gets the boolean value of the first flag.
+	 * Defaults to false.
+	 *
+	 * @param keys Names of flags.
+	 * @return The boolean value.
+	 */
 	public boolean getBoolean(String... keys) {
 		Optional<String> opt = getString(keys);
 		return opt.isPresent() && !opt.get().toLowerCase(Locale.ROOT).equals("false");
 	}
 
+	/**
+	 * Gets the string value of the first flag.
+	 *
+	 * @param keys Names of flags.
+	 * @return The string value.
+	 */
 	public Optional<String> getString(String... keys) {
 		for (String key : keys) {
 			String v = this.flags.get(key.toLowerCase(Locale.ROOT));
@@ -61,6 +88,12 @@ public final class Arguments {
 		return Optional.empty();
 	}
 
+	/**
+	 * Gets the integer value of the first valid flag.
+	 *
+	 * @param keys Names of flags.
+	 * @return The integer value.
+	 */
 	public OptionalInt getInt(String... keys) {
 		for (String key : keys) {
 			String v = this.flags.get(key.toLowerCase(Locale.ROOT));
@@ -74,6 +107,12 @@ public final class Arguments {
 		return OptionalInt.empty();
 	}
 
+	/**
+	 * Gets the long value of the first valid flag.
+	 *
+	 * @param keys Names of flags.
+	 * @return The long value.
+	 */
 	public OptionalLong getLong(String... keys) {
 		for (String key : keys) {
 			String v = this.flags.get(key.toLowerCase(Locale.ROOT));
@@ -87,6 +126,12 @@ public final class Arguments {
 		return OptionalLong.empty();
 	}
 
+	/**
+	 * Gets the double value of the first valid flag.
+	 *
+	 * @param keys Names of flags.
+	 * @return The double value.
+	 */
 	public OptionalDouble getDouble(String... keys) {
 		for (String key : keys) {
 			String v = this.flags.get(key.toLowerCase(Locale.ROOT));
@@ -105,51 +150,98 @@ public final class Arguments {
 		return StringUtil.toCommandLine(export());
 	}
 
+	/**
+	 * Exports parameters and flags to raw arguments.
+	 * See {@link Builder#parse(Iterable)}.
+	 *
+	 * @return The list of raw arguments.
+	 */
 	public List<String> export() {
 		List<String> l = new ArrayList<>();
 		export(l::add);
 		return l;
 	}
 
-	public void export(Consumer<String> c) {
+	/**
+	 * Exports parameters and flags to raw arguments.
+	 * See {@link Builder#parse(Iterable)}.
+	 *
+	 * @param consumer The consumer.
+	 */
+	public void export(Consumer<String> consumer) {
 		for (String p : this.parameters)
-			c.accept(p);
+			consumer.accept(p);
 
 		for (Entry<String, String> e : this.flags.entrySet()) {
-			c.accept("--" + e.getKey());
+			consumer.accept("--" + e.getKey());
 			if (!e.getValue().isEmpty())
-				c.accept(e.getValue());
+				consumer.accept(e.getValue());
 		}
 	}
 
+	/**
+	 * Creates a new builder containing parameters and flags of this {@link Arguments}.
+	 *
+	 * @return The new builder.
+	 */
 	public Builder toBuilder() {
 		return new Builder().add(this);
 	}
 
+	/**
+	 * Creates an empty {@link Arguments}.
+	 *
+	 * @return The new {@link Arguments}.
+	 */
 	public static Arguments empty() {
 		return new Builder().build();
 	}
 
+	/**
+	 * Parses raw arguments and creates a new {@link Arguments} with corresponding parameters and flags.
+	 *
+	 * @param rawArguments The raw arguments.
+	 * @return The new {@link Arguments}.
+	 */
 	public static Arguments parse(String... rawArguments) {
 		return new Builder().parse(rawArguments).build();
 	}
 
+	/**
+	 * Creates a new builder.
+	 *
+	 * @return The new builder.
+	 */
 	public static Builder builder() {
 		return new Builder();
 	}
 
+	/**
+	 * A builder for {@link Arguments}.
+	 */
 	public static class Builder {
 		private final List<String> parameters = new ArrayList<>();
-		private final Map<String, String> flags = new HashMap<>();
+		private final Map<String, String> flags = new LinkedHashMap<>();
 
 		private Builder() {}
 
+		/**
+		 * Clears all parameters and flags.
+		 *
+		 * @return this.
+		 */
 		public Builder reset() {
 			this.parameters.clear();
 			this.flags.clear();
 			return this;
 		}
 
+		/**
+		 * Adds a parameter.
+		 *
+		 * @param value The parameter.
+		 * @return this.
+		 */
 		public Builder addParameter(String value) {
 			if (value == null)
 				throw new IllegalArgumentException("value");
@@ -157,6 +249,12 @@ public final class Arguments {
 			return this;
 		}
 
+		/**
+		 * Removes a parameter.
+		 *
+		 * @param value The paramater.
+		 * @return this.
+		 */
 		public Builder removeParameter(String value) {
 			if (value == null)
 				throw new IllegalArgumentException("value");
@@ -164,6 +262,13 @@ public final class Arguments {
 			return this;
 		}
 
+		/**
+		 * Sets a flag.
+		 *
+		 * @param key Name of flag.
+		 * @param value Value of flag.
+		 * @return this.
+		 */
 		public Builder setFlag(String key, String value) {
 			if (key == null)
 				throw new IllegalArgumentException("key");
@@ -173,6 +278,12 @@ public final class Arguments {
 			return this;
 		}
 
+		/**
+		 * Removes a flag.
+		 *
+		 * @param key Name of flag.
+		 * @return this.
+		 */
 		public Builder unsetFlag(String key) {
 			if (key == null)
 				throw new IllegalArgumentException("key");
@@ -180,16 +291,34 @@ public final class Arguments {
 			return this;
 		}
 
+		/**
+		 * Adds parameters and flags from an existing {@link Arguments}.
+		 *
+		 * @param arguments The arguments.
+		 * @return this.
+		 */
 		public Builder add(Arguments arguments) {
 			this.parameters.addAll(arguments.parameters);
 			this.flags.putAll(arguments.flags);
 			return this;
 		}
 
+		/**
+		 * Parses raw arguments and adds corresponding parameters and flags.
+		 *
+		 * @param rawArguments The raw arguments.
+		 * @return this.
+		 */
 		public Builder parse(String... rawArguments) {
 			return parse(Arrays.asList(rawArguments));
 		}
 
+		/**
+		 * Parses raw arguments and adds corresponding parameters and flags.
+		 *
+		 * @param rawArguments The raw arguments.
+		 * @return this.
+		 */
 		public Builder parse(Iterable<String> rawArguments) {
 			String key = null;
 			int i = 0;
@@ -219,10 +348,21 @@ public final class Arguments {
 			return this;
 		}
 
+		/**
+		 * Parses the command line and adds corresponding parameters and flags.
+		 *
+		 * @param commandLine The command line.
+		 * @return this.
+		 */
 		public Builder parse(String commandLine) {
 			return parse(StringUtil.parseCommandLine(commandLine));
 		}
 
+		/**
+		 * Builds a new {@link Arguments} from this builder.
+		 *
+		 * @return The new {@link Arguments}.
+		 */
 		public Arguments build() {
 			return new Arguments(this.parameters, this.flags);
 		}

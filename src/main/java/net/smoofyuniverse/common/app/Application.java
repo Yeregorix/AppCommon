@@ -53,6 +53,7 @@ import net.smoofyuniverse.logger.core.LogLevel;
 import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
 import net.smoofyuniverse.logger.core.LoggerFactory;
+import net.smoofyuniverse.logger.transformer.ParentTransformer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -69,6 +70,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
+/**
+ * The application.
+ * Singleton.
+ */
 public abstract class Application {
 	private static Application instance;
 
@@ -79,7 +84,7 @@ public abstract class Application {
 	protected final String name, title, version;
 	protected final boolean UIEnabled, devEnvironment;
 	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
-	protected final Map<String, String> logBlacklist = new HashMap<>();
+	protected final ParentTransformer logTransformer = new ParentTransformer();
 
 	private Arguments staticArguments, arguments;
 	private ConnectionConfig connectionConfig;
@@ -91,11 +96,26 @@ public abstract class Application {
 	private Translator translator;
 	private Stage stage;
 	private Optional<Path> applicationJar;
-	
-	public Application(Arguments args, String name, String version) {
-		this(args, name, name, version);
+
+	/**
+	 * Creates the application.
+	 *
+	 * @param arguments The arguments.
+	 * @param name      The name.
+	 * @param version   The version.
+	 */
+	public Application(Arguments arguments, String name, String version) {
+		this(arguments, name, name, version);
 	}
 
+	/**
+	 * Creates the application.
+	 *
+	 * @param arguments The arguments.
+	 * @param name      The name, used in the default directory and default user agent.
+	 * @param title     The title, used in the UI.
+	 * @param version   The version.
+	 */
 	public Application(Arguments arguments, String name, String title, String version) {
 		if (instance != null)
 			throw new IllegalStateException("An application instance already exists");
@@ -116,7 +136,7 @@ public abstract class Application {
 
 		loadStaticArguments();
 		this.UIEnabled = enableUI();
-		
+
 		setState(State.SERVICES_INIT);
 	}
 
@@ -132,7 +152,7 @@ public abstract class Application {
 		if (this.devEnvironment)
 			dirName += "-dev";
 
-		return OperatingSystem.CURRENT.getWorkingDirectory().resolve(dirName);
+		return OperatingSystem.CURRENT.getApplicationDirectory().resolve(dirName);
 	}
 
 	private void loadStaticArguments() {
@@ -172,7 +192,7 @@ public abstract class Application {
 		this.resourceManager = resourceManager;
 		this.executor = executor;
 		this.logger = loggerFactory.provideLogger("Application");
-		this.logBlacklist.put(IOUtil.USER_HOME, "USER_HOME");
+		this.logTransformer.children.add(s -> s.replace(IOUtil.USER_HOME, "USER_HOME"));
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
 
@@ -227,15 +247,15 @@ public abstract class Application {
 		this.state = state;
 	}
 
-	public final void launch() {
-		try {
-			if (this.UIEnabled)
-				initJavaFX();
-			init();
-		} catch (Throwable t) {
-			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
-			fatalError(t);
-		}
+	/**
+	 * Compares the current state and the expected state.
+	 *
+	 * @param state The expected state.
+	 * @throws IllegalArgumentException If the current state is not the expected one.
+	 */
+	public void checkState(State state) {
+		if (this.state != state)
+			throw new IllegalStateException();
 	}
 
 	private static void initJavaFX() {
@@ -243,26 +263,60 @@ public abstract class Application {
 		new JFXPanel();
 	}
 
-	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), this::transformLog)), this::formatLog), executor);
+	/**
+	 * Shows a fatal error popup then exits the JVM.
+	 *
+	 * @param throwable The throwable.
+	 */
+	public final void fatalError(Throwable throwable) {
+		if (this.UIEnabled) {
+			try {
+				Popup.error().title(this.title + " " + this.version + " - Fatal error").message(throwable).submitAndWait();
+			} catch (Exception ignored) {
+			}
+		}
+		shutdownNow();
 	}
 
-	public String transformLog(String msg) {
-		for (Entry<String, String> e : this.logBlacklist.entrySet())
-			msg = msg.replace(e.getKey(), e.getValue());
-		return msg;
+	/**
+	 * Forces the application shutdown.
+	 * Terminates the JVM with status 0.
+	 */
+	public void shutdownNow() {
+		shutdownNow(0);
 	}
 
-	public void checkState(State state) {
-		if (this.state != state)
-			throw new IllegalStateException();
+	/**
+	 * Forces the application shutdown.
+	 * Terminates the JVM.
+	 *
+	 * @param code The exit status.
+	 */
+	public void shutdownNow(int code) {
+		try {
+			if (this.state != State.SHUTDOWN) {
+				this.logger.info("Shutting down ..");
+				setState(State.SHUTDOWN);
+			}
+
+			cancelListeners();
+			this.resourceLoader.close();
+
+			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
+		} catch (Exception ignored) {
+		}
+		System.exit(code);
 	}
 
-	public State getState() {
-		return this.state;
+	private void cancelListeners() {
+		for (BaseListener l : this.listeners) {
+			try {
+				l.cancel();
+			} catch (Exception ignored) {
+			}
+		}
+		this.listeners.clear();
 	}
-
-	public abstract void init() throws Exception;
 
 	public String formatLog(LogMessage msg) {
 		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
@@ -403,8 +457,19 @@ public abstract class Application {
 			this.logger.info("Update task has been cancelled.");
 	}
 
-	public final Arguments getOriginalArguments() {
-		return this.originalArguments;
+	/**
+	 * Launches the application.
+	 * Handles any errors the may occur during initialization.
+	 */
+	public final void launch() {
+		try {
+			if (this.UIEnabled)
+				initJavaFX();
+			init();
+		} catch (Throwable t) {
+			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
+			fatalError(t);
+		}
 	}
 
 	protected final boolean updateDependencies(Path defaultDir, DependencyInfo... deps) {
@@ -509,6 +574,49 @@ public abstract class Application {
 			IOUtil.addToClasspath(cl, info.file);
 	}
 
+	/**
+	 * Initializes the application.
+	 */
+	public abstract void init() throws Exception;
+
+	protected final void initServices(ExecutorService executor) {
+		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), this.logTransformer)), this::formatLog), executor);
+	}
+
+	protected final Stage setScene(Parent root) {
+		return setScene(new Scene(root));
+	}
+
+	protected final Stage setScene(Scene scene) {
+		checkState(State.STAGE_INIT);
+		this.stage.setScene(scene);
+		setState(State.RUNNING);
+		return this.stage;
+	}
+
+	/**
+	 * Gets the state.
+	 *
+	 * @return The state.
+	 */
+	public State getState() {
+		return this.state;
+	}
+
+	/**
+	 * Gets the original arguments parsed from command line.
+	 *
+	 * @return The original arguments.
+	 */
+	public final Arguments getOriginalArguments() {
+		return this.originalArguments;
+	}
+
+	/**
+	 * Gets the path to the application jar file.
+	 *
+	 * @return The path to the jar file.
+	 */
 	public Optional<Path> getApplicationJar() {
 		if (this.applicationJar == null) {
 			try {
@@ -525,59 +633,13 @@ public abstract class Application {
 		return this.applicationJar;
 	}
 
-	public final void fatalError(Throwable t) {
-		if (this.UIEnabled) {
-			try {
-				Popup.error().title(this.title + " " + this.version + " - Fatal error").message(t).submitAndWait();
-			} catch (Exception ignored) {
-			}
-		}
-		shutdownNow();
-	}
-	
-	protected final Stage setScene(Parent root) {
-		return setScene(new Scene(root));
-	}
-	
-	protected final Stage setScene(Scene scene) {
-		checkState(State.STAGE_INIT);
-		this.stage.setScene(scene);
-		setState(State.RUNNING);
-		return this.stage;
-	}
-
-	public void shutdownNow() {
-		shutdownNow(0);
-	}
-
-	public void shutdownNow(int code) {
-		try {
-			if (this.state != State.SHUTDOWN) {
-				this.logger.info("Shutting down ..");
-				setState(State.SHUTDOWN);
-			}
-
-			cancelListeners();
-			this.resourceLoader.close();
-
-			Thread.setDefaultUncaughtExceptionHandler((t, e) -> {});
-		} catch (Exception ignored) {
-		}
-		System.exit(code);
-	}
-
-	public final void cancelListeners() {
-		for (BaseListener l : this.listeners) {
-			try {
-				l.cancel();
-			} catch (Exception ignored) {
-			}
-		}
-		this.listeners.clear();
-	}
-
-	public Map<String, String> getLogBlacklist() {
-		return this.logBlacklist;
+	/**
+	 * Gets the log transformer.
+	 *
+	 * @return The log transformer.
+	 */
+	public ParentTransformer getLogTransformer() {
+		return this.logTransformer;
 	}
 
 	protected final Stage initStage(double width, double height, String... icons) {
@@ -615,19 +677,40 @@ public abstract class Application {
 		setState(State.RUNNING);
 	}
 
+	/**
+	 * Checks whether user interface is enabled.
+	 *
+	 * @throws IllegalArgumentException If user interface is not enabled.
+	 */
 	public final void requireUI() {
 		if (!this.UIEnabled)
 			throw new IllegalStateException("UI is not enabled");
 	}
 
+	/**
+	 * Gets the resource loader.
+	 *
+	 * @return The resource loader.
+	 */
 	public final ResourceLoader getResourceLoader() {
 		return this.resourceLoader;
 	}
 
+	/**
+	 * Gets the static arguments.
+	 * These are loaded from a text file.
+	 *
+	 * @return The static arguments.
+	 */
 	public final Arguments getStaticArguments() {
 		return this.staticArguments;
 	}
 
+	/**
+	 * Sets and saves static arguments.
+	 *
+	 * @param arguments The static arguments.
+	 */
 	public final void setStaticArguments(Arguments arguments) {
 		if (arguments.getParametersCount() != 0)
 			throw new IllegalArgumentException("Parameters are not allowed");
@@ -640,36 +723,72 @@ public abstract class Application {
 		}
 	}
 
+	/**
+	 * Gets the arguments.
+	 * These are the result of a merge of original arguments and static arguments.
+	 *
+	 * @return The arguments.
+	 */
 	public final Arguments getArguments() {
 		return this.arguments;
 	}
 
+	/**
+	 * Gets the working directory.
+	 *
+	 * @return The working directory.
+	 */
 	public final Path getWorkingDirectory() {
 		return this.workingDir;
 	}
 
+	/**
+	 * Gets "Application" logger.
+	 *
+	 * @return The logger.
+	 */
 	public Logger getLogger() {
 		return this.logger;
 	}
 
+	/**
+	 * Gets the logger factory.
+	 *
+	 * @return The logger factory.
+	 */
 	public LoggerFactory getLoggerFactory() {
 		if (this.loggerFactory == null)
 			throw new IllegalStateException("LoggerFactory not initialized");
 		return this.loggerFactory;
 	}
 
+	/**
+	 * Gets the event manager.
+	 *
+	 * @return The event manager.
+	 */
 	public EventManager getEventManager() {
 		if (this.eventManager == null)
 			throw new IllegalStateException("EventManager not initialized");
 		return this.eventManager;
 	}
 
+	/**
+	 * Gets the resource manager.
+	 *
+	 * @return The resource manager.
+	 */
 	public ResourceManager getResourceManager() {
 		if (this.resourceManager == null)
 			throw new IllegalStateException("ResourceManager not initialized");
 		return this.resourceManager;
 	}
 
+	/**
+	 * Gets the default connection config.
+	 *
+	 * @return The default connection config.
+	 */
 	public ConnectionConfig getConnectionConfig() {
 		if (this.connectionConfig == null) {
 			Optional<String> host = this.arguments.getString("proxyHost");
@@ -681,22 +800,40 @@ public abstract class Application {
 		return this.connectionConfig;
 	}
 
+	/**
+	 * Gets the default user agent.
+	 *
+	 * @return The default user agent.
+	 */
 	public String getDefaultUserAgent() {
 		return this.name + "/" + this.version;
 	}
 
+	/**
+	 * Gets the default executor.
+	 *
+	 * @return The executor.
+	 */
 	public ExecutorService getExecutor() {
 		if (this.executor == null)
 			throw new IllegalStateException("ExecutorService not initialized");
 		return this.executor;
 	}
 
+	/**
+	 * Gets the translator.
+	 *
+	 * @return The translator.
+	 */
 	public Translator getTranslator() {
 		if (this.translator == null)
 			throw new IllegalStateException("Translator not initialized");
 		return this.translator;
 	}
 
+	/**
+	 * Shutdowns gracefully the application.
+	 */
 	public void shutdown() {
 		if (this.state == State.SHUTDOWN)
 			return;
@@ -716,48 +853,95 @@ public abstract class Application {
 			Platform.runLater(Platform::exit);
 	}
 
-	public final void registerListener(BaseListener l) {
+	/**
+	 * Registers the listener (weak reference).
+	 * This listener will be automatically cancelled when the application shutdowns.
+	 * If the application is already shutting down then the listener is cancelled immediately.
+	 *
+	 * @param listener The listener.
+	 */
+	public final void registerListener(BaseListener listener) {
 		if (this.state == State.SHUTDOWN) {
 			try {
-				l.cancel();
+				listener.cancel();
 			} catch (Exception ignored) {
 			}
 		} else {
-			this.listeners.add(l);
+			this.listeners.add(listener);
 		}
 	}
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return The name.
+	 */
 	public final String getName() {
 		return this.name;
 	}
 
+	/**
+	 * Gets the title.
+	 *
+	 * @return The title.
+	 */
 	public final String getTitle() {
 		return this.name;
 	}
 
+	/**
+	 * Gets the version.
+	 *
+	 * @return The version.
+	 */
 	public final String getVersion() {
 		return this.version;
 	}
 
+	/**
+	 * Gets the stage.
+	 *
+	 * @return The stage.
+	 */
 	public Optional<Stage> getStage() {
 		return Optional.ofNullable(this.stage);
 	}
 
+	/**
+	 * Gets the scene.
+	 *
+	 * @return The scene.
+	 */
 	public Optional<Scene> getScene() {
 		return this.stage == null ? Optional.empty() : Optional.of(this.stage.getScene());
 	}
 
-	public static Application get() {
-		if (instance == null)
-			throw new IllegalStateException("Application instance not available");
-		return instance;
-	}
-
+	/**
+	 * Gets whether the graphical user interface is enabled.
+	 *
+	 * @return Whether the graphical user interface is enabled.
+	 */
 	public final boolean isUIEnabled() {
 		return this.UIEnabled;
 	}
 
+	/**
+	 * Gets whether this application is in a development environment.
+	 *
+	 * @return Whether this application is in a development environment.
+	 */
 	public final boolean isDevEnvironment() {
 		return this.devEnvironment;
+	}
+
+	/**
+	 * Gets the application.
+	 *
+	 * @return The application.
+	 */
+	public static Application get() {
+		if (instance == null)
+			throw new IllegalStateException("Application instance not available");
+		return instance;
 	}
 }

@@ -25,30 +25,45 @@ package net.smoofyuniverse.common.app;
 import net.smoofyuniverse.common.util.ProcessUtil;
 
 import java.awt.*;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 
+/**
+ * An operating system.
+ */
 public enum OperatingSystem {
 	WINDOWS {
 		@Override
-		public Path getWorkingDirectory() {
+		public Path getApplicationDirectory() {
 			String appdata = System.getenv("APPDATA");
 			return Paths.get(appdata == null ? USER_HOME : appdata);
 		}
 	},
 	MACOS {
 		@Override
-		public Path getWorkingDirectory() {
+		public Path getApplicationDirectory() {
 			return Paths.get(USER_HOME, "Library", "Application Support");
+		}
+
+		@Override
+		protected boolean browseFallback(URI uri) throws Exception {
+			ProcessUtil.builder().command("/usr/bin/open", uri.toASCIIString()).start();
+			return true;
 		}
 	},
 	LINUX,
 	UNKNOWN;
 
+	/**
+	 * The current operating system.
+	 */
 	public static final OperatingSystem CURRENT = getPlatform();
+
+	/**
+	 * The value of system property {@code user.home}.
+	 */
 	public static final String USER_HOME = System.getProperty("user.home", ".");
 
 	private static OperatingSystem getPlatform() {
@@ -62,22 +77,39 @@ public enum OperatingSystem {
 		return UNKNOWN;
 	}
 
-	public Path getWorkingDirectory() {
+	/**
+	 * Gets the preferred directory where applications should be stored.
+	 *
+	 * @return The directory where applications should be stored.
+	 */
+	public Path getApplicationDirectory() {
 		return Paths.get(USER_HOME);
 	}
 
-	public void openLink(URI uri) {
+	/**
+	 * Launches the default browser to display an URI.
+	 *
+	 * @param uri the URI to be displayed.
+	 * @return Whether the operation was successful.
+	 */
+	public boolean browse(URI uri) {
+		if (uri == null)
+			throw new IllegalArgumentException("uri");
+
 		try {
 			Desktop.getDesktop().browse(uri);
-		} catch (Exception e) {
-			if (this == MACOS) {
-				try {
-					ProcessUtil.builder().command("/usr/bin/open", uri.toASCIIString()).start();
-				} catch (IOException e2) {
-					App.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e2);
-				}
-			} else
-				App.getLogger("OperatingSystem").warn("Failed to open link: " + uri, e);
+			return true;
+		} catch (Exception ignored) {
 		}
+
+		try {
+			return browseFallback(uri);
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	protected boolean browseFallback(URI uri) throws Exception {
+		return false;
 	}
 }
