@@ -24,14 +24,18 @@ package net.smoofyuniverse.common.task;
 
 import net.smoofyuniverse.common.task.impl.ProgressIncrementalTask;
 
+/**
+ * A {@link ProgressListener} with a title and a message;
+ */
 public interface ProgressTask extends BaseTask, ProgressListener, IncrementalTaskProvider {
+
 	@Override
-	default ProgressIncrementalTask expect(long total) {
-		return new ProgressIncrementalTask(this, total, false);
+	default IncrementalTask limit(long total) {
+		return new ProgressIncrementalTask(this, total, true);
 	}
 
 	@Override
-	default ProgressIncrementalTask limit(long total) {
-		return new ProgressIncrementalTask(this, total, true);
+	default IncrementalTask expect(long total) {
+		return new ProgressIncrementalTask(this, total, false);
 	}
 }

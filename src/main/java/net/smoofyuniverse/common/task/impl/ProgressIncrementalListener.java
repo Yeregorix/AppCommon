@@ -25,12 +25,35 @@ package net.smoofyuniverse.common.task.impl;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressListener;
 
+/**
+ * This {@link IncrementalListener} updates a {@link ProgressListener}.
+ * The progress is sets to the current total divided by the expected maximum.
+ */
 public class ProgressIncrementalListener implements IncrementalListener {
+	/**
+	 * The delegate progress listener.
+	 */
 	public final ProgressListener delegate;
+
+	/**
+	 * The expected maximum.
+	 */
 	public final long maximum;
+
+	/**
+	 * Whether this listener will be cancelled when reaching the maximum.
+	 */
 	public final boolean limit;
+
 	private long total;
 
+	/**
+	 * Creates a {@link ProgressIncrementalListener}.
+	 *
+	 * @param delegate The delegate progress listener.
+	 * @param maximum  The expected maximum.
+	 * @param limit    Whether this listener will be cancelled when reaching the maximum.
+	 */
 	public ProgressIncrementalListener(ProgressListener delegate, long maximum, boolean limit) {
 		if (delegate == null)
 			throw new IllegalArgumentException("delegate");

@@ -27,10 +27,27 @@ import net.smoofyuniverse.common.task.IncrementalListener;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * A wrapper for an {@link InputStream}.
+ * Each byte read increments a {@link IncrementalListener}.
+ */
 public class ListenedInputStream extends InputStream {
+	/**
+	 * The wrapped input stream.
+	 */
 	public final InputStream delegate;
+
+	/**
+	 * The listener incremented when reading.
+	 */
 	public final IncrementalListener listener;
 
+	/**
+	 * Wraps the {@link InputStream}.
+	 *
+	 * @param delegate The wrapped input stream.
+	 * @param listener The listener incremented when reading.
+	 */
 	public ListenedInputStream(InputStream delegate, IncrementalListener listener) {
 		this.delegate = delegate;
 		this.listener = listener;

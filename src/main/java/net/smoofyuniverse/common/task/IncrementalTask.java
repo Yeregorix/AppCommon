@@ -22,6 +22,9 @@
 
 package net.smoofyuniverse.common.task;
 
+/**
+ * A {@link IncrementalListener} with a title and a message;
+ */
 public interface IncrementalTask extends BaseTask, IncrementalListener, IncrementalTaskProvider {
 
 	@Override

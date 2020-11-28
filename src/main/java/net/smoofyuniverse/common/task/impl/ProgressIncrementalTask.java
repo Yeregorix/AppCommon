@@ -28,9 +28,23 @@ import net.smoofyuniverse.common.task.ProgressTask;
 
 import java.util.Optional;
 
+/**
+ * This {@link IncrementalTask} updates a {@link ProgressTask}.
+ * The progress is sets to the current total divided by the expected maximum.
+ */
 public class ProgressIncrementalTask extends ProgressIncrementalListener implements IncrementalTask {
+	/**
+	 * The delegate progress task.
+	 */
 	public final ProgressTask taskDelegate;
 
+	/**
+	 * Creates a {@link ProgressIncrementalTask}.
+	 *
+	 * @param delegate The delegate progress listener.
+	 * @param maximum  The expected maximum.
+	 * @param limit    Whether this listener will be cancelled when reaching the maximum.
+	 */
 	public ProgressIncrementalTask(ProgressTask delegate, long maximum, boolean limit) {
 		super(delegate, maximum, limit);
 		this.taskDelegate = delegate;

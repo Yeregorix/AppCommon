@@ -22,7 +22,11 @@
 
 package net.smoofyuniverse.common.task;
 
+/**
+ * An object that can provide an {@link IncrementalTask}.
+ */
 public interface IncrementalTaskProvider extends IncrementalListenerProvider {
+
 	@Override
 	IncrementalTask expect(long total);
 

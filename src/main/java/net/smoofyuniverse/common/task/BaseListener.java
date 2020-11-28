@@ -22,16 +22,42 @@
 
 package net.smoofyuniverse.common.task;
 
+/**
+ * Basically anything that might be cancellable.
+ */
 public interface BaseListener {
 
+	/**
+	 * Gets whether this listener is cancellable.
+	 *
+	 * @return Whether this listener is cancellable.
+	 */
 	boolean isCancellable();
 
+	/**
+	 * Sets whether this listener is cancellable.
+	 *
+	 * @param value Is cancellable.
+	 */
 	void setCancellable(boolean value);
 
+	/**
+	 * Gets whether this listener is cancelled.
+	 *
+	 * @return Whether this listener is cancelled.
+	 */
 	boolean isCancelled();
 
+	/**
+	 * Sets whether this listener is cancelled.
+	 *
+	 * @param value Is cancelled.
+	 */
 	void setCancelled(boolean value);
 
+	/**
+	 * Cancels this listener.
+	 */
 	default void cancel() {
 		setCancelled(true);
 	}

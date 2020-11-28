@@ -20,26 +20,42 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.task.impl;
+package net.smoofyuniverse.common.task.supplier;
 
 import net.smoofyuniverse.common.task.BaseListener;
 
 import java.util.function.Supplier;
 
+/**
+ * A wrapper for a {@link Supplier}.
+ * When a new listener is supplied, the previous one is cancelled.
+ *
+ * @param <T> The listener type.
+ */
 public final class AutoCancellingListenerSupplier<T extends BaseListener> implements Supplier<T> {
 	private final Supplier<T> delegate;
-	private volatile T currentTask;
+	private volatile T currentListener;
 
+	/**
+	 * Wraps the {@link Supplier}.
+	 *
+	 * @param delegate The wrapped supplier.
+	 */
 	public AutoCancellingListenerSupplier(Supplier<T> delegate) {
 		if (delegate == null)
 			throw new IllegalArgumentException("delegate");
 		this.delegate = delegate;
 	}
 
+	/**
+	 * Supplies a new listener and cancels the previous one.
+	 *
+	 * @return A listener.
+	 */
 	@Override
 	public synchronized T get() {
-		if (this.currentTask != null)
-			this.currentTask.cancel();
-		return this.currentTask = this.delegate.get();
+		if (this.currentListener != null)
+			this.currentListener.cancel();
+		return this.currentListener = this.delegate.get();
 	}
 }

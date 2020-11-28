@@ -24,10 +24,21 @@ package net.smoofyuniverse.common.task.impl;
 
 import net.smoofyuniverse.common.task.IncrementalListener;
 
+/**
+ * The default implementation an {@link IncrementalListener}.
+ */
 public class SimpleIncrementalListener extends SimpleBaseListener implements IncrementalListener {
+	/**
+	 * If not zero, this listener will be cancelled when the total reaches this value.
+	 */
 	public final long maximum;
 	private long total;
 
+	/**
+	 * Creates an incremental listener.
+	 *
+	 * @param maximum If strictly positive, this listener will be cancelled when the total reaches this value.
+	 */
 	public SimpleIncrementalListener(long maximum) {
 		this.maximum = maximum <= 0 ? 0 : maximum;
 	}

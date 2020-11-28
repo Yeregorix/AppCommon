@@ -27,12 +27,29 @@ import net.smoofyuniverse.common.task.io.ListenedInputStream;
 import java.io.IOException;
 import java.net.URLConnection;
 
+/**
+ * An object that can provide an {@link IncrementalListener}.
+ */
 public interface IncrementalListenerProvider {
 
-	IncrementalListener expect(long total);
-
+	/**
+	 * Provides an {@link IncrementalListener}.
+	 * If the total is strictly positive, expects the counter the reach the total.
+	 * Cancels the listener when the counter reaches the total.
+	 *
+	 * @param total The total to reach.
+	 * @return An {@link IncrementalListener}.
+	 */
 	IncrementalListener limit(long total);
 
+	/**
+	 * Creates a {@link ListenedInputStream} wrapping connection's input stream.
+	 * The associated {@link IncrementalListener} is expecting to reach connection's header value: Content-Length.
+	 *
+	 * @param co The URL connection.
+	 * @return A {@link ListenedInputStream}.
+	 * @throws IOException See {@link URLConnection#getInputStream()}.
+	 */
 	default ListenedInputStream getInputStream(URLConnection co) throws IOException {
 		IncrementalListener l;
 		try {
@@ -42,4 +59,14 @@ public interface IncrementalListenerProvider {
 		}
 		return l.wrap(co.getInputStream());
 	}
+
+	/**
+	 * Provides an {@link IncrementalListener}.
+	 * If the total is strictly positive, expects the counter the reach the total.
+	 * The counter may exceed the total.
+	 *
+	 * @param total The total to reach.
+	 * @return An {@link IncrementalListener}.
+	 */
+	IncrementalListener expect(long total);
 }

@@ -24,20 +24,37 @@ package net.smoofyuniverse.common.task;
 
 import net.smoofyuniverse.common.task.impl.ProgressIncrementalListener;
 
+/**
+ * A {@link BaseListener} with a progress.
+ */
 public interface ProgressListener extends BaseListener, IncrementalListenerProvider {
 	double INDETERMINATE = -1;
 
+	/**
+	 * Gets the progress.
+	 * <p>
+	 * < 0 means indeterminate.
+	 * = 0 means no progress.
+	 * >= 1 means completed.
+	 *
+	 * @return The progress.
+	 */
 	double getProgress();
 
+	/**
+	 * Sets the progress.
+	 *
+	 * @param value The progress.
+	 */
 	void setProgress(double value);
 
 	@Override
-	default ProgressIncrementalListener expect(long total) {
-		return new ProgressIncrementalListener(this, total, false);
+	default IncrementalListener limit(long total) {
+		return new ProgressIncrementalListener(this, total, true);
 	}
 
 	@Override
-	default ProgressIncrementalListener limit(long total) {
-		return new ProgressIncrementalListener(this, total, true);
+	default IncrementalListener expect(long total) {
+		return new ProgressIncrementalListener(this, total, false);
 	}
 }

@@ -26,9 +26,17 @@ import net.smoofyuniverse.common.task.IncrementalTask;
 
 import java.util.Optional;
 
+/**
+ * The default implementation an {@link IncrementalTask}.
+ */
 public class SimpleIncrementalTask extends SimpleIncrementalListener implements IncrementalTask {
 	private String title, message;
 
+	/**
+	 * Creates an incremental task.
+	 *
+	 * @param maximum If strictly positive, this listener will be cancelled when the total reaches this value.
+	 */
 	public SimpleIncrementalTask(long maximum) {
 		super(maximum);
 	}

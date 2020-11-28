@@ -25,9 +25,16 @@ package net.smoofyuniverse.common.task.impl;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.task.BaseListener;
 
+/**
+ * The default implementation a {@link BaseListener}.
+ */
 public class SimpleBaseListener implements BaseListener {
 	private boolean cancellable = true, cancelled = false;
 
+	/**
+	 * Creates a listener and register it (weak reference).
+	 * This listener will be automatically cancelled when the application shutdowns.
+	 */
 	public SimpleBaseListener() {
 		App.get().registerListener(this);
 	}

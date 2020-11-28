@@ -26,20 +26,55 @@ import javafx.beans.value.ObservableValue;
 
 import java.util.Optional;
 
+/**
+ * A {@link BaseListener} with a title and a message;
+ */
 public interface BaseTask extends BaseListener {
 
+	/**
+	 * Gets the title.
+	 *
+	 * @return The title.
+	 */
 	Optional<String> getTitle();
 
+	/**
+	 * Sets the title.
+	 *
+	 * @param value The title.
+	 */
 	void setTitle(String value);
 
+	/**
+	 * Sets the title.
+	 * If possible, binds the value.
+	 *
+	 * @param value The title.
+	 */
 	default void setTitle(ObservableValue<String> value) {
 		setTitle(value.getValue());
 	}
 
+	/**
+	 * Gets the message.
+	 *
+	 * @return The message.
+	 */
 	Optional<String> getMessage();
 
+	/**
+	 * Sets the message.
+	 *
+	 * @param value The message.
+	 */
 	void setMessage(String value);
 
+	/**
+	 * Sets the message.
+	 * If possible, binds the value.
+	 *
+	 * @param value The message.
+	 */
 	default void setMessage(ObservableValue<String> value) {
 		setTitle(value.getValue());
 	}

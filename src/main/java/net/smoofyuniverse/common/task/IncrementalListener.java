@@ -26,10 +26,23 @@ import net.smoofyuniverse.common.task.io.ListenedInputStream;
 
 import java.io.InputStream;
 
+/**
+ * A {@link BaseListener} with a counter.
+ */
 public interface IncrementalListener extends BaseListener, IncrementalListenerProvider {
 
+	/**
+	 * Gets the total, ie the sum of all increments.
+	 *
+	 * @return The total.
+	 */
 	long getTotal();
 
+	/**
+	 * Increments the total.
+	 *
+	 * @param value The value to add.
+	 */
 	void increment(long value);
 
 	@Override
