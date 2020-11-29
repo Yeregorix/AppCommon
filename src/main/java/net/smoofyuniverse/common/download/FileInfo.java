@@ -42,6 +42,7 @@ public class FileInfo {
 
 	/**
 	 * The size of the remote file.
+	 * -1 means unknown.
 	 */
 	public final long size;
 
@@ -72,7 +73,7 @@ public class FileInfo {
 		if (url == null)
 			throw new IllegalArgumentException("url");
 		if (size < 0 && size != -1)
-			throw new IllegalArgumentException("Size must be positive or indefinite");
+			throw new IllegalArgumentException("Size must be positive or unknown");
 
 		this.url = url;
 		this.size = size;

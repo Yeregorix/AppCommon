@@ -37,6 +37,12 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Optional;
 
+/**
+ * A simple implementation of {@link ReleaseSource}.
+ * <p>Remote structure:
+ * <p>{@code /latest} : First line is the latest version.
+ * <p>{@code %version%/%appname%-%version%.json} : Json data about the release.
+ */
 public class SimpleReleaseSource implements ReleaseSource {
 	private static final Logger logger = App.getLogger("SimpleReleaseSource");
 
@@ -45,7 +51,7 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected final ConnectionConfig config;
 
 	public SimpleReleaseSource(String baseUrl, String appName) {
-		this(newURL(baseUrl), appName);
+		this(IOUtil.newURL(baseUrl), appName);
 	}
 
 	public SimpleReleaseSource(URL baseUrl, String appName) {
@@ -103,13 +109,5 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected ReleaseInfo getRelease(String version, JsonObject obj) throws Exception {
 		return new ReleaseInfo(version, Instant.parse(obj.getString("date")), obj.getObject("extra"),
 				getURL(version + "/" + this.appName + "-" + version + ".jar"), obj.getNumber("size").longValue(), obj.getString("sha1"), "sha1");
-	}
-
-	private static URL newURL(String url) {
-		try {
-			return new URL(url);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
 	}
 }

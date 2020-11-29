@@ -23,29 +23,45 @@
 package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.download.FileInfo;
+import net.smoofyuniverse.common.util.IOUtil;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * Information about a dependency.
+ */
 public class DependencyInfo extends FileInfo {
+	/**
+	 * The name of this dependency.
+	 */
 	public final String name;
 
+	/**
+	 * Creates a new dependency.
+	 *
+	 * @param name            The name.
+	 * @param url             The URL.
+	 * @param size            The size.
+	 * @param digest          The hexadecimal representation of the digest.
+	 * @param digestAlgorithm The algorithm used to compute the digest.
+	 */
 	public DependencyInfo(String name, String url, long size, String digest, String digestAlgorithm) {
-		this(name, newURL(url), size, digest, digestAlgorithm);
+		this(name, IOUtil.newURL(url), size, digest, digestAlgorithm);
 	}
 
+	/**
+	 * Creates a new dependency.
+	 *
+	 * @param name            The name.
+	 * @param url             The URL.
+	 * @param size            The size.
+	 * @param digest          The hexadecimal representation of the digest.
+	 * @param digestAlgorithm The algorithm used to compute the digest.
+	 */
 	public DependencyInfo(String name, URL url, long size, String digest, String digestAlgorithm) {
 		super(url, size, digest, digestAlgorithm);
 		if (name == null || name.isEmpty())
 			throw new IllegalArgumentException("name");
 		this.name = name;
-	}
-
-	private static URL newURL(String url) {
-		try {
-			return new URL(url);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
 	}
 }

@@ -39,9 +39,16 @@ import java.net.URLConnection;
 import java.time.Instant;
 import java.util.Optional;
 
+/**
+ * An implemention of {@link ReleaseSource} based on a Github repository.
+ */
 public class GithubReleaseSource implements ReleaseSource {
 	private static final Logger logger = App.getLogger("GithubReleaseSource");
-	public static final URL URL_BASE;
+
+	/**
+	 * Github API base URL.
+	 */
+	public static final URL URL_BASE = IOUtil.newURL("https://api.github.com/repos/");
 
 	protected final String owner, repo, accessToken, appName;
 	protected final ConnectionConfig config;
@@ -155,13 +162,5 @@ public class GithubReleaseSource implements ReleaseSource {
 		if (this.accessToken != null)
 			url += "?access_token=" + this.accessToken;
 		return new URL(url);
-	}
-
-	static {
-		try {
-			URL_BASE = new URL("https://api.github.com/repos/");
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
 	}
 }

@@ -26,6 +26,9 @@ import net.smoofyuniverse.common.environment.ReleaseInfo;
 
 import java.util.Optional;
 
+/**
+ * A {@link ReleaseSource} with no release.
+ */
 public class EmptyReleaseSource implements ReleaseSource {
 
 	@Override

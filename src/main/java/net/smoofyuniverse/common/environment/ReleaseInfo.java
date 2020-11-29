@@ -28,11 +28,37 @@ import net.smoofyuniverse.common.download.FileInfo;
 import java.net.URL;
 import java.time.Instant;
 
+/**
+ * Information about a release.
+ */
 public final class ReleaseInfo extends FileInfo {
+
+	/**
+	 * The version.
+	 */
 	public final String version;
+
+	/**
+	 * The publication date.
+	 */
 	public final Instant date;
+
+	/**
+	 * Extra data.
+	 */
 	public final JsonObject extraData;
 
+	/**
+	 * Creates a new dependency.
+	 *
+	 * @param version         The version.
+	 * @param date            The publication date.
+	 * @param extraData       Extra data.
+	 * @param url             The URL.
+	 * @param size            The size.
+	 * @param digest          The hexadecimal representation of the digest.
+	 * @param digestAlgorithm The algorithm used to compute the digest.
+	 */
 	public ReleaseInfo(String version, Instant date, JsonObject extraData, URL url, long size, String digest, String digestAlgorithm) {
 		super(url, size, digest, digestAlgorithm);
 		if (version == null || version.isEmpty())

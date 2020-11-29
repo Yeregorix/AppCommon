@@ -56,6 +56,14 @@ public class IOUtil {
 
 	private static Method addURL;
 
+	public static URL newURL(String url) {
+		try {
+			return new URL(url);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static boolean contentEquals(InputStream in1, InputStream in2) throws IOException {
 		if (in1 == in2)
 			return true;
