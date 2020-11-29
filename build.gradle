@@ -80,7 +80,7 @@ uploadArchives {
             pom.project {
                 name 'AppCommon'
                 packaging 'jar'
-                description 'Common library for simple applications.'
+                description 'Common library for JavaFX applications.'
                 url 'https://github.com/Yeregorix/AppCommon'
 
                 scm {
