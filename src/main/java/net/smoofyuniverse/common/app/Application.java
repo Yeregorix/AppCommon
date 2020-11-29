@@ -48,7 +48,13 @@ import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
 import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.appender.*;
+import net.smoofyuniverse.logger.appender.log.FormattedAppender;
+import net.smoofyuniverse.logger.appender.log.LogAppender;
+import net.smoofyuniverse.logger.appender.log.ParentLogAppender;
+import net.smoofyuniverse.logger.appender.log.TransformedAppender;
+import net.smoofyuniverse.logger.appender.string.DatedRollingFileAppender;
+import net.smoofyuniverse.logger.appender.string.PrintStreamAppender;
+import net.smoofyuniverse.logger.appender.string.StringAppender;
 import net.smoofyuniverse.logger.core.LogLevel;
 import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
@@ -65,6 +71,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
@@ -84,7 +91,7 @@ public abstract class Application {
 	protected final String name, title, version;
 	protected final boolean UIEnabled, devEnvironment;
 	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
-	protected final ParentTransformer logTransformer = new ParentTransformer();
+	protected final ParentTransformer fileLogTransformer = new ParentTransformer();
 
 	private Arguments staticArguments, arguments;
 	private ConnectionConfig connectionConfig;
@@ -131,7 +138,7 @@ public abstract class Application {
 		this.staticArgumentsFile = this.workingDir.resolve("static-arguments.txt");
 
 		this.resourceLoader = new ResourceLoader();
-		this.logger = new Logger(PrintStreamAppender.system(), "Application");
+		this.logger = new Logger(newFormattedAppender(PrintStreamAppender.system()), "Application");
 		System.setProperty("java.net.preferIPv4Stack", "true");
 
 		loadStaticArguments();
@@ -182,61 +189,8 @@ public abstract class Application {
 		this.arguments = this.originalArguments.toBuilder().add(arguments).build();
 	}
 
-	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
-		checkState(State.SERVICES_INIT);
-
-		long time = System.currentTimeMillis();
-
-		this.loggerFactory = loggerFactory;
-		this.eventManager = eventManager;
-		this.resourceManager = resourceManager;
-		this.executor = executor;
-		this.logger = loggerFactory.provideLogger("Application");
-		this.logTransformer.children.add(s -> s.replace(IOUtil.USER_HOME, "USER_HOME"));
-
-		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(LogLevel.ERROR, t, "Uncaught exception in thread: " + t.getName(), e));
-
-		this.logger.info("Working directory: " + this.workingDir);
-		try {
-			Files.createDirectories(this.workingDir);
-		} catch (IOException e) {
-			this.logger.error("Failed to create working directory", e);
-			fatalError(e);
-		}
-
-		this.logger.info("Loading resources ..");
-		try {
-			loadResources();
-		} catch (Exception e) {
-			this.logger.error("Failed to load resources", e);
-			fatalError(e);
-		}
-
-		this.translator = Translator.of(this.resourceManager);
-		try {
-			fillTranslations();
-		} catch (Exception e) {
-			this.logger.error("Failed to fill translations", e);
-			fatalError(e);
-		}
-
-		String langId = this.arguments.getString("language", "lang").orElse(null);
-		if (langId != null && !Language.isValidId(langId)) {
-			this.logger.warn("Argument '" + langId + "' is not a valid language identifier.");
-			langId = null;
-		}
-		if (langId == null) {
-			langId = System.getProperty("user.language");
-			if (langId != null && !Language.isValidId(langId))
-				langId = null;
-		}
-		if (langId != null)
-			this.resourceManager.setSelection(Language.of(langId));
-
-		long dur = System.currentTimeMillis() - time;
-		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
-
-		setState(State.STAGE_INIT);
+	public final FormattedAppender newFormattedAppender(StringAppender appender) {
+		return new FormattedAppender(appender, this::formatLog);
 	}
 
 	private void setState(State state) {
@@ -318,8 +272,72 @@ public abstract class Application {
 		this.listeners.clear();
 	}
 
+	/**
+	 * Formats the log message to a string.
+	 *
+	 * @param msg The log message.
+	 * @return The formatted string.
+	 */
 	public String formatLog(LogMessage msg) {
 		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
+	}
+
+	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
+		checkState(State.SERVICES_INIT);
+
+		long time = System.currentTimeMillis();
+
+		this.loggerFactory = loggerFactory;
+		this.eventManager = eventManager;
+		this.resourceManager = resourceManager;
+		this.executor = executor;
+		this.logger = loggerFactory.provideLogger("Application");
+		this.fileLogTransformer.children.add(m -> m.setText(m.getText().replace(IOUtil.USER_HOME, "USER_HOME")));
+
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(
+				new LogMessage(this.logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
+
+		this.logger.info("Working directory: " + this.workingDir);
+		try {
+			Files.createDirectories(this.workingDir);
+		} catch (IOException e) {
+			this.logger.error("Failed to create working directory", e);
+			fatalError(e);
+		}
+
+		this.logger.info("Loading resources ..");
+		try {
+			loadResources();
+		} catch (Exception e) {
+			this.logger.error("Failed to load resources", e);
+			fatalError(e);
+		}
+
+		this.translator = Translator.of(this.resourceManager);
+		try {
+			fillTranslations();
+		} catch (Exception e) {
+			this.logger.error("Failed to fill translations", e);
+			fatalError(e);
+		}
+
+		String langId = this.arguments.getString("language", "lang").orElse(null);
+		if (langId != null && !Language.isValidId(langId)) {
+			this.logger.warn("Argument '" + langId + "' is not a valid language identifier.");
+			langId = null;
+		}
+		if (langId == null) {
+			langId = System.getProperty("user.language");
+			if (langId != null && !Language.isValidId(langId))
+				langId = null;
+		}
+		if (langId != null)
+			this.resourceManager.setSelection(Language.of(langId));
+
+		long dur = System.currentTimeMillis() - time;
+		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
+
+		setState(State.STAGE_INIT);
 	}
 
 	protected final void initServices(LogAppender appender, ExecutorService executor) {
@@ -580,7 +598,12 @@ public abstract class Application {
 	public abstract void init() throws Exception;
 
 	protected final void initServices(ExecutorService executor) {
-		initServices(new FormattedAppender(new ParentAppender(PrintStreamAppender.system(), new TransformedAppender(DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build(), this.logTransformer)), this::formatLog), executor);
+		initServices(new ParentLogAppender(
+						newFormattedAppender(PrintStreamAppender.system()),
+						new TransformedAppender(newFormattedAppender(
+								DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build()),
+								this.fileLogTransformer)),
+				executor);
 	}
 
 	protected final Stage setScene(Parent root) {
@@ -634,12 +657,12 @@ public abstract class Application {
 	}
 
 	/**
-	 * Gets the log transformer.
+	 * Gets the file log transformer.
 	 *
-	 * @return The log transformer.
+	 * @return The file log transformer.
 	 */
-	public ParentTransformer getLogTransformer() {
-		return this.logTransformer;
+	public ParentTransformer getFileLogTransformer() {
+		return this.fileLogTransformer;
 	}
 
 	protected final Stage initStage(double width, double height, String... icons) {
