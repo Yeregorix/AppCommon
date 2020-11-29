@@ -26,9 +26,24 @@ import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Event;
 
+/**
+ * Posted when the application changes his state.
+ */
 public class ApplicationStateChangeEvent implements Event {
+	/**
+	 * The application.
+	 */
 	public final Application application;
-	public final State prevState, newState;
+
+	/**
+	 * The previous state.
+	 */
+	public final State prevState;
+
+	/**
+	 * The new state.
+	 */
+	public final State newState;
 
 	public ApplicationStateChangeEvent(Application app, State prevState, State newState) {
 		if (app == null)

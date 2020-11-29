@@ -22,6 +22,17 @@
 
 package net.smoofyuniverse.common.event;
 
+/**
+ * A listener for an {@link Event}.
+ *
+ * @param <T> The event type.
+ */
 public interface EventListener<T extends Event> {
+
+	/**
+	 * Handles the event.
+	 *
+	 * @param event The event.
+	 */
 	void handle(T event) throws Exception;
 }

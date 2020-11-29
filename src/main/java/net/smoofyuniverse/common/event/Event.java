@@ -22,16 +22,26 @@
 
 package net.smoofyuniverse.common.event;
 
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.app.Application;
 
+/**
+ * An event that can be posted in a {@link EventManager}.
+ */
 public interface Event {
+
+	/**
+	 * Gets whether this event is cancelled.
+	 *
+	 * @return Whether this event is cancelled.
+	 */
 	default boolean isCancelled() { return false; }
 
+	/**
+	 * Posts this event in {@link Application}'s event manager.
+	 *
+	 * @return Whether this event hasn't been cancelled.
+	 */
 	default boolean post() {
-		return App.get().getEventManager().postEvent(this);
-	}
-
-	default boolean postUnchecked() throws Exception {
-		return App.get().getEventManager().postEventUnchecked(this);
+		return Application.get().getEventManager().postEvent(this);
 	}
 }

@@ -24,8 +24,7 @@ package net.smoofyuniverse.common.resource.translator;
 
 import javafx.application.Platform;
 import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.event.Order;
-import net.smoofyuniverse.common.event.core.ListenerRegistration;
+import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
 import net.smoofyuniverse.common.event.resource.TranslatorUpdateEvent;
@@ -232,7 +231,7 @@ public class Translator {
 			Translator t = translators.get(e.manager);
 			if (t != null)
 				t.update();
-		}, Order.EARLY).register();
+		}, -100).register();
 
 		new ListenerRegistration<>(ResourceModuleChangeEvent.class, e -> {
 			Translator t = translators.get(e.pack.manager);
@@ -240,6 +239,6 @@ public class Translator {
 				if (e.prevModule == t.defaultModule || e.prevModule == t.selectionModule)
 					t.update();
 			}
-		}, Order.EARLY).register();
+		}, -100).register();
 	}
 }

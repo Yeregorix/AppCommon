@@ -22,6 +22,15 @@
 
 package net.smoofyuniverse.common.event;
 
+/**
+ * A cancellable {@link Event}.
+ */
 public interface CancellableEvent extends Event {
-	void setCancelled(boolean v);
+
+	/**
+	 * Sets whether this event is cancelled.
+	 *
+	 * @param value Whether this event is cancelled.
+	 */
+	void setCancelled(boolean value);
 }

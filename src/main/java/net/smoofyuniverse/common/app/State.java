@@ -25,10 +25,9 @@ package net.smoofyuniverse.common.app;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.event.EventListener;
-import net.smoofyuniverse.common.event.Order;
+import net.smoofyuniverse.common.event.EventManager;
+import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
-import net.smoofyuniverse.common.event.core.EventManager;
-import net.smoofyuniverse.common.event.core.ListenerRegistration;
 import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.util.ResourceLoader;
 import net.smoofyuniverse.logger.core.Logger;
@@ -78,7 +77,7 @@ public enum State {
 	 * @param order    The order.
 	 * @return A new listener registration.
 	 */
-	public ListenerRegistration<ApplicationStateChangeEvent> newListener(EventListener<ApplicationStateChangeEvent> listener, Order order) {
+	public ListenerRegistration<ApplicationStateChangeEvent> newListener(EventListener<ApplicationStateChangeEvent> listener, int order) {
 		return new ListenerRegistration<>(ApplicationStateChangeEvent.class, e -> {
 			if (e.newState == this)
 				listener.handle(e);

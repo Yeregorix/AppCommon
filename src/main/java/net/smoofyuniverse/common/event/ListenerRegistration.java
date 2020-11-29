@@ -20,53 +20,78 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event.core;
+package net.smoofyuniverse.common.event;
 
-import net.smoofyuniverse.common.app.App;
-import net.smoofyuniverse.common.event.Event;
-import net.smoofyuniverse.common.event.EventListener;
-import net.smoofyuniverse.common.event.Order;
+import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.util.ReflectionUtil;
 
+/**
+ * A listener registration.
+ * Contains a listener and few properties for the event manager.
+ *
+ * @param <T> The listener type.
+ */
 public class ListenerRegistration<T extends Event> implements Comparable<ListenerRegistration<?>> {
+	/**
+	 * The event type.
+	 * All events of this type or assignable to this type will be handled by the listener.
+	 */
 	public final Class<? extends T> eventType;
+
+	/**
+	 * The listener that will handle events.
+	 */
 	public final EventListener<T> listener;
-	public final Order order;
+
+	/**
+	 * The order of execution.
+	 * Lower is earlier.
+	 */
+	public final int order;
+
+	/**
+	 * Whether cancelled events should be ignored.
+	 */
 	public final boolean ignoreCancelled;
-	
+
 	public ListenerRegistration(EventListener<T> listener) {
-		this(listener, Order.DEFAULT);
+		this(listener, 0);
 	}
-	
-	public ListenerRegistration(Class<? extends T> eventType, EventListener<T> listener) {
-		this(eventType, listener, Order.DEFAULT);
-	}
-	
-	public ListenerRegistration(EventListener<T> listener, Order order) {
+
+	public ListenerRegistration(EventListener<T> listener, int order) {
 		this(listener, order, true);
 	}
-	
-	public ListenerRegistration(Class<? extends T> eventType, EventListener<T> listener, Order order) {
-		this(eventType, listener, order, true);
-	}
-	
-	public ListenerRegistration(EventListener<T> listener, Order order, boolean ignoreCancelled) {
+
+	public ListenerRegistration(EventListener<T> listener, int order, boolean ignoreCancelled) {
 		this((Class<T>) ReflectionUtil.getTypeArguments(listener.getClass(), EventListener.class)[0], listener, order, ignoreCancelled);
 	}
-	
-	public ListenerRegistration(Class<? extends T> eventType, EventListener<T> listener, Order order, boolean ignoreCancelled) {
+
+	public ListenerRegistration(Class<? extends T> eventType, EventListener<T> listener, int order, boolean ignoreCancelled) {
 		this.eventType = eventType;
 		this.listener = listener;
 		this.order = order;
 		this.ignoreCancelled = ignoreCancelled;
 	}
 
-	public final void register() {
-		App.get().getEventManager().register(this);
+	public ListenerRegistration(Class<? extends T> eventType, EventListener<T> listener) {
+		this(eventType, listener, 0);
+	}
+
+	public ListenerRegistration(Class<? extends T> eventType, EventListener<T> listener, int order) {
+		this(eventType, listener, order, true);
+	}
+
+	/**
+	 * Registers this listener in {@link Application}'s event manager.
+	 *
+	 * @return Whether this listener wasn't already registered.
+	 */
+	public final boolean register() {
+		return Application.get().getEventManager().register(this);
 	}
 
 	@Override
 	public int compareTo(ListenerRegistration<?> o) {
-		return this.order.compareTo(o.order);
+		return Integer.compare(this.order, o.order);
 	}
 }

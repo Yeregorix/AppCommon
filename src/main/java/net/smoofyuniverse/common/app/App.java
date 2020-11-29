@@ -91,7 +91,7 @@ public final class App {
 			consumer.accept(task);
 		} catch (Exception e) {
 			task.cancel();
-			App.getLogger("App").error("An exception occurred while executing a task.", e);
+			App.getLogger("App").error("Failed to execute a task.", e);
 		}
 		return task.isCancelled();
 	}
