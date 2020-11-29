@@ -52,7 +52,7 @@ public class IOUtil {
 	private static final Logger logger = App.getLogger("IOUtil");
 
 	public static final Pattern ILLEGAL_PATH = Pattern.compile("[:\\\\/*?|<>\"]+");
-	public static final String USER_HOME = Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString();
+	public static final Pattern USER_HOME = Pattern.compile(Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString(), Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
 
 	private static Method addURL;
 

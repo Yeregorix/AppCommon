@@ -292,7 +292,7 @@ public abstract class Application {
 		this.resourceManager = resourceManager;
 		this.executor = executor;
 		this.logger = loggerFactory.provideLogger("Application");
-		this.fileLogTransformer.children.add(m -> m.setText(m.getText().replace(IOUtil.USER_HOME, "USER_HOME")));
+		this.fileLogTransformer.children.add(m -> m.transform(s -> IOUtil.USER_HOME.matcher(s).replaceAll("USER_HOME")));
 
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(
 				new LogMessage(this.logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
