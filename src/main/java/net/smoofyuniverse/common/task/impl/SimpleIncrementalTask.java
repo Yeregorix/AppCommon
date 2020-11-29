@@ -27,7 +27,7 @@ import net.smoofyuniverse.common.task.IncrementalTask;
 import java.util.Optional;
 
 /**
- * The default implementation an {@link IncrementalTask}.
+ * The default implementation of {@link IncrementalTask}.
  */
 public class SimpleIncrementalTask extends SimpleIncrementalListener implements IncrementalTask {
 	private String title, message;

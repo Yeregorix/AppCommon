@@ -25,7 +25,7 @@ package net.smoofyuniverse.common.task.impl;
 import net.smoofyuniverse.common.task.IncrementalListener;
 
 /**
- * The default implementation an {@link IncrementalListener}.
+ * The default implementation of {@link IncrementalListener}.
  */
 public class SimpleIncrementalListener extends SimpleBaseListener implements IncrementalListener {
 	/**

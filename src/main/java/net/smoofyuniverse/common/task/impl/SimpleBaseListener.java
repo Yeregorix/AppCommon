@@ -26,7 +26,7 @@ import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.task.BaseListener;
 
 /**
- * The default implementation a {@link BaseListener}.
+ * The default implementation of {@link BaseListener}.
  */
 public class SimpleBaseListener implements BaseListener {
 	private boolean cancellable = true, cancelled = false;

@@ -27,7 +27,7 @@ import net.smoofyuniverse.common.task.BaseTask;
 import java.util.Optional;
 
 /**
- * The default implementation a {@link BaseTask}.
+ * The default implementation of {@link BaseTask}.
  */
 public class SimpleBaseTask extends SimpleBaseListener implements BaseTask {
 	private String title, message;

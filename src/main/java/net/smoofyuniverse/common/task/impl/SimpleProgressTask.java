@@ -27,7 +27,7 @@ import net.smoofyuniverse.common.task.ProgressTask;
 import java.util.Optional;
 
 /**
- * The default implementation a {@link ProgressTask}.
+ * The default implementation of {@link ProgressTask}.
  */
 public class SimpleProgressTask extends SimpleProgressListener implements ProgressTask {
 	private String title, message;
