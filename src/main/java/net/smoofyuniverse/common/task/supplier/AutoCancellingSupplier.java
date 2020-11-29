@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  *
  * @param <T> The listener type.
  */
-public final class AutoCancellingListenerSupplier<T extends BaseListener> implements Supplier<T> {
+public final class AutoCancellingSupplier<T extends BaseListener> implements Supplier<T> {
 	private final Supplier<T> delegate;
 	private volatile T currentListener;
 
@@ -41,7 +41,7 @@ public final class AutoCancellingListenerSupplier<T extends BaseListener> implem
 	 *
 	 * @param delegate The wrapped supplier.
 	 */
-	public AutoCancellingListenerSupplier(Supplier<T> delegate) {
+	public AutoCancellingSupplier(Supplier<T> delegate) {
 		if (delegate == null)
 			throw new IllegalArgumentException("delegate");
 		this.delegate = delegate;
