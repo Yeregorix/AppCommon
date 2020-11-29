@@ -28,10 +28,22 @@ import javafx.beans.property.SimpleDoubleProperty;
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
 
+/**
+ * Text input component that allows a user to enter a {@link Double}.
+ */
 public class DoubleField extends NumberField {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
-	public final double minValue, maxValue;
+	/**
+	 * The minimum value allowed.
+	 */
+	public final double minValue;
+
+	/**
+	 * The maximum value allowed.
+	 */
+	public final double maxValue;
+
 	private final DoubleProperty value = new SimpleDoubleProperty();
 	private boolean ignore = false;
 

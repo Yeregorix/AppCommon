@@ -25,8 +25,20 @@ package net.smoofyuniverse.common.fx.field;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 
+/**
+ * Text input component that allows a user to enter a {@link Long}.
+ */
 public class LongField extends NumberField {
-	public final long minValue, maxValue;
+	/**
+	 * The minimum value allowed.
+	 */
+	public final long minValue;
+
+	/**
+	 * The maximum value allowed.
+	 */
+	public final long maxValue;
+
 	private final LongProperty value = new SimpleLongProperty();
 	private boolean ignore = false;
 

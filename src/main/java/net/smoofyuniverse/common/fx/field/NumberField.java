@@ -25,7 +25,15 @@ package net.smoofyuniverse.common.fx.field;
 import javafx.beans.property.Property;
 import javafx.scene.control.TextField;
 
+/**
+ * Text input component that allows a user to enter a {@link Number}.
+ */
 public abstract class NumberField extends TextField {
 
+	/**
+	 * The value parsed from the content of the field.
+	 *
+	 * @return The value.
+	 */
 	public abstract Property<Number> valueProperty();
 }

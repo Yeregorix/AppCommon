@@ -25,8 +25,20 @@ package net.smoofyuniverse.common.fx.field;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
+/**
+ * Text input component that allows a user to enter a {@link Integer}.
+ */
 public class IntegerField extends NumberField {
-	public final int minValue, maxValue;
+	/**
+	 * The minimum value allowed.
+	 */
+	public final int minValue;
+
+	/**
+	 * The maximum value allowed.
+	 */
+	public final int maxValue;
+
 	private final IntegerProperty value = new SimpleIntegerProperty();
 	private boolean ignore = false;
 

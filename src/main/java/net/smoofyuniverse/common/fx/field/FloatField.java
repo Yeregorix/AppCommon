@@ -28,10 +28,22 @@ import javafx.beans.property.SimpleFloatProperty;
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
 
+/**
+ * Text input component that allows a user to enter a {@link Float}.
+ */
 public class FloatField extends NumberField {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
-	public final float minValue, maxValue;
+	/**
+	 * The minimum value allowed.
+	 */
+	public final float minValue;
+
+	/**
+	 * The maximum value allowed.
+	 */
+	public final float maxValue;
+
 	private final FloatProperty value = new SimpleFloatProperty();
 	private boolean ignore = false;
 
