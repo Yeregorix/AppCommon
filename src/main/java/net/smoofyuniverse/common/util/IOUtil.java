@@ -171,23 +171,22 @@ public class IOUtil {
 			co.disconnect();
 		}
 	}
-	
-	public static byte[] digest(Path file, String instance) throws IOException, NoSuchAlgorithmException {
-		return digest(file, instance, 1024);
+
+	public static byte[] digest(Path file, String algorithm) throws IOException, NoSuchAlgorithmException {
+		return digest(file, algorithm, 4096);
 	}
-	
-	public static byte[] digest(Path file, String instance, int bufferSize) throws IOException, NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance(instance);
+
+	public static byte[] digest(Path file, String algorithm, int bufferSize) throws IOException, NoSuchAlgorithmException {
+		MessageDigest md = MessageDigest.getInstance(algorithm);
 		try (InputStream in = Files.newInputStream(file)) {
-			 byte[] bytes = new byte[bufferSize];
-			 int len;
-			 while ((len = in.read(bytes)) != -1)
-				 md.update(bytes, 0, len);
-			 bytes = md.digest();
-			 return bytes;
+			byte[] buffer = new byte[bufferSize];
+			int len;
+			while ((len = in.read(buffer)) != -1)
+				md.update(buffer, 0, len);
+			return md.digest();
 		}
 	}
-	
+
 	public static Image loadImage(String localPath) {
 		URL url = App.class.getClassLoader().getResource(localPath);
 		if (url == null)
