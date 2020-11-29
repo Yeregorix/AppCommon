@@ -25,25 +25,42 @@ package net.smoofyuniverse.common.fx.task;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.task.BaseListener;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * An observable implementation of {@link BaseListener}.
+ */
 public class ObservableBaseListener implements BaseListener {
 	private final AtomicReference<Boolean> cancellableUpdate = new AtomicReference<>();
 	private final AtomicReference<Boolean> cancelledUpdate = new AtomicReference<>();
 	private final BooleanProperty cancellable = new SimpleBooleanProperty(true);
 	private final BooleanProperty cancelled = new SimpleBooleanProperty(false);
 
+	/**
+	 * Creates a listener and registers it (weak reference).
+	 * See {@link Application#registerListener(BaseListener)}.
+	 */
 	public ObservableBaseListener() {
-		App.get().registerListener(this);
+		Application.get().registerListener(this);
 	}
 
+	/**
+	 * Gets the cancellable property.
+	 *
+	 * @return The cancellable property.
+	 */
 	public BooleanProperty cancellableProperty() {
 		return this.cancellable;
 	}
 
+	/**
+	 * Gets the cancelled property.
+	 *
+	 * @return The cancelled property.
+	 */
 	public BooleanProperty cancelledProperty() {
 		return this.cancelled;
 	}

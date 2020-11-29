@@ -31,16 +31,29 @@ import net.smoofyuniverse.common.task.BaseTask;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * An observable implementation of {@link BaseTask}.
+ */
 public class ObservableBaseTask extends ObservableBaseListener implements BaseTask {
 	private final AtomicReference<String> titleUpdate = new AtomicReference<>();
 	private final AtomicReference<String> messageUpdate = new AtomicReference<>();
 	private final StringProperty title = new SimpleStringProperty();
 	private final StringProperty message = new SimpleStringProperty();
 
+	/**
+	 * Gets the title property.
+	 *
+	 * @return The title property.
+	 */
 	public StringProperty titleProperty() {
 		return this.title;
 	}
 
+	/**
+	 * Gets the message property.
+	 *
+	 * @return The message property.
+	 */
 	public StringProperty messageProperty() {
 		return this.message;
 	}
