@@ -33,9 +33,9 @@ public interface ProgressListener extends BaseListener, IncrementalListenerProvi
 	/**
 	 * Gets the progress.
 	 * <p>
-	 * < 0 means indeterminate.
+	 * &lt; 0 means indeterminate.
 	 * = 0 means no progress.
-	 * >= 1 means completed.
+	 * &ge; 1 means completed.
 	 *
 	 * @return The progress.
 	 */
