@@ -37,13 +37,13 @@ import java.net.URLConnection;
 public class ConnectionConfig {
 	/**
 	 * The connect timeout in milliseconds.
-	 * See {@link URLConnection#setConnectTimeout(int)).
+	 * See {@link URLConnection#setConnectTimeout(int)}.
 	 */
 	public final int connectTimeout;
 
 	/**
 	 * The read timeout in milliseconds.
-	 * See {@link URLConnection#setReadTimeout(int)).
+	 * See {@link URLConnection#setReadTimeout(int)}.
 	 */
 	public final int readTimeout;
 
