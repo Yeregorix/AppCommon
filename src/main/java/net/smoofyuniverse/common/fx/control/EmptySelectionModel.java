@@ -26,6 +26,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.MultipleSelectionModel;
 
+/**
+ * A {@link MultipleSelectionModel} where no selection is possible.
+ *
+ * @param <T> The type of the item contained in the control.
+ */
 public class EmptySelectionModel<T> extends MultipleSelectionModel<T> {
 
 	@Override

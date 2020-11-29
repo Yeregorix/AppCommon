@@ -32,49 +32,111 @@ import net.smoofyuniverse.common.task.ProgressTask;
 
 import java.util.function.Consumer;
 
+/**
+ * A static helper with essential dialog methods.
+ */
 public class Popup {
-	
-	public static TextInputBuilder textInput(TextField f) {
-		return textInput().field(f);
+
+	/**
+	 * Creates a new text input builder with the given field.
+	 *
+	 * @param field The field.
+	 * @return The new builder.
+	 */
+	public static TextInputBuilder textInput(TextField field) {
+		return textInput().field(field);
 	}
-	
+
+	/**
+	 * Creates a new text input builder.
+	 *
+	 * @return The new builder.
+	 */
 	public static TextInputBuilder textInput() {
 		return new TextInputBuilder();
 	}
-	
-	public static NumberInputBuilder numberInput(NumberField f) {
-		return numberInput().field(f);
+
+	/**
+	 * Creates a new number input builder with the given field.
+	 *
+	 * @param field The field.
+	 * @return The new builder.
+	 */
+	public static NumberInputBuilder numberInput(NumberField field) {
+		return numberInput().field(field);
 	}
 
+	/**
+	 * Creates a new number input builder.
+	 *
+	 * @return The new builder.
+	 */
 	public static NumberInputBuilder numberInput() {
 		return new NumberInputBuilder();
 	}
 
-	public static AlertBuilder consumer(Consumer<ProgressTask> c) {
-		return alert().consumer(c);
+	/**
+	 * Creates a new alert builder with the given task consumer.
+	 *
+	 * @param consumer The task consumer.
+	 * @return The new builder.
+	 */
+	public static AlertBuilder consumer(Consumer<ProgressTask> consumer) {
+		return alert().consumer(consumer);
 	}
-	
+
+	/**
+	 * Creates a new alert builder.
+	 *
+	 * @return The new builder.
+	 */
+	public static AlertBuilder alert() {
+		return new AlertBuilder();
+	}
+
+	/**
+	 * Creates a new alert builder with type {@link AlertType#INFORMATION}.
+	 *
+	 * @return The new builder.
+	 */
 	public static AlertBuilder info() {
 		return alert(AlertType.INFORMATION);
 	}
-	
+
+	/**
+	 * Creates a new alert builder with the given type.
+	 *
+	 * @param type The type.
+	 * @return The new builder.
+	 */
+	public static AlertBuilder alert(AlertType type) {
+		return alert().type(type);
+	}
+
+	/**
+	 * Creates a new alert builder with type {@link AlertType#WARNING}.
+	 *
+	 * @return The new builder.
+	 */
 	public static AlertBuilder warning() {
 		return alert(AlertType.WARNING);
 	}
-	
+
+	/**
+	 * Creates a new alert builder with type {@link AlertType#CONFIRMATION}.
+	 *
+	 * @return The new builder.
+	 */
 	public static AlertBuilder confirmation() {
 		return alert(AlertType.CONFIRMATION);
 	}
-	
+
+	/**
+	 * Creates a new alert builder with type {@link AlertType#ERROR}.
+	 *
+	 * @return The new builder.
+	 */
 	public static AlertBuilder error() {
 		return alert(AlertType.ERROR);
-	}
-	
-	public static AlertBuilder alert(AlertType t) {
-		return alert().type(t);
-	}
-	
-	public static AlertBuilder alert() {
-		return new AlertBuilder();
 	}
 }

@@ -38,32 +38,59 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-public class AlertBuilder extends AbstractBuilder<ButtonType> {
+/**
+ * An {@link Alert} builder.
+ */
+public class AlertBuilder extends DialogBuilder<ButtonType> {
 	private Consumer<ProgressTask> consumer;
 	private ExecutorService executor;
 	private ObservableProgressTask task;
 	private AlertType type;
 
+	/**
+	 * Sets the type.
+	 *
+	 * @param value The type.
+	 * @return this.
+	 */
 	public AlertBuilder type(AlertType value) {
 		this.type = value;
 		return this;
 	}
 
+	/**
+	 * Sets the task.
+	 *
+	 * @param value The task.
+	 * @return this.
+	 */
 	public AlertBuilder task(ObservableProgressTask value) {
 		this.task = value;
 		return this;
 	}
 
+	/**
+	 * Sets the task executor.
+	 *
+	 * @param value The task executor.
+	 * @return this.
+	 */
 	public AlertBuilder executor(ExecutorService value) {
 		this.executor = value;
 		return this;
 	}
 
+	/**
+	 * Sets the task consumer.
+	 *
+	 * @param value The task consumer.
+	 * @return this.
+	 */
 	public AlertBuilder consumer(Consumer<ProgressTask> value) {
 		this.consumer = value;
 		return this;
 	}
-	
+
 	@Override
 	protected void validate() {
 		if (this.consumer != null)
@@ -99,10 +126,10 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 		Label msg = new Label();
 		ProgressBar p = new ProgressBar();
 		p.setMaxWidth(Integer.MAX_VALUE);
-		
+
 		msg.textProperty().bind(this.task.messageProperty());
 		p.progressProperty().bind(this.task.progressProperty());
-		
+
 		return new VBox(5, msg, p);
 	}
 
@@ -110,14 +137,23 @@ public class AlertBuilder extends AbstractBuilder<ButtonType> {
 	protected Dialog<ButtonType> provide() {
 		return new Alert(this.type);
 	}
-	
+
+	/**
+	 * If the task is set, executes the task and returns whether the task hasn't been cancelled.
+	 * <p>
+	 * Otherwise, shows the dialog and returns whether the OK button has been selected.
+	 * <p>
+	 * In both case, blocks until the window is closed.
+	 *
+	 * @return The result.
+	 */
 	@Override
 	public boolean submitAndWait() {
 		validate();
-		
+
 		if (Platform.isFxApplicationThread()) {
 			Dialog<ButtonType> d = build();
-			
+
 			if (this.task == null)
 				return d.showAndWait().orElse(null) == ButtonType.OK;
 

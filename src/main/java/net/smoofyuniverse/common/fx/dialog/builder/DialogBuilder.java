@@ -36,74 +36,149 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class AbstractBuilder<T> {
+/**
+ * A {@link Dialog} builder.
+ *
+ * @param <T> The dialog type.
+ */
+public abstract class DialogBuilder<T> {
 	protected ObservableValue<String> titleP, headerP, messageP;
 	protected String title, header, message;
 	protected ButtonType[] buttonTypes;
 	protected Node content, expandable;
 	protected Stage owner;
 
-	public AbstractBuilder() {
+	public DialogBuilder() {
 		App.get().requireUI();
 	}
 
-	public AbstractBuilder<T> owner(Stage value) {
+	/**
+	 * Sets the owner.
+	 *
+	 * @param value The owner.
+	 * @return this.
+	 */
+	public DialogBuilder<T> owner(Stage value) {
 		this.owner = value;
 		return this;
 	}
 
-	public AbstractBuilder<T> title(String value) {
+	/**
+	 * Sets the title.
+	 *
+	 * @param value The title.
+	 * @return this.
+	 */
+	public DialogBuilder<T> title(String value) {
 		this.titleP = null;
 		this.title = value;
 		return this;
 	}
 
-	public AbstractBuilder<T> title(ObservableValue<String> value) {
+	/**
+	 * Sets the title.
+	 * Binds the value.
+	 *
+	 * @param value The title.
+	 * @return this.
+	 */
+	public DialogBuilder<T> title(ObservableValue<String> value) {
 		this.titleP = value;
 		this.title = null;
 		return this;
 	}
 
-	public AbstractBuilder<T> header(String value) {
+	/**
+	 * Sets the header.
+	 *
+	 * @param value The header.
+	 * @return this.
+	 */
+	public DialogBuilder<T> header(String value) {
 		this.headerP = null;
 		this.header = value;
 		return this;
 	}
 
-	public AbstractBuilder<T> header(ObservableValue<String> value) {
+	/**
+	 * Sets the header.
+	 * Binds the value.
+	 *
+	 * @param value The header.
+	 * @return this.
+	 */
+	public DialogBuilder<T> header(ObservableValue<String> value) {
 		this.headerP = value;
 		this.header = null;
 		return this;
 	}
 
-	public AbstractBuilder<T> message(ObservableValue<String> value) {
+	/**
+	 * Sets the message.
+	 * See {@link StringUtil#simpleFormat(Throwable)}.
+	 *
+	 * @param value The message.
+	 * @return this.
+	 */
+	public DialogBuilder<T> message(Throwable value) {
+		return message(StringUtil.simpleFormat(value));
+	}
+
+	/**
+	 * Sets the message.
+	 *
+	 * @param value The message.
+	 * @return this.
+	 */
+	public DialogBuilder<T> message(String value) {
+		this.messageP = null;
+		this.message = value;
+		return this;
+	}
+
+	/**
+	 * Sets the message.
+	 * Binds the value.
+	 *
+	 * @param value The message.
+	 * @return this.
+	 */
+	public DialogBuilder<T> message(ObservableValue<String> value) {
 		this.messageP = value;
 		this.message = null;
 		return this;
 	}
 
-	public AbstractBuilder<T> content(Node value) {
+	/**
+	 * Sets the content node.
+	 *
+	 * @param value The content node.
+	 * @return this.
+	 */
+	public DialogBuilder<T> content(Node value) {
 		this.content = value;
 		return this;
 	}
 
-	public AbstractBuilder<T> expandable(Node value) {
+	/**
+	 * Sets the expandable node.
+	 *
+	 * @param value The expandable node.
+	 * @return this.
+	 */
+	public DialogBuilder<T> expandable(Node value) {
 		this.expandable = value;
 		return this;
 	}
 
-	public AbstractBuilder<T> buttonTypes(ButtonType... values) {
+	/**
+	 * Sets the button types.
+	 *
+	 * @param values The button types.
+	 * @return this.
+	 */
+	public DialogBuilder<T> buttonTypes(ButtonType... values) {
 		this.buttonTypes = values;
-		return this;
-	}
-
-	public AbstractBuilder<T> message(Throwable value) {
-		return message(StringUtil.simpleFormat(value));
-	}
-
-	public AbstractBuilder<T> message(String value) {
-		this.messageP = null;
-		this.message = value;
 		return this;
 	}
 
@@ -111,13 +186,18 @@ public abstract class AbstractBuilder<T> {
 		if (this.title == null && this.titleP == null)
 			throw new IllegalArgumentException("title");
 	}
-	
+
+	/**
+	 * Builds a new dialog.
+	 *
+	 * @return The new dialog.
+	 */
 	public Dialog<T> build() {
 		validate();
 		Dialog<T> d = provide();
 
 		d.initOwner(this.owner == null ? App.get().getStage().orElse(null) : this.owner);
-		
+
 		if (this.titleP != null)
 			d.titleProperty().bind(this.titleP);
 		else
@@ -129,26 +209,29 @@ public abstract class AbstractBuilder<T> {
 			p.headerTextProperty().bind(this.headerP);
 		else
 			p.setHeaderText(this.header);
-		
+
 		if (this.messageP != null)
 			p.contentTextProperty().bind(this.messageP);
 		else
 			p.setContentText(this.message);
-		
+
 		if (this.content != null)
 			p.setContent(this.content);
-		
+
 		if (this.expandable != null)
 			p.setExpandableContent(this.expandable);
-		
+
 		if (this.buttonTypes != null)
 			p.getButtonTypes().setAll(this.buttonTypes);
-		
+
 		return d;
 	}
-	
+
 	protected abstract Dialog<T> provide();
-	
+
+	/**
+	 * Shows the dialog.
+	 */
 	public void show() {
 		validate();
 		if (Platform.isFxApplicationThread())
@@ -156,7 +239,12 @@ public abstract class AbstractBuilder<T> {
 		else
 			Platform.runLater(this::show);
 	}
-	
+
+	/**
+	 * Shows the dialog and blocks until the window is closed.
+	 *
+	 * @return The result. See {@link Dialog#resultProperty()}.
+	 */
 	public Optional<T> showAndWait() {
 		validate();
 		if (Platform.isFxApplicationThread())
@@ -176,7 +264,14 @@ public abstract class AbstractBuilder<T> {
 			return result.get();
 		}
 	}
-	
+
+	/**
+	 * Submits the dialog.
+	 * The behavior depends on the implementation.
+	 * See {@link AlertBuilder#submitAndWait()}.
+	 *
+	 * @return The result.
+	 */
 	public boolean submitAndWait() {
 		throw new UnsupportedOperationException();
 	}

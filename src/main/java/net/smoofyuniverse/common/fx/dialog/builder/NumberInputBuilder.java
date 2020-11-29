@@ -26,14 +26,23 @@ import javafx.scene.control.Dialog;
 import net.smoofyuniverse.common.fx.dialog.NumberInputDialog;
 import net.smoofyuniverse.common.fx.field.NumberField;
 
-public class NumberInputBuilder extends AbstractBuilder<Number> {
+/**
+ * A {@link NumberInputDialog} builder.
+ */
+public class NumberInputBuilder extends DialogBuilder<Number> {
 	private NumberField field;
 
+	/**
+	 * Sets the field.
+	 *
+	 * @param field The field.
+	 * @return this.
+	 */
 	public NumberInputBuilder field(NumberField field) {
 		this.field = field;
 		return this;
 	}
-	
+
 	@Override
 	protected void validate() {
 		super.validate();

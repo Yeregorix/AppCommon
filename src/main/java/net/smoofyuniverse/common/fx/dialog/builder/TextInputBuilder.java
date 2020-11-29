@@ -26,11 +26,20 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
 import net.smoofyuniverse.common.fx.dialog.TextInputDialog;
 
-public class TextInputBuilder extends AbstractBuilder<String> {
+/**
+ * A {@link TextInputDialog} builder.
+ */
+public class TextInputBuilder extends DialogBuilder<String> {
 	private TextField field;
-	
-	public TextInputBuilder field(TextField f) {
-		this.field = f;
+
+	/**
+	 * Sets the field.
+	 *
+	 * @param field The field.
+	 * @return this.
+	 */
+	public TextInputBuilder field(TextField field) {
+		this.field = field;
 		return this;
 	}
 

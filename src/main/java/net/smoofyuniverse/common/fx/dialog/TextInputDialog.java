@@ -30,15 +30,18 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
+/**
+ * A {@link Dialog} with a {@link TextField}.
+ */
 public class TextInputDialog extends Dialog<String> {
 	private final GridPane grid;
 	private final Label label;
 	private final TextField field;
 
-	public TextInputDialog(TextField f) {
+	public TextInputDialog(TextField field) {
 		DialogPane dialogPane = getDialogPane();
 
-		this.field = f;
+		this.field = field;
 		this.field.setMaxWidth(Double.MAX_VALUE);
 		GridPane.setHgrow(this.field, Priority.ALWAYS);
 		GridPane.setFillWidth(this.field, true);
@@ -54,29 +57,34 @@ public class TextInputDialog extends Dialog<String> {
 		this.grid = new GridPane();
 		this.grid.setHgap(10);
 		this.grid.setMaxWidth(Double.MAX_VALUE);
-        this.grid.setAlignment(Pos.CENTER_LEFT);
-        
-        dialogPane.contentTextProperty().addListener(o -> updateGrid());
-        
-        setTitle(ControlResources.getString("Dialog.confirm.title"));
-        dialogPane.setHeaderText(ControlResources.getString("Dialog.confirm.header"));
-        dialogPane.getStyleClass().add("text-input-dialog");
-        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        
-        updateGrid();
-        
-        setResultConverter((b) -> b == ButtonType.OK ? this.field.getText() : null);
+		this.grid.setAlignment(Pos.CENTER_LEFT);
+
+		dialogPane.contentTextProperty().addListener(o -> updateGrid());
+
+		setTitle(ControlResources.getString("Dialog.confirm.title"));
+		dialogPane.setHeaderText(ControlResources.getString("Dialog.confirm.header"));
+		dialogPane.getStyleClass().add("text-input-dialog");
+		dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+		updateGrid();
+
+		setResultConverter((b) -> b == ButtonType.OK ? this.field.getText() : null);
 	}
-	
+
+	/**
+	 * Gets the field.
+	 *
+	 * @return The field.
+	 */
 	public TextField getField() {
 		return this.field;
 	}
-	
-    private void updateGrid() {
-    	this.grid.getChildren().clear();
-    	this.grid.add(this.label, 0, 0);
-    	this.grid.add(this.field, 1, 0);
-        getDialogPane().setContent(this.grid);
-        Platform.runLater(this.field::requestFocus);
-    }
+
+	private void updateGrid() {
+		this.grid.getChildren().clear();
+		this.grid.add(this.label, 0, 0);
+		this.grid.add(this.field, 1, 0);
+		getDialogPane().setContent(this.grid);
+		Platform.runLater(this.field::requestFocus);
+	}
 }

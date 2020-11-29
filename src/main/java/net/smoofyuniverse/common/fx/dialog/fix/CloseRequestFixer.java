@@ -31,6 +31,9 @@ import javafx.stage.WindowEvent;
 
 import java.lang.reflect.Field;
 
+/**
+ * A fix to allow cancelling the dialog close request.
+ */
 public class CloseRequestFixer implements EventHandler<WindowEvent> {
 	private static final Field dialogF, stageF;
 
@@ -52,6 +55,11 @@ public class CloseRequestFixer implements EventHandler<WindowEvent> {
 			this.stageHandler.handle(event);
 	}
 
+	/**
+	 * Applies the fix to the dialog.
+	 *
+	 * @param dialog The dialog.
+	 */
 	public static void apply(Dialog<?> dialog) {
 		Stage stage = getStage(dialog);
 		if (stage == null)
