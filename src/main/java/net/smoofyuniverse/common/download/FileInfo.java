@@ -30,14 +30,45 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Information about a remote file.
+ * Optionally holds a path to a local file.
+ */
 public class FileInfo {
+	/**
+	 * The URL of the remote file.
+	 */
 	public final URL url;
-	public final long size;
-	public final String digest, digestInst;
 
+	/**
+	 * The size of the remote file.
+	 */
+	public final long size;
+
+	/**
+	 * The hexadecimal representation of the remote file digest.
+	 */
+	public final String digest;
+
+	/**
+	 * The algorithm used to compute the remote file digest.
+	 */
+	public final String digestAlgorithm;
+
+	/**
+	 * The local file.
+	 */
 	public Path file;
 
-	public FileInfo(URL url, long size, String digest, String digestInst) {
+	/**
+	 * Creates remote file information.
+	 *
+	 * @param url             The URL.
+	 * @param size            The size.
+	 * @param digest          The hexadecimal representation of the digest.
+	 * @param digestAlgorithm The algorithm used to compute the digest.
+	 */
+	public FileInfo(URL url, long size, String digest, String digestAlgorithm) {
 		if (url == null)
 			throw new IllegalArgumentException("url");
 		if (size < 0 && size != -1)
@@ -46,13 +77,24 @@ public class FileInfo {
 		this.url = url;
 		this.size = size;
 		this.digest = digest;
-		this.digestInst = digestInst;
+		this.digestAlgorithm = digestAlgorithm;
 	}
 
+	/**
+	 * Checks whether the local file matches the remote file.
+	 *
+	 * @return Whether the local file matches the remote file.
+	 */
 	public boolean matches() {
 		return matches(this.file);
 	}
 
+	/**
+	 * Checks whether the local file matches the remote file.
+	 *
+	 * @param file The local file.
+	 * @return Whether the local file matches the remote file.
+	 */
 	public boolean matches(Path file) {
 		try {
 			if (!Files.isRegularFile(file))
@@ -61,7 +103,7 @@ public class FileInfo {
 			if (this.size != -1 && this.size != Files.size(file))
 				return false;
 
-			if (this.digest != null && this.digestInst != null && !this.digest.equals(StringUtil.toHexString(IOUtil.digest(file, this.digestInst))))
+			if (this.digest != null && this.digestAlgorithm != null && !this.digest.equals(StringUtil.toHexString(IOUtil.digest(file, this.digestAlgorithm))))
 				return false;
 		} catch (Exception e) {
 			App.getLogger("FileInfo").warn("Failed to check file " + file, e);

@@ -33,8 +33,8 @@ public final class ReleaseInfo extends FileInfo {
 	public final Instant date;
 	public final JsonObject extraData;
 
-	public ReleaseInfo(String version, Instant date, JsonObject extraData, URL url, long size, String digest, String digestInst) {
-		super(url, size, digest, digestInst);
+	public ReleaseInfo(String version, Instant date, JsonObject extraData, URL url, long size, String digest, String digestAlgorithm) {
+		super(url, size, digest, digestAlgorithm);
 		if (version == null || version.isEmpty())
 			throw new IllegalArgumentException("version");
 		if (date == null)

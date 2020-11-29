@@ -180,7 +180,7 @@ public final class Arguments {
 	}
 
 	/**
-	 * Creates a new builder containing parameters and flags of this {@link Arguments}.
+	 * Copies all arguments in a new builder.
 	 *
 	 * @return The new builder.
 	 */

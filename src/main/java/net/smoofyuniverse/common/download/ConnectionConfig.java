@@ -31,11 +31,46 @@ import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 
+/**
+ * A configuration for URL connections.
+ */
 public class ConnectionConfig {
-	public final int connectTimeout, readTimeout, bufferSize;
+	/**
+	 * The connect timeout in milliseconds.
+	 * See {@link URLConnection#setConnectTimeout(int)).
+	 */
+	public final int connectTimeout;
+
+	/**
+	 * The read timeout in milliseconds.
+	 * See {@link URLConnection#setReadTimeout(int)).
+	 */
+	public final int readTimeout;
+
+	/**
+	 * The default byte buffer size for most IO operations with an open connection.
+	 */
+	public final int bufferSize;
+
+	/**
+	 * The user agent.
+	 */
 	public final String userAgent;
+
+	/**
+	 * The proxy.
+	 */
 	public final Proxy proxy;
 
+	/**
+	 * Creates a new configuration.
+	 *
+	 * @param proxy          The proxy.
+	 * @param userAgent      The user agent.
+	 * @param connectTimeout The connect timeout.
+	 * @param readTimeout    The read timeout.
+	 * @param bufferSize     The default buffer size.
+	 */
 	public ConnectionConfig(Proxy proxy, String userAgent, int connectTimeout, int readTimeout, int bufferSize) {
 		if (connectTimeout < 0)
 			throw new IllegalArgumentException("connectTimeout");
@@ -50,25 +85,48 @@ public class ConnectionConfig {
 		this.readTimeout = readTimeout;
 		this.bufferSize = bufferSize;
 	}
-	
+
+	/**
+	 * Opens and configures the URL connection.
+	 * Gets the input stream wrapped in a buffered reader.
+	 *
+	 * @param url The URL.
+	 * @return The buffered reader.
+	 */
 	public BufferedReader openBufferedReader(URL url) throws IOException {
 		return new BufferedReader(new InputStreamReader(openStream(url)));
 	}
-	
+
+	/**
+	 * Opens and configures the URL connection.
+	 * Gets the input stream.
+	 *
+	 * @param url The URL.
+	 * @return The input stream.
+	 */
 	public InputStream openStream(URL url) throws IOException {
 		return openConnection(url).getInputStream();
 	}
 
-	public HttpURLConnection openHttpConnection(URL url) throws IOException {
-		return (HttpURLConnection) openConnection(url);
-	}
-	
+	/**
+	 * Opens and configures the URL connection.
+	 * See {@link URL#openConnection()}
+	 *
+	 * @param url The URL.
+	 * @return The URL connection.
+	 */
 	public URLConnection openConnection(URL url) throws IOException {
 		URLConnection co = url.openConnection(this.proxy);
 		configure(co);
 		return co;
 	}
 
+	/**
+	 * Configures the URL connection.
+	 * Sets timeouts, user agent and disables cache.
+	 *
+	 * @param co The URL connection.
+	 */
 	public void configure(URLConnection co) {
 		co.setUseCaches(false);
 		co.setDefaultUseCaches(false);
@@ -81,7 +139,23 @@ public class ConnectionConfig {
 		co.setConnectTimeout(this.connectTimeout);
 		co.setReadTimeout(this.readTimeout);
 	}
-	
+
+	/**
+	 * Opens and configures the URL connection.
+	 * Casts to an HTTP connection.
+	 *
+	 * @param url The URL.
+	 * @return The HTTP connection.
+	 */
+	public HttpURLConnection openHttpConnection(URL url) throws IOException {
+		return (HttpURLConnection) openConnection(url);
+	}
+
+	/**
+	 * Copies the configuration in a new builder.
+	 *
+	 * @return The new builder.
+	 */
 	public Builder toBuilder() {
 		Builder b = new Builder();
 		b.connectTimeout = this.connectTimeout;
@@ -92,40 +166,83 @@ public class ConnectionConfig {
 		return b;
 	}
 
+	/**
+	 * Creates a new builder.
+	 *
+	 * @return The new builder.
+	 */
 	public static Builder builder() {
 		return new Builder();
 	}
-	
+
+	/**
+	 * A builder for {@link ConnectionConfig}.
+	 */
 	public static class Builder {
 		private int connectTimeout, readTimeout, bufferSize;
 		private String userAgent;
 		private Proxy proxy;
-		
+
+		/**
+		 * Sets the connect timeout.
+		 *
+		 * @param v The connect timeout.
+		 * @return this.
+		 */
 		public Builder connectTimeout(int v) {
 			this.connectTimeout = v;
 			return this;
 		}
-		
+
+		/**
+		 * Sets the read timeout.
+		 *
+		 * @param v The read timeout.
+		 * @return this.
+		 */
 		public Builder readTimeout(int v) {
 			this.readTimeout = v;
 			return this;
 		}
-		
+
+		/**
+		 * Sets the default buffer size.
+		 *
+		 * @param v The default buffer size.
+		 * @return this.
+		 */
 		public Builder bufferSize(int v) {
 			this.bufferSize = v;
 			return this;
 		}
-		
+
+		/**
+		 * Sets the user agent.
+		 *
+		 * @param v The user agent.
+		 * @return this.
+		 */
 		public Builder userAgent(String v) {
 			this.userAgent = v;
 			return this;
 		}
-		
+
+		/**
+		 * Sets the proxy.
+		 *
+		 * @param v The proxy.
+		 * @return this.
+		 */
 		public Builder proxy(Proxy v) {
 			this.proxy = v;
 			return this;
 		}
 
+		/**
+		 * Builds a new configuration from this builder.
+		 *
+		 * @return The new configuration.
+		 */
 		public ConnectionConfig build() {
 			return new ConnectionConfig(this.proxy, this.userAgent, this.connectTimeout, this.readTimeout, this.bufferSize);
 		}
