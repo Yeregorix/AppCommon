@@ -122,7 +122,8 @@ public final class ResourceModule<T> {
 	/**
 	 * Creates a new builder.
 	 *
-	 * @param <T> The type of resources.
+	 * @param type The type of resources.
+	 * @param <T>  The type of resources.
 	 * @return The new builder.
 	 */
 	public static <T> Builder<T> builder(Class<T> type) {

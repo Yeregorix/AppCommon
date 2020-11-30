@@ -106,7 +106,7 @@ public class ResourcePack {
 	 * @param module The module.
 	 * @throws UnsupportedOperationException If a module already exists and overwriting is not allowed.
 	 */
-	public <T> void setModule(ResourceModule<T> module) {
+	public void setModule(ResourceModule<?> module) {
 		if (containsModule(module.type))
 			checkOverwrite();
 		put(module);
@@ -122,7 +122,7 @@ public class ResourcePack {
 		return this.modules.containsKey(type);
 	}
 
-	private <T> void put(ResourceModule<T> module) {
+	private void put(ResourceModule<?> module) {
 		new ResourceModuleChangeEvent(this, this.modules.put(module.type, module), module).post();
 	}
 
