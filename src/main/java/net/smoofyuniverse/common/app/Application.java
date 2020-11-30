@@ -184,10 +184,6 @@ public abstract class Application {
 		this.arguments = this.originalArguments.toBuilder().add(arguments).build();
 	}
 
-	public final FormattedAppender newFormattedAppender(StringAppender appender) {
-		return new FormattedAppender(appender, this::formatLog);
-	}
-
 	private void setState(State state) {
 		if (this.state == state)
 			return;
@@ -277,28 +273,57 @@ public abstract class Application {
 		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
 	}
 
-	protected final void initServices(LoggerFactory loggerFactory, EventManager eventManager, ResourceManager resourceManager, ExecutorService executor) {
+	protected void initServices(ExecutorService executor) {
+		checkState(State.SERVICES_INIT);
+		long start = System.currentTimeMillis();
+
+		initLoggerFactory();
+		initEventManager();
+		initResourceManager();
+		this.executor = executor;
+
+		this.logger.info("Started " + this.name + " " + this.version + " (" + (System.currentTimeMillis() - start) + "ms).");
+		setState(State.STAGE_INIT);
+	}
+
+	protected void initLoggerFactory() {
+		setLoggerFactory(new ParentLogAppender(
+				newFormattedAppender(PrintStreamAppender.system()),
+				new TransformedAppender(newFormattedAppender(
+						DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build()),
+						this.fileLogTransformer)));
+	}
+
+	protected void initEventManager() {
+		setEventManager(new EventManager());
+	}
+
+	protected void initResourceManager() {
+		setResourceManager(new ResourceManager(Languages.ENGLISH, false));
+	}
+
+	protected final void setLoggerFactory(LogAppender appender) {
+		setLoggerFactory(new LoggerFactory(appender));
+	}
+
+	public final FormattedAppender newFormattedAppender(StringAppender appender) {
+		return new FormattedAppender(appender, this::formatLog);
+	}
+
+	protected final void setEventManager(EventManager eventManager) {
 		checkState(State.SERVICES_INIT);
 
-		long time = System.currentTimeMillis();
-
-		this.loggerFactory = loggerFactory;
+		if (this.eventManager != null)
+			throw new IllegalStateException();
 		this.eventManager = eventManager;
+	}
+
+	protected final void setResourceManager(ResourceManager resourceManager) {
+		checkState(State.SERVICES_INIT);
+
+		if (this.resourceManager != null)
+			throw new IllegalStateException();
 		this.resourceManager = resourceManager;
-		this.executor = executor;
-		this.logger = loggerFactory.provideLogger("Application");
-		this.fileLogTransformer.children.add(m -> m.transform(s -> IOUtil.USER_HOME.matcher(s).replaceAll("USER_HOME")));
-
-		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(
-				new LogMessage(this.logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
-
-		this.logger.info("Working directory: " + this.workingDir);
-		try {
-			Files.createDirectories(this.workingDir);
-		} catch (IOException e) {
-			this.logger.error("Failed to create working directory", e);
-			fatalError(e);
-		}
 
 		this.logger.info("Loading resources ..");
 		try {
@@ -327,19 +352,27 @@ public abstract class Application {
 		}
 		if (langId != null)
 			this.resourceManager.setSelection(Language.of(langId));
-
-		long dur = System.currentTimeMillis() - time;
-		this.logger.info("Started " + this.name + " " + this.version + " (" + dur + "ms).");
-
-		setState(State.STAGE_INIT);
 	}
 
-	protected final void initServices(LogAppender appender, ExecutorService executor) {
-		initServices(new LoggerFactory(appender), executor);
-	}
+	protected final void setLoggerFactory(LoggerFactory loggerFactory) {
+		checkState(State.SERVICES_INIT);
 
-	protected final void initServices(LoggerFactory loggerFactory, ExecutorService executor) {
-		initServices(loggerFactory, new EventManager(loggerFactory), new ResourceManager(Languages.ENGLISH, false), executor);
+		if (this.loggerFactory != null)
+			throw new IllegalStateException();
+		this.loggerFactory = loggerFactory;
+		this.logger = loggerFactory.provideLogger("Application");
+
+		this.fileLogTransformer.children.add(m -> m.transform(s -> IOUtil.USER_HOME.matcher(s).replaceAll("USER_HOME")));
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(
+				new LogMessage(this.logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
+
+		try {
+			Files.createDirectories(this.workingDir);
+			this.logger.info("Working directory: " + this.workingDir);
+		} catch (IOException e) {
+			this.logger.error("Failed to create working directory", e);
+			fatalError(e);
+		}
 	}
 
 	protected final void tryUpdateApplication(ReleaseSource appSource) {
@@ -590,15 +623,6 @@ public abstract class Application {
 	 * Initializes the application.
 	 */
 	public abstract void init() throws Exception;
-
-	protected final void initServices(ExecutorService executor) {
-		initServices(new ParentLogAppender(
-						newFormattedAppender(PrintStreamAppender.system()),
-						new TransformedAppender(newFormattedAppender(
-								DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build()),
-								this.fileLogTransformer)),
-				executor);
-	}
 
 	protected final Stage setScene(Parent root) {
 		return setScene(new Scene(root));

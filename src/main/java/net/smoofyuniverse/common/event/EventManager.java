@@ -22,8 +22,8 @@
 
 package net.smoofyuniverse.common.event;
 
+import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.logger.core.Logger;
-import net.smoofyuniverse.logger.core.LoggerFactory;
 
 import java.util.*;
 
@@ -32,28 +32,9 @@ import java.util.*;
  * Posts {@link Event}s.
  */
 public class EventManager {
+	private static final Logger logger = App.getLogger("EventManager");
+
 	private final Set<ListenerRegistration<?>> listeners = Collections.newSetFromMap(new IdentityHashMap<>());
-	private final Logger logger;
-
-	/**
-	 * Crates a new event manager with a "EventManager" logger.
-	 *
-	 * @param loggerFactory The logger factory.
-	 */
-	public EventManager(LoggerFactory loggerFactory) {
-		this(loggerFactory.provideLogger("EventManager"));
-	}
-
-	/**
-	 * Creates a new event manager with the given logger.
-	 *
-	 * @param logger The logger.
-	 */
-	public EventManager(Logger logger) {
-		if (logger == null)
-			throw new IllegalArgumentException("logger");
-		this.logger = logger;
-	}
 
 	/**
 	 * Registers the {@link ListenerRegistration}.
@@ -114,7 +95,7 @@ public class EventManager {
 			try {
 				l.listener.handle(event);
 			} catch (Exception e) {
-				this.logger.error("Failed to handle event " + event.getClass().getSimpleName(), e);
+				logger.error("Failed to handle event " + event.getClass().getSimpleName(), e);
 			}
 		}
 
