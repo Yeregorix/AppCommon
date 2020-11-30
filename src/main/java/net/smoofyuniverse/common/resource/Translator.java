@@ -30,7 +30,6 @@ import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
 import net.smoofyuniverse.common.event.resource.TranslatorUpdateEvent;
 import net.smoofyuniverse.common.util.ReflectionUtil;
 import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -50,7 +49,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * An interpreter for string resource modules.
  */
 public class Translator {
-	private static final Logger logger = App.getLogger("Translator");
 
 	/**
 	 * The resource manager.
@@ -270,14 +268,14 @@ public class Translator {
 							load(builder, p);
 							map.put(Language.of(id), builder.build());
 						} catch (Exception e) {
-							logger.error("Failed to load lang file " + fn, e);
+							App.getLogger("Translator").error("Failed to load lang file " + fn, e);
 						}
 						builder.reset();
 					}
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Can't list lang files in directory " + dir, e);
+			App.getLogger("Translator").error("Can't list lang files in directory " + dir, e);
 		}
 
 		return map;
