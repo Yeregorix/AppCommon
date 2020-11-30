@@ -27,7 +27,7 @@ import com.grack.nanojson.JsonParser;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
-import net.smoofyuniverse.common.util.IOUtil;
+import net.smoofyuniverse.common.util.URLUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.BufferedReader;
@@ -51,7 +51,7 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected final ConnectionConfig config;
 
 	public SimpleReleaseSource(String baseUrl, String appName) {
-		this(IOUtil.newURL(baseUrl), appName);
+		this(URLUtil.newURL(baseUrl), appName);
 	}
 
 	public SimpleReleaseSource(URL baseUrl, String appName) {
@@ -97,7 +97,7 @@ public class SimpleReleaseSource implements ReleaseSource {
 	}
 
 	protected URL getURL(String path) throws MalformedURLException {
-		return IOUtil.appendSuffix(this.baseUrl, path);
+		return URLUtil.appendSuffix(this.baseUrl, path);
 	}
 
 	protected ReleaseInfo getRelease(String version, URL url) throws Exception {

@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 public class IOUtil {
@@ -55,14 +54,6 @@ public class IOUtil {
 	public static final Pattern USER_HOME = Pattern.compile(Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString(), Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
 
 	private static Method addURL;
-
-	public static URL newURL(String url) {
-		try {
-			return new URL(url);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	public static boolean contentEquals(InputStream in1, InputStream in2) throws IOException {
 		if (in1 == in2)
@@ -119,14 +110,6 @@ public class IOUtil {
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static URL appendSuffix(URL url, String suffix) throws MalformedURLException {
-		return new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile() + suffix);
-	}
-
-	public static URL editSuffix(URL url, UnaryOperator<String> edit) throws MalformedURLException {
-		return new URL(url.getProtocol(), url.getHost(), url.getPort(), edit.apply(url.getFile()));
 	}
 
 	public static boolean download(URL url, Path file, IncrementalListenerProvider p) {

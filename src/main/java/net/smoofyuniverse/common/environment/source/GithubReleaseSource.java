@@ -27,7 +27,7 @@ import com.grack.nanojson.JsonParser;
 import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
-import net.smoofyuniverse.common.util.IOUtil;
+import net.smoofyuniverse.common.util.URLUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class GithubReleaseSource implements ReleaseSource {
 	/**
 	 * Github API base URL.
 	 */
-	public static final URL URL_BASE = IOUtil.newURL("https://api.github.com/repos/");
+	public static final URL URL_BASE = URLUtil.newURL("https://api.github.com/repos/");
 
 	protected final String owner, repo, accessToken, appName;
 	protected final ConnectionConfig config;
@@ -112,7 +112,7 @@ public class GithubReleaseSource implements ReleaseSource {
 	}
 
 	protected URL getURL(String path) throws MalformedURLException {
-		return IOUtil.appendSuffix(URL_BASE, this.owner + "/" + this.repo + "/" + path);
+		return URLUtil.appendSuffix(URL_BASE, this.owner + "/" + this.repo + "/" + path);
 	}
 
 	protected ReleaseInfo getRelease(JsonObject obj) throws Exception {

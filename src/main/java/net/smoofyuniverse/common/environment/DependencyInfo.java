@@ -23,7 +23,7 @@
 package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.download.FileInfo;
-import net.smoofyuniverse.common.util.IOUtil;
+import net.smoofyuniverse.common.util.URLUtil;
 
 import java.net.URL;
 
@@ -46,7 +46,7 @@ public class DependencyInfo extends FileInfo {
 	 * @param digestAlgorithm The algorithm used to compute the digest.
 	 */
 	public DependencyInfo(String name, String url, long size, String digest, String digestAlgorithm) {
-		this(name, IOUtil.newURL(url), size, digest, digestAlgorithm);
+		this(name, URLUtil.newURL(url), size, digest, digestAlgorithm);
 	}
 
 	/**
