@@ -36,11 +36,7 @@ import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.fx.dialog.Popup;
-import net.smoofyuniverse.common.resource.Language;
-import net.smoofyuniverse.common.resource.Languages;
-import net.smoofyuniverse.common.resource.ResourceManager;
-import net.smoofyuniverse.common.resource.ResourceModule;
-import net.smoofyuniverse.common.resource.translator.Translator;
+import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.task.BaseListener;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
@@ -100,7 +96,6 @@ public abstract class Application {
 	private ResourceManager resourceManager;
 	private ExecutorService executor;
 	private Logger logger;
-	private Translator translator;
 	private Stage stage;
 	private Optional<Path> applicationJar;
 
@@ -313,7 +308,6 @@ public abstract class Application {
 			fatalError(e);
 		}
 
-		this.translator = Translator.of(this.resourceManager);
 		try {
 			fillTranslations();
 		} catch (Exception e) {
@@ -849,9 +843,7 @@ public abstract class Application {
 	 * @return The translator.
 	 */
 	public Translator getTranslator() {
-		if (this.translator == null)
-			throw new IllegalStateException("Translator not initialized");
-		return this.translator;
+		return getResourceManager().translator;
 	}
 
 	/**

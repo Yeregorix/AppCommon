@@ -28,8 +28,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A resource manager.
+ */
 public class ResourceManager {
+
+	/**
+	 * Whether existing resources can be overwritten.
+	 */
 	public final boolean allowOverwrite;
+
+	/**
+	 * The translator associated with this manager.
+	 */
+	public final Translator translator = new Translator(this);
+
 	private final Map<Language, ResourcePack> map = new HashMap<>();
 	private final Language defaultLang;
 	private final ResourcePack defaultPack;
@@ -46,30 +59,38 @@ public class ResourceManager {
 		this.selectionPack = this.defaultPack;
 	}
 
-	public ResourcePack getOrCreatePack(Language lang) {
-		if (lang == null)
-			throw new IllegalArgumentException("lang");
-
-		ResourcePack pack = this.map.get(lang);
-		if (pack == null) {
-			pack = new ResourcePack(this, lang, this.allowOverwrite);
-			this.map.put(lang, pack);
-		}
-		return pack;
-	}
-
+	/**
+	 * Gets the default language.
+	 *
+	 * @return The default language.
+	 */
 	public Language getDefaultLanguage() {
 		return this.defaultLang;
 	}
 
+	/**
+	 * Gets the pack associated with the default language.
+	 *
+	 * @return The default pack.
+	 */
 	public ResourcePack getDefaultPack() {
 		return this.defaultPack;
 	}
 
+	/**
+	 * Gets the selected language.
+	 *
+	 * @return The selected language.
+	 */
 	public Language getSelection() {
 		return this.selection;
 	}
 
+	/**
+	 * Selects a language.
+	 *
+	 * @param lang The language.
+	 */
 	public void setSelection(Language lang) {
 		if (lang == null)
 			throw new IllegalArgumentException("lang");
@@ -84,21 +105,43 @@ public class ResourceManager {
 		new LanguageSelectionChangeEvent(this, prevLang, lang).post();
 	}
 
+	/**
+	 * Gets the pack associated with the language.
+	 * Creates if absent.
+	 *
+	 * @param lang The language.
+	 * @return The pack.
+	 */
+	public ResourcePack getOrCreatePack(Language lang) {
+		if (lang == null)
+			throw new IllegalArgumentException("lang");
+
+		ResourcePack pack = this.map.get(lang);
+		if (pack == null) {
+			pack = new ResourcePack(this, lang, this.allowOverwrite);
+			this.map.put(lang, pack);
+		}
+		return pack;
+	}
+
+	/**
+	 * Gets the pack associated with the selected language.
+	 *
+	 * @return The selected pack.
+	 */
 	public ResourcePack getSelectionPack() {
 		return this.selectionPack;
 	}
 
-	public boolean containsPack(Language lang) {
-		return lang != null && this.map.containsKey(lang);
-	}
-
+	/**
+	 * Gets the pack associated with the language.
+	 *
+	 * @param lang The language.
+	 * @return The pack.
+	 */
 	public Optional<ResourcePack> getPack(Language lang) {
 		if (lang == null)
 			throw new IllegalArgumentException("lang");
 		return Optional.ofNullable(this.map.get(lang));
-	}
-
-	public int size() {
-		return this.map.size();
 	}
 }

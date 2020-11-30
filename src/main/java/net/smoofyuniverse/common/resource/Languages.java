@@ -22,6 +22,9 @@
 
 package net.smoofyuniverse.common.resource;
 
+/**
+ * Languages supported by default.
+ */
 public final class Languages {
 	public static final Language ENGLISH = Language.of("en"), FRENCH = Language.of("fr");
 }

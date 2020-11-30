@@ -22,9 +22,9 @@
 
 package net.smoofyuniverse.common.app;
 
-import net.smoofyuniverse.common.resource.translator.ObservableTranslation;
+import net.smoofyuniverse.common.resource.ObservableTranslation;
 
-import static net.smoofyuniverse.common.resource.translator.ObservableTranslation.DUMMY;
+import static net.smoofyuniverse.common.resource.ObservableTranslation.DUMMY;
 
 public final class Translations {
 

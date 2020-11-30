@@ -23,9 +23,15 @@
 package net.smoofyuniverse.common.event.resource;
 
 import net.smoofyuniverse.common.event.Event;
-import net.smoofyuniverse.common.resource.translator.Translator;
+import net.smoofyuniverse.common.resource.Translator;
 
+/**
+ * Posted when translations need to be recalculated.
+ */
 public class TranslatorUpdateEvent implements Event {
+	/**
+	 * The translator.
+	 */
 	public final Translator translator;
 
 	public TranslatorUpdateEvent(Translator translator) {

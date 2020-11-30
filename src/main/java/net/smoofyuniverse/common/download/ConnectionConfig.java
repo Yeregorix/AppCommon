@@ -152,7 +152,7 @@ public class ConnectionConfig {
 	}
 
 	/**
-	 * Copies the configuration in a new builder.
+	 * Copies this configuration in a new builder.
 	 *
 	 * @return The new builder.
 	 */

@@ -26,9 +26,24 @@ import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.resource.Language;
 import net.smoofyuniverse.common.resource.ResourceManager;
 
+/**
+ * Posted when the language selection changes.
+ */
 public class LanguageSelectionChangeEvent implements Event {
+	/**
+	 * The resource manager.
+	 */
 	public final ResourceManager manager;
-	public final Language prevLang, newLang;
+
+	/**
+	 * The previous selection.
+	 */
+	public final Language prevLang;
+
+	/**
+	 * The new selection.
+	 */
+	public final Language newLang;
 
 	public LanguageSelectionChangeEvent(ResourceManager manager, Language prevLang, Language newLang) {
 		if (manager == null)

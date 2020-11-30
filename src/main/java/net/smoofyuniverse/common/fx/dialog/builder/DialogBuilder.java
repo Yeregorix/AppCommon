@@ -188,7 +188,7 @@ public abstract class DialogBuilder<T> {
 	}
 
 	/**
-	 * Builds a new dialog.
+	 * Builds a new dialog from this builder.
 	 *
 	 * @return The new dialog.
 	 */

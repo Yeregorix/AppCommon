@@ -26,9 +26,24 @@ import net.smoofyuniverse.common.event.Event;
 import net.smoofyuniverse.common.resource.ResourceModule;
 import net.smoofyuniverse.common.resource.ResourcePack;
 
+/**
+ * Posted when a module in a pack has been inserted or removed.
+ */
 public class ResourceModuleChangeEvent implements Event {
+	/**
+	 * The pack.
+	 */
 	public final ResourcePack pack;
-	public final ResourceModule<?> prevModule, newModule;
+
+	/**
+	 * The removed module.
+	 */
+	public final ResourceModule<?> prevModule;
+
+	/**
+	 * The inserted module.
+	 */
+	public final ResourceModule<?> newModule;
 
 	public ResourceModuleChangeEvent(ResourcePack pack, ResourceModule<?> prevModule, ResourceModule<?> newModule) {
 		if (pack == null)

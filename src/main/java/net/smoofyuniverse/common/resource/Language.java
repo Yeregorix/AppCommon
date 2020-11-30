@@ -30,11 +30,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+/**
+ * A language.
+ */
 public final class Language {
+	/**
+	 * A identifier must matches this pattern to be valid.
+	 */
 	public static final Pattern ID_PATTERN = Pattern.compile("^[a-z_]+$");
+
 	private static final Map<String, Language> map = new HashMap<>();
 
+	/**
+	 * The identifier.
+	 */
 	public final String id;
+
+	/**
+	 * The locale.
+	 */
 	public final Locale locale;
 
 	private Language(String id) {
@@ -42,10 +56,21 @@ public final class Language {
 		this.locale = new Locale(id);
 	}
 
+	/**
+	 * The name of this language, in this language.
+	 *
+	 * @return The name.
+	 */
 	public Optional<String> getName() {
 		return App.get().getResourceManager().getPack(this).flatMap(p -> p.getModule(String.class)).flatMap(m -> m.get("lang_name"));
 	}
 
+	/**
+	 * Gets the language for the given identifier.
+	 *
+	 * @param id The identifier.
+	 * @return The language.
+	 */
 	public static Language of(String id) {
 		checkId(id);
 		Language lang = map.get(id);
@@ -56,12 +81,24 @@ public final class Language {
 		return lang;
 	}
 
+	/**
+	 * Checks whether the identifier is valid.
+	 *
+	 * @param id The identifier.
+	 * @throws IllegalArgumentException If the identifier is not valid.
+	 */
 	public static void checkId(String id) {
 		if (!isValidId(id))
 			throw new IllegalArgumentException("id");
 	}
 
-	public static boolean isValidId(String key) {
-		return ID_PATTERN.matcher(key).find();
+	/**
+	 * Gets whether the identifier is valid.
+	 *
+	 * @param id The identifier.
+	 * @return Whether the identifier is valid.
+	 */
+	public static boolean isValidId(String id) {
+		return ID_PATTERN.matcher(id).matches();
 	}
 }

@@ -28,22 +28,58 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A pack of resource modules for a given language.
+ */
 public class ResourcePack {
+	/**
+	 * The resource manager.
+	 */
 	public final ResourceManager manager;
+
+	/**
+	 * The language.
+	 */
 	public final Language language;
+
+	/**
+	 * Whether existing resources can be overwritten.
+	 */
 	public final boolean allowOverwrite;
+
 	private final Map<Class<?>, ResourceModule<?>> modules = new HashMap<>();
 
+	/**
+	 * Creates a new pack.
+	 *
+	 * @param manager        The resource manager.
+	 * @param lang           The language.
+	 * @param allowOverwrite Whether existing resources can be overwritten.
+	 */
 	public ResourcePack(ResourceManager manager, Language lang, boolean allowOverwrite) {
 		this.manager = manager;
 		this.language = lang;
 		this.allowOverwrite = allowOverwrite;
 	}
 
+	/**
+	 * Gets the module of the given type.
+	 *
+	 * @param type The type of resources.
+	 * @param <T>  The type of resources.
+	 * @return The module.
+	 */
 	public <T> Optional<ResourceModule<T>> getModule(Class<T> type) {
 		return Optional.ofNullable((ResourceModule<T>) this.modules.get(type));
 	}
 
+	/**
+	 * Removes the module of the given type.
+	 *
+	 * @param type The type of resources.
+	 * @return Whether a module of the given type was present.
+	 * @throws UnsupportedOperationException If overwriting is not allowed.
+	 */
 	public boolean removeModule(Class<?> type) {
 		checkOverwrite();
 		return remove(type);
@@ -63,12 +99,25 @@ public class ResourcePack {
 		return false;
 	}
 
+	/**
+	 * Adds the module.
+	 * If a module of the same type already exists, it will be overwritten.
+	 *
+	 * @param module The module.
+	 * @throws UnsupportedOperationException If a module already exists and overwriting is not allowed.
+	 */
 	public <T> void setModule(ResourceModule<T> module) {
 		if (containsModule(module.type))
 			checkOverwrite();
 		put(module);
 	}
 
+	/**
+	 * Gets whether a module of the given type exists.
+	 *
+	 * @param type The type of resources.
+	 * @return Whether a module of the given type exists.
+	 */
 	public boolean containsModule(Class<?> type) {
 		return this.modules.containsKey(type);
 	}
@@ -77,10 +126,26 @@ public class ResourcePack {
 		new ResourceModuleChangeEvent(this, this.modules.put(module.type, module), module).post();
 	}
 
+	/**
+	 * Adds the module.
+	 * If a module of the same type already exists, resources are merged in a new module.
+	 * Existing resources are preserved.
+	 *
+	 * @param module The module.
+	 * @param <T>    The type of resources.
+	 */
 	public <T> void addModule(ResourceModule<T> module) {
 		addModule(module, false);
 	}
 
+	/**
+	 * Adds the module.
+	 * If a module of the same type already exists, resources are merged in a new module.
+	 *
+	 * @param module    The module.
+	 * @param overwrite Whether resources from the new module can replace existing resources from the previous module.
+	 * @param <T>       The type of resources.
+	 */
 	public <T> void addModule(ResourceModule<T> module, boolean overwrite) {
 		if (overwrite)
 			checkOverwrite();

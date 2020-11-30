@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.resource.translator;
+package net.smoofyuniverse.common.resource;
 
 import javafx.application.Platform;
 import net.smoofyuniverse.common.app.App;
@@ -28,9 +28,6 @@ import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
 import net.smoofyuniverse.common.event.resource.TranslatorUpdateEvent;
-import net.smoofyuniverse.common.resource.Language;
-import net.smoofyuniverse.common.resource.ResourceManager;
-import net.smoofyuniverse.common.resource.ResourceModule;
 import net.smoofyuniverse.common.util.ReflectionUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
@@ -49,18 +46,30 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * An interpreter for string resource modules.
+ */
 public class Translator {
 	private static final Logger logger = App.getLogger("Translator");
-	private static final Map<ResourceManager, Translator> translators = new HashMap<>();
 
+	/**
+	 * The resource manager.
+	 */
 	public final ResourceManager manager;
+
 	private ResourceModule<String> defaultModule, selectionModule;
 	private final Map<String, ObservableTranslation> translations = new ConcurrentHashMap<>();
 
-	private Translator(ResourceManager manager) {
+	Translator(ResourceManager manager) {
 		this.manager = manager;
 	}
 
+	/**
+	 * Fills {@link ObservableTranslation} static fields by names.
+	 *
+	 * @param receiver The receiver class.
+	 * @throws IllegalAccessException If any reflection error occurs.
+	 */
 	public void fill(Class<?> receiver) throws IllegalAccessException {
 		if (receiver == null)
 			throw new IllegalArgumentException("receiver");
@@ -74,6 +83,12 @@ public class Translator {
 		}
 	}
 
+	/**
+	 * Gets an observable translation for this given key.
+	 *
+	 * @param key The key.
+	 * @return The observable translation.
+	 */
 	public ObservableTranslation observableTranslation(String key) {
 		ResourceModule.checkKey(key);
 		ObservableTranslation t = this.translations.get(key);
@@ -84,6 +99,15 @@ public class Translator {
 		return t;
 	}
 
+	/**
+	 * Translates the key.
+	 * Gets the resource associated with the key in the selected language,
+	 * then if not found in the default language,
+	 * then if not found, returns the key.
+	 *
+	 * @param key The key.
+	 * @return The translation.
+	 */
 	public String translate(String key) {
 		ResourceModule.checkKey(key);
 		return _translate(key);
@@ -105,6 +129,14 @@ public class Translator {
 		return key;
 	}
 
+	/**
+	 * Translates the key and replaces the parameters.
+	 * See {@link Translator#translate(String)} and {@link StringUtil#replaceParameters(String, String...)}.
+	 *
+	 * @param key        The key.
+	 * @param parameters The parameters.
+	 * @return The translation.
+	 */
 	public String translate(String key, String... parameters) {
 		ResourceModule.checkKey(key);
 
@@ -123,16 +155,6 @@ public class Translator {
 		return key;
 	}
 
-	public static Translator of(ResourceManager manager) {
-		Translator t = translators.get(manager);
-		if (t == null) {
-			t = new Translator(manager);
-			t.update();
-			translators.put(manager, t);
-		}
-		return t;
-	}
-
 	private void update() {
 		this.defaultModule = this.manager.getDefaultPack().getModule(String.class).orElse(null);
 		this.selectionModule = this.manager.getSelectionPack().getModule(String.class).orElse(null);
@@ -148,12 +170,26 @@ public class Translator {
 		});
 	}
 
+	/**
+	 * Saves the string resource module to the file.
+	 *
+	 * @param module The module.
+	 * @param file   The file.
+	 * @throws IOException If any I/O error occurs.
+	 */
 	public static void save(ResourceModule<String> module, Path file) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(file)) {
 			save(module, writer);
 		}
 	}
 
+	/**
+	 * Saves the string resource module to the writer.
+	 *
+	 * @param module The module.
+	 * @param writer The writer.
+	 * @throws IOException If any I/O error occurs.
+	 */
 	public static void save(ResourceModule<String> module, BufferedWriter writer) throws IOException {
 		for (Entry<String, String> e : module.toMap().entrySet()) {
 			writer.write(e.getKey());
@@ -163,18 +199,39 @@ public class Translator {
 		}
 	}
 
+	/**
+	 * Loads a string resource module from the file.
+	 *
+	 * @param file The file.
+	 * @return The new string resource module.
+	 * @throws IOException If any I/O error occurs.
+	 */
 	public static ResourceModule<String> load(Path file) throws IOException {
 		ResourceModule.Builder<String> builder = ResourceModule.builder(String.class);
 		load(builder, file);
 		return builder.build();
 	}
 
+	/**
+	 * Loads a string resource module from the file.
+	 *
+	 * @param builder The module builder.
+	 * @param file    The file.
+	 * @throws IOException If any I/O error occurs.
+	 */
 	public static void load(ResourceModule.Builder<String> builder, Path file) throws IOException {
 		try (BufferedReader reader = Files.newBufferedReader(file)) {
 			load(builder, reader);
 		}
 	}
 
+	/**
+	 * Loads a string resource module from the reader.
+	 *
+	 * @param builder The module builder.
+	 * @param reader  The reader.
+	 * @throws IOException If any I/O error occurs.
+	 */
 	public static void load(ResourceModule.Builder<String> builder, BufferedReader reader) throws IOException {
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -227,18 +284,12 @@ public class Translator {
 	}
 
 	static {
-		new ListenerRegistration<>(LanguageSelectionChangeEvent.class, e -> {
-			Translator t = translators.get(e.manager);
-			if (t != null)
-				t.update();
-		}, -100).register();
+		new ListenerRegistration<>(LanguageSelectionChangeEvent.class, e -> e.manager.translator.update(), -100).register();
 
 		new ListenerRegistration<>(ResourceModuleChangeEvent.class, e -> {
-			Translator t = translators.get(e.pack.manager);
-			if (t != null) {
-				if (e.prevModule == t.defaultModule || e.prevModule == t.selectionModule)
-					t.update();
-			}
+			Translator t = e.pack.manager.translator;
+			if (e.prevModule == t.defaultModule || e.prevModule == t.selectionModule)
+				t.update();
 		}, -100).register();
 	}
 }
