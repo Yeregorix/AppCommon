@@ -203,9 +203,13 @@ public abstract class Application {
 			throw new IllegalStateException();
 	}
 
-	private static void initJavaFX() {
+	private static void initJavaFX() throws Exception {
 		Platform.setImplicitExit(false);
-		new JFXPanel();
+		try {
+			Platform.class.getDeclaredMethod("startup", Runnable.class).invoke(null, (Runnable) () -> {});
+		} catch (NoSuchMethodException e) {
+			new JFXPanel();
+		}
 	}
 
 	/**
