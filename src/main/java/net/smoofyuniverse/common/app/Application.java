@@ -28,6 +28,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import net.smoofyuniverse.common.Main;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
@@ -60,10 +61,8 @@ import net.smoofyuniverse.logger.transformer.ParentTransformer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.URISyntaxException;
-import java.net.URLClassLoader;
+import java.lang.reflect.Method;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,6 +71,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.jar.JarFile;
 
 /**
  * The application.
@@ -605,22 +605,37 @@ public abstract class Application {
 		Popup.error().title(Translations.failed_dependencies_title).message(Translations.failed_dependencies_message.format("list", b.toString())).showAndWait();
 	}
 
-	protected final void loadDependencies(DependencyInfo... deps) {
-		loadDependencies((URLClassLoader) getClass().getClassLoader(), deps);
-	}
+	private static Method addURL;
 
-	protected final void loadDependencies(URLClassLoader cl, DependencyInfo... deps) {
-		for (DependencyInfo info : deps)
-			IOUtil.addToClasspath(cl, info.file);
+	protected final void loadDependencies(DependencyInfo... deps) {
+		loadDependencies(Arrays.asList(deps));
 	}
 
 	protected final void loadDependencies(Collection<DependencyInfo> deps) {
-		loadDependencies((URLClassLoader) getClass().getClassLoader(), deps);
+		for (DependencyInfo info : deps) {
+			try {
+				addToSystemClasspath(info.file);
+			} catch (Exception e) {
+				this.logger.error("Failed to load dependency " + info.name, e);
+				fatalError(e);
+			}
+		}
 	}
 
-	protected final void loadDependencies(URLClassLoader cl, Collection<DependencyInfo> deps) {
-		for (DependencyInfo info : deps)
-			IOUtil.addToClasspath(cl, info.file);
+	private static void addToSystemClasspath(Path jar) throws Exception {
+		if (Main.getInstrumentation() != null) {
+			Main.getInstrumentation().appendToSystemClassLoaderSearch(new JarFile(jar.toFile()));
+			return;
+		}
+
+		URLClassLoader cl = (URLClassLoader) ClassLoader.getSystemClassLoader();
+
+		if (addURL == null) {
+			addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+			addURL.setAccessible(true);
+		}
+
+		addURL.invoke(cl, jar.toUri().toURL());
 	}
 
 	/**

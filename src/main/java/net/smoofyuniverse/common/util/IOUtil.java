@@ -34,12 +34,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,8 +48,6 @@ public class IOUtil {
 
 	public static final Pattern ILLEGAL_PATH = Pattern.compile("[:\\\\/*?|<>\"]+");
 	public static final Pattern USER_HOME = Pattern.compile(Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString(), Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
-
-	private static Method addURL;
 
 	public static boolean contentEquals(InputStream in1, InputStream in2) throws IOException {
 		if (in1 == in2)
@@ -94,22 +88,6 @@ public class IOUtil {
 
 	public static Path getMavenPath(Path dir, String group, String name, String version, String suffix) {
 		return dir.resolve(group.replace('.', '/')).resolve(name).resolve(version).resolve(name + "-" + version + suffix);
-	}
-
-	public static void addToClasspath(URLClassLoader cl, Path file) {
-		try {
-			addToClasspath(cl, file.toUri().toURL());
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static void addToClasspath(URLClassLoader cl, URL url) {
-		try {
-			addURL.invoke(cl, url);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	public static boolean download(URL url, Path file, IncrementalListenerProvider p) {
@@ -183,15 +161,5 @@ public class IOUtil {
 		if (url == null)
 			throw new IllegalArgumentException("localPath");
 		return new Image(url.toString());
-	}
-
-	static {
-		try {
-			addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-			addURL.setAccessible(true);
-		} catch (Exception e) {
-			logger.warn("Failed to access method addURL", e);
-			addURL = null;
-		}
 	}
 }
