@@ -606,7 +606,7 @@ public abstract class Application {
 	}
 
 	protected final void loadDependencies(DependencyInfo... deps) {
-		loadDependencies((URLClassLoader) ClassLoader.getSystemClassLoader(), deps);
+		loadDependencies((URLClassLoader) getClass().getClassLoader(), deps);
 	}
 
 	protected final void loadDependencies(URLClassLoader cl, DependencyInfo... deps) {
@@ -615,7 +615,7 @@ public abstract class Application {
 	}
 
 	protected final void loadDependencies(Collection<DependencyInfo> deps) {
-		loadDependencies((URLClassLoader) ClassLoader.getSystemClassLoader(), deps);
+		loadDependencies((URLClassLoader) getClass().getClassLoader(), deps);
 	}
 
 	protected final void loadDependencies(URLClassLoader cl, Collection<DependencyInfo> deps) {
