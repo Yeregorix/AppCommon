@@ -393,7 +393,7 @@ public abstract class Application {
 	}
 
 	protected void bindTranslations() throws Exception {
-		getTranslator().bindClass(Translations.class);
+		getTranslator().bindStaticFields(Translations.class);
 	}
 
 	protected final void tryUpdateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {

@@ -69,7 +69,7 @@ public final class Translator {
 	 * @param target The class.
 	 * @throws IllegalAccessException If any reflection error occurs.
 	 */
-	public void bindClass(Class<?> target) throws IllegalAccessException {
+	public void bindStaticFields(Class<?> target) throws IllegalAccessException {
 		if (target == null)
 			throw new IllegalArgumentException("target");
 
