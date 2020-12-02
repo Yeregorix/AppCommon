@@ -338,7 +338,7 @@ public abstract class Application {
 		}
 
 		try {
-			fillTranslations();
+			bindTranslations();
 		} catch (Exception e) {
 			this.logger.error("Failed to fill translations", e);
 			fatalError(e);
@@ -392,8 +392,8 @@ public abstract class Application {
 			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
 	}
 
-	protected void fillTranslations() throws Exception {
-		getTranslator().fill(Translations.class);
+	protected void bindTranslations() throws Exception {
+		getTranslator().bindClass(Translations.class);
 	}
 
 	protected final void tryUpdateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {

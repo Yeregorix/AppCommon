@@ -22,18 +22,12 @@
 
 package net.smoofyuniverse.common.util;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 public class ReflectionUtil {
-	private static final Field modifiersF;
-
-	public static void removeFinal(Field field) throws IllegalAccessException {
-		setModifiers(field, field.getModifiers() & ~Modifier.FINAL);
-	}
-
-	public static void setModifiers(Field field, int modifiers) throws IllegalAccessException {
-		modifiersF.setInt(field, modifiers);
-	}
 	
 	public static Class<?>[] getTypeArguments(Class<?> cl, Class<?> targetInterface) {
 		for (Type type : cl.getGenericInterfaces()) {
@@ -64,14 +58,5 @@ public class ReflectionUtil {
 			return Array.newInstance(componentClass, 0).getClass();
 		}
 		throw new IllegalArgumentException("Unknown type");
-	}
-
-	static {
-		try {
-			modifiersF = Field.class.getDeclaredField("modifiers");
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		}
-		modifiersF.setAccessible(true);
 	}
 }

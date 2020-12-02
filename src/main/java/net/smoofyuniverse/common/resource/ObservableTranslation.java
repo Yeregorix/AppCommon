@@ -39,42 +39,45 @@ import java.util.function.Supplier;
  * An observable translated string.
  */
 public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
-	/**
-	 * A dummy translation, with no translator, no key and an empty value.
-	 */
-	public static final ObservableTranslation DUMMY = new ObservableTranslation();
+	private String key, value;
 
-	/**
-	 * The translator used to obtain the translation.
-	 */
-	public final Translator translator;
-
-	/**
-	 * The key of the resource.
-	 */
-	public final String key;
-
-	private String value;
-
-	private ObservableTranslation() {
-		this.translator = null;
-		this.key = null;
+	ObservableTranslation() {
+		this.key = "";
 		this.value = "";
 	}
 
-	ObservableTranslation(Translator translator, String key) {
-		this.translator = translator;
+	void setKey(Translator translator, String key) {
 		this.key = key;
 		this.value = translator._translate(key);
 	}
 
-	void update() {
-		String newValue = this.translator._translate(this.key);
+	/**
+	 * Gets the key of the resource.
+	 *
+	 * @return The key.
+	 */
+	public String getKey() {
+		return this.key;
+	}
+
+	void update(Translator translator) {
+		String newValue = translator._translate(this.key);
 		if (this.value.equals(newValue))
 			return;
 
 		this.value = newValue;
 		fireValueChangedEvent();
+	}
+
+	/**
+	 * Creates an empty translation.
+	 * This translation currently have an empty key and an empty value.
+	 * The key can be late-initiliazed
+	 *
+	 * @return The new translation.
+	 */
+	public static ObservableTranslation empty() {
+		return new ObservableTranslation();
 	}
 
 	@Override

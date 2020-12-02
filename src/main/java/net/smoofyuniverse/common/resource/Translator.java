@@ -28,7 +28,6 @@ import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
 import net.smoofyuniverse.common.event.resource.TranslatorUpdateEvent;
-import net.smoofyuniverse.common.util.ReflectionUtil;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
@@ -40,16 +39,14 @@ import java.lang.reflect.Modifier;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An interpreter for string resource modules.
  */
-public class Translator {
+public final class Translator {
 	private static final Logger logger = App.getLogger("Translator");
 
 	/**
@@ -58,45 +55,77 @@ public class Translator {
 	public final ResourceManager manager;
 
 	private ResourceModule<String> defaultModule, selectionModule;
-	private final Map<String, ObservableTranslation> translations = new ConcurrentHashMap<>();
+
+	private final Map<String, ObservableTranslation> cache = new ConcurrentHashMap<>();
+	private final List<ObservableTranslation> translations = new ArrayList<>();
 
 	Translator(ResourceManager manager) {
 		this.manager = manager;
 	}
 
 	/**
-	 * Fills {@link ObservableTranslation} static fields by names.
+	 * Binds all empty translations in static fields of the class.
 	 *
-	 * @param receiver The receiver class.
+	 * @param target The class.
 	 * @throws IllegalAccessException If any reflection error occurs.
 	 */
-	public void fill(Class<?> receiver) throws IllegalAccessException {
-		if (receiver == null)
-			throw new IllegalArgumentException("receiver");
+	public void bindClass(Class<?> target) throws IllegalAccessException {
+		if (target == null)
+			throw new IllegalArgumentException("target");
 
-		for (Field f : receiver.getDeclaredFields()) {
+		for (Field f : target.getDeclaredFields()) {
 			if (Modifier.isStatic(f.getModifiers()) && ObservableTranslation.class.isAssignableFrom(f.getType()) && ResourceModule.isValidKey(f.getName())) {
 				f.setAccessible(true);
-				ReflectionUtil.removeFinal(f);
-				f.set(null, observableTranslation(f.getName()));
+				ObservableTranslation translation = (ObservableTranslation) f.get(null);
+				if (translation.getKey().isEmpty())
+					_bindTranslation(translation, f.getName());
 			}
 		}
 	}
 
+	private void _bindTranslation(ObservableTranslation translation, String key) {
+		translation.setKey(this, key);
+		this.cache.putIfAbsent(key, translation);
+
+		synchronized (this.translations) {
+			this.translations.add(translation);
+		}
+	}
+
 	/**
-	 * Gets an observable translation for this given key.
+	 * Binds an empty translation to the given key.
+	 *
+	 * @param translation The empty translation.
+	 * @param key         The key.
+	 * @throws IllegalArgumentException If the translation is not empty.
+	 */
+	public void bindTranslation(ObservableTranslation translation, String key) {
+		ResourceModule.checkKey(key);
+		if (!translation.getKey().isEmpty())
+			throw new IllegalArgumentException("translation is not empty");
+
+		_bindTranslation(translation, key);
+	}
+
+	/**
+	 * Gets an observable translation for the given key.
 	 *
 	 * @param key The key.
 	 * @return The observable translation.
 	 */
-	public ObservableTranslation observableTranslation(String key) {
+	public ObservableTranslation getTranslation(String key) {
 		ResourceModule.checkKey(key);
-		ObservableTranslation t = this.translations.get(key);
-		if (t == null) {
-			t = new ObservableTranslation(this, key);
-			this.translations.put(key, t);
+		return this.cache.computeIfAbsent(key, this::createTranslation);
+	}
+
+	private ObservableTranslation createTranslation(String key) {
+		ObservableTranslation translation = new ObservableTranslation();
+		translation.setKey(this, key);
+
+		synchronized (this.translations) {
+			this.translations.add(translation);
 		}
-		return t;
+		return translation;
 	}
 
 	/**
@@ -163,8 +192,10 @@ public class Translator {
 			this.defaultModule = null;
 
 		Platform.runLater(() -> {
-			for (ObservableTranslation t : this.translations.values())
-				t.update();
+			synchronized (this.translations) {
+				for (ObservableTranslation t : this.translations)
+					t.update(this);
+			}
 
 			new TranslatorUpdateEvent(this).post();
 		});
