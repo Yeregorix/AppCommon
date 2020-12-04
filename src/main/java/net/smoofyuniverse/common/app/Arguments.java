@@ -70,7 +70,7 @@ public final class Arguments {
 	 */
 	public boolean getBoolean(String... keys) {
 		Optional<String> opt = getString(keys);
-		return opt.isPresent() && !opt.get().toLowerCase(Locale.ROOT).equals("false");
+		return opt.isPresent() && !opt.get().equalsIgnoreCase("false");
 	}
 
 	/**
