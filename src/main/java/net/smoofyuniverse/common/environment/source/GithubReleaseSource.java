@@ -138,9 +138,7 @@ public class GithubReleaseSource implements ReleaseSource {
 		String digest = null;
 
 		if (jsonAsset != null) {
-			HttpURLConnection co = this.config.openHttpConnection(new URL(jsonAsset.getString("url")));
-			co.setRequestProperty("Accept", "application/octet-stream");
-			configureToken(co);
+			HttpURLConnection co = openAssetConnection(new URL(jsonAsset.getString("url")), this.config);
 
 			try (InputStream in = co.getInputStream()) {
 				JsonObject data = JsonParser.object().withLazyNumbers().from(in);
@@ -153,10 +151,28 @@ public class GithubReleaseSource implements ReleaseSource {
 
 		return new ReleaseInfo(version, date, extraData, url, size, digest, "sha1") {
 			@Override
-			public void configure(URLConnection co) throws IOException {
-				super.configure(co);
-				configureToken(co);
+			public HttpURLConnection openDownloadConnection(ConnectionConfig config) throws IOException {
+				return openAssetConnection(this.url, config);
 			}
 		};
+	}
+
+	private HttpURLConnection openAssetConnection(URL url, ConnectionConfig config) throws IOException {
+		HttpURLConnection co = config.openHttpConnection(url);
+		co.setInstanceFollowRedirects(false);
+		co.setRequestProperty("Accept", "application/octet-stream");
+		configureToken(co);
+
+		co.connect();
+		if (co.getResponseCode() / 100 == 3) {
+			String loc = co.getHeaderField("Location");
+			if (loc != null) {
+				co.disconnect();
+				co = config.openHttpConnection(new URL(loc));
+				co.setRequestProperty("Accept", "application/octet-stream");
+			}
+		}
+
+		return co;
 	}
 }

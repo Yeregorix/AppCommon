@@ -31,7 +31,6 @@ import net.smoofyuniverse.logger.core.Logger;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -126,17 +125,8 @@ public class FileInfo {
 	 */
 	public HttpURLConnection openDownloadConnection(ConnectionConfig config) throws IOException {
 		HttpURLConnection co = config.openHttpConnection(this.url);
-		configure(co);
-		return co;
-	}
-
-	/**
-	 * Configures the URL connection.
-	 *
-	 * @param co The URL connection.
-	 */
-	public void configure(URLConnection co) throws IOException {
 		co.setRequestProperty("Accept", "application/octet-stream");
+		return co;
 	}
 
 	/**
