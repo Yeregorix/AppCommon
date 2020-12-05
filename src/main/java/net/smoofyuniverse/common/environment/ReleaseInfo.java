@@ -31,7 +31,7 @@ import java.time.Instant;
 /**
  * Information about a release.
  */
-public final class ReleaseInfo extends FileInfo {
+public class ReleaseInfo extends FileInfo {
 
 	/**
 	 * The version.

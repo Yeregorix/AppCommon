@@ -50,12 +50,8 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected final URL baseUrl;
 	protected final ConnectionConfig config;
 
-	public SimpleReleaseSource(String baseUrl, String appName) {
-		this(URLUtil.newURL(baseUrl), appName);
-	}
-
-	public SimpleReleaseSource(URL baseUrl, String appName) {
-		this(baseUrl, appName, App.get().getConnectionConfig());
+	public SimpleReleaseSource(String baseUrl, String appName, ConnectionConfig config) {
+		this(URLUtil.newURL(baseUrl), appName, config);
 	}
 
 	public SimpleReleaseSource(URL baseUrl, String appName, ConnectionConfig config) {

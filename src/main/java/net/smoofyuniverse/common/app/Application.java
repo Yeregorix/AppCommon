@@ -380,7 +380,7 @@ public abstract class Application {
 	}
 
 	protected final void tryUpdateApplication(ReleaseSource appSource) {
-		tryUpdateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater"));
+		tryUpdateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater", this.connectionConfig));
 	}
 
 	protected void loadResources() throws Exception {
@@ -430,7 +430,7 @@ public abstract class Application {
 			Path updaterJar = this.workingDir.resolve("Updater.jar");
 			if (!latestUpdater.matches(updaterJar)) {
 				this.logger.info("Downloading latest updater ..");
-				IOUtil.download(latestUpdater.url, updaterJar, task);
+				latestUpdater.download(updaterJar, this.connectionConfig, task);
 
 				if (task.isCancelled())
 					return;
@@ -448,7 +448,7 @@ public abstract class Application {
 			Path appUpdateJar = this.workingDir.resolve(this.name + "-Update.jar");
 			if (!latestApp.matches(appUpdateJar)) {
 				this.logger.info("Downloading latest application update ..");
-				IOUtil.download(latestApp.url, appUpdateJar, task);
+				latestApp.download(appUpdateJar, this.connectionConfig, task);
 
 				if (task.isCancelled())
 					return;
@@ -576,7 +576,7 @@ public abstract class Application {
 					}
 				}
 
-				if (!IOUtil.download(info.url, info.file, listener))
+				if (!info.download(this.connectionConfig, listener))
 					continue;
 
 				if (task.isCancelled())

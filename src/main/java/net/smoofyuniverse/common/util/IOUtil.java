@@ -90,32 +90,28 @@ public class IOUtil {
 		return dir.resolve(group.replace('.', '/')).resolve(name).resolve(version).resolve(name + "-" + version + suffix);
 	}
 
-	public static boolean download(URL url, Path file, IncrementalListenerProvider p) {
-		return download(url, file, App.get().getConnectionConfig(), p);
-	}
-
 	public static boolean download(URL url, Path file, ConnectionConfig config, IncrementalListenerProvider p) {
 		HttpURLConnection co;
 		try {
 			co = config.openHttpConnection(url);
 			co.setRequestProperty("Accept", "application/octet-stream");
 		} catch (IOException e) {
-			logger.warn("Download from url '" + url + "' failed.", e);
+			logger.warn("Failed to open connection to url " + url + ".", e);
 			return false;
 		}
 
-		return download(file, co, config.bufferSize, p);
+		return download(co, file, config.bufferSize, p);
 	}
 
-	public static boolean download(Path file, HttpURLConnection co, int bufferSize, IncrementalListenerProvider p) {
+	public static boolean download(HttpURLConnection co, Path file, int bufferSize, IncrementalListenerProvider p) {
 		try {
 			co.connect();
 			if (co.getResponseCode() / 100 != 2) {
-				logger.info("Server at url '" + co.getURL() + "' returned a bad response code: " + co.getResponseCode());
+				logger.info("Server at url " + co.getURL() + " returned a bad response code: " + co.getResponseCode());
 				return false;
 			}
 
-			logger.info("Downloading from url '" + co.getURL() + "' to file: " + file + " ..");
+			logger.info("Downloading from url " + co.getURL() + " to file: " + file + " ..");
 			long time = System.currentTimeMillis();
 
 			try (ListenedInputStream in = p.getInputStream(co);
@@ -134,7 +130,7 @@ public class IOUtil {
 			logger.debug("Download ended (" + (System.currentTimeMillis() - time) / 1000F + "s).");
 			return true;
 		} catch (IOException e) {
-			logger.warn("Download from url '" + co.getURL() + "' failed.", e);
+			logger.warn("Download from url " + co.getURL() + " failed.", e);
 			return false;
 		} finally {
 			co.disconnect();

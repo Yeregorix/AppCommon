@@ -23,10 +23,15 @@
 package net.smoofyuniverse.common.download;
 
 import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
+import net.smoofyuniverse.logger.core.Logger;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -35,6 +40,8 @@ import java.nio.file.Path;
  * Optionally holds a path to a local file.
  */
 public class FileInfo {
+	private static final Logger logger = App.getLogger("FileInfo");
+
 	/**
 	 * The URL of the remote file.
 	 */
@@ -79,6 +86,57 @@ public class FileInfo {
 		this.size = size;
 		this.digest = digest;
 		this.digestAlgorithm = digestAlgorithm;
+	}
+
+	/**
+	 * Downloads the remote file to the local file.
+	 *
+	 * @param config The connection configuration.
+	 * @param p      A listener provider.
+	 * @return Whether the download has succeeded.
+	 */
+	public boolean download(ConnectionConfig config, IncrementalListenerProvider p) {
+		return download(this.file, config, p);
+	}
+
+	/**
+	 * Downloads the remote file to the target file.
+	 *
+	 * @param file   The target file.
+	 * @param config The connection configuration.
+	 * @param p      A listener provider.
+	 * @return Whether the download has succeeded.
+	 */
+	public boolean download(Path file, ConnectionConfig config, IncrementalListenerProvider p) {
+		HttpURLConnection co;
+		try {
+			co = openDownloadConnection(config);
+		} catch (IOException e) {
+			logger.warn("Failed to open connection to url " + url + ".", e);
+			return false;
+		}
+
+		return IOUtil.download(co, file, config.bufferSize, p);
+	}
+
+	/**
+	 * Opens and configures the download connection.
+	 *
+	 * @return The connection.
+	 */
+	public HttpURLConnection openDownloadConnection(ConnectionConfig config) throws IOException {
+		HttpURLConnection co = config.openHttpConnection(this.url);
+		configure(co);
+		return co;
+	}
+
+	/**
+	 * Configures the URL connection.
+	 *
+	 * @param co The URL connection.
+	 */
+	public void configure(URLConnection co) throws IOException {
+		co.setRequestProperty("Accept", "application/octet-stream");
 	}
 
 	/**

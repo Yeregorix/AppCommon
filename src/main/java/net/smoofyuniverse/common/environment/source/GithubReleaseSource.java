@@ -53,10 +53,6 @@ public class GithubReleaseSource implements ReleaseSource {
 	protected final String owner, repo, accessToken, appName;
 	protected final ConnectionConfig config;
 
-	public GithubReleaseSource(String owner, String repo, String accessToken, String appName) {
-		this(owner, repo, accessToken, appName, App.get().getConnectionConfig());
-	}
-
 	public GithubReleaseSource(String owner, String repo, String accessToken, String appName, ConnectionConfig config) {
 		if (owner == null || owner.isEmpty())
 			throw new IllegalArgumentException("owner");
@@ -135,32 +131,32 @@ public class GithubReleaseSource implements ReleaseSource {
 		if (jarAsset == null)
 			throw new IllegalStateException("Jar not found");
 
-		URL url = newURL(jarAsset.getString("url"));
+		URL url = new URL(jarAsset.getString("url"));
 		long size = jarAsset.getNumber("size").longValue();
 
 		JsonObject extraData = null;
 		String digest = null;
 
 		if (jsonAsset != null) {
-			HttpURLConnection co = this.config.openHttpConnection(newURL(jsonAsset.getString("url")));
-			try {
-				co.setRequestProperty("Accept", "application/octet-stream");
-				try (InputStream in = co.getInputStream()) {
-					JsonObject data = JsonParser.object().withLazyNumbers().from(in);
-					digest = data.getString("sha1");
-					extraData = data.getObject("extra");
-				}
+			HttpURLConnection co = this.config.openHttpConnection(new URL(jsonAsset.getString("url")));
+			co.setRequestProperty("Accept", "application/octet-stream");
+			configureToken(co);
+
+			try (InputStream in = co.getInputStream()) {
+				JsonObject data = JsonParser.object().withLazyNumbers().from(in);
+				digest = data.getString("sha1");
+				extraData = data.getObject("extra");
 			} finally {
 				co.disconnect();
 			}
 		}
 
-		return new ReleaseInfo(version, date, extraData, url, size, digest, "sha1");
-	}
-
-	protected URL newURL(String url) throws MalformedURLException {
-		if (this.accessToken != null)
-			url += "?access_token=" + this.accessToken;
-		return new URL(url);
+		return new ReleaseInfo(version, date, extraData, url, size, digest, "sha1") {
+			@Override
+			public void configure(URLConnection co) throws IOException {
+				super.configure(co);
+				configureToken(co);
+			}
+		};
 	}
 }
