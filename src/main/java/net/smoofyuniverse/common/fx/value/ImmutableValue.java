@@ -20,42 +20,39 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.util;
+package net.smoofyuniverse.common.fx.value;
+
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
-public class FXUtil {
+/**
+ * Immutable implementation of {@link ObservableValue}.
+ *
+ * @param <T> The type of the wrapped value.
+ */
+public class ImmutableValue<T> implements ObservableValue<T> {
+	private final T value;
 
-	public static <T> ReadOnlyProperty<T> immutableProperty(T value) {
-		return new ReadOnlyProperty<T>() {
-			@Override
-			public Object getBean() {
-				return null;
-			}
-
-			@Override
-			public String getName() {
-				return "";
-			}
-
-			@Override
-			public void addListener(ChangeListener<? super T> listener) {}
-
-			@Override
-			public void removeListener(ChangeListener<? super T> listener) {}
-
-			@Override
-			public T getValue() {
-				return value;
-			}
-
-			@Override
-			public void addListener(InvalidationListener listener) {}
-
-			@Override
-			public void removeListener(InvalidationListener listener) {}
-		};
+	public ImmutableValue(T value) {
+		this.value = value;
 	}
+
+	@Override
+	public void addListener(ChangeListener<? super T> listener) {}
+
+	@Override
+	public void removeListener(ChangeListener<? super T> listener) {}
+
+	@Override
+	public T getValue() {
+		return this.value;
+	}
+
+	@Override
+	public void addListener(InvalidationListener listener) {}
+
+	@Override
+	public void removeListener(InvalidationListener listener) {}
 }
