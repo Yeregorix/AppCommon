@@ -27,9 +27,6 @@ import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
 import net.smoofyuniverse.logger.core.Logger;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
@@ -37,16 +34,6 @@ import java.util.function.Consumer;
  * A static helper with essential application methods.
  */
 public final class App {
-
-	/**
-	 * Gets path to local resource.
-	 *
-	 * @param localResource The local resource.
-	 * @return The path.
-	 */
-	public static Path getResource(String localResource) throws IOException, URISyntaxException {
-		return get().getResourceLoader().toPath(App.class, localResource);
-	}
 
 	/**
 	 * Gets the application.

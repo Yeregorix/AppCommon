@@ -438,7 +438,7 @@ public abstract class Application {
 	}
 
 	protected void loadResources() throws Exception {
-		loadTranslations(App.getResource("lang/common"), "txt");
+		loadTranslations(getResource("lang/common"), "txt");
 	}
 
 	protected final void loadTranslations(Path dir, String extension) {
@@ -810,6 +810,17 @@ public abstract class Application {
 	 */
 	public final ResourceLoader getResourceLoader() {
 		return this.resourceLoader;
+	}
+
+	/**
+	 * Finds the resource with the given name.
+	 *
+	 * @param name The resource name.
+	 * @return The path.
+	 * @throws IOException if an I/O exception occurs.
+	 */
+	public Path getResource(String name) throws IOException {
+		return this.resourceLoader.getResource(Application.class, name);
 	}
 
 	/**

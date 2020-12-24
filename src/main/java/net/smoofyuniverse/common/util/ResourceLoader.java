@@ -27,76 +27,89 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
-public class ResourceLoader {
+/**
+ * An helper to load resources as {@link Path}s.
+ */
+public class ResourceLoader implements AutoCloseable {
 	private final Map<String, FileSystem> fileSystems = new HashMap<>();
 
-	public void getClasses(Class<?> cl, String packageName, boolean recursive, Set<Class<?>> classes) throws IOException {
-		getClasses(cl.getClassLoader(), packageName, recursive, classes);
+	/**
+	 * Finds the resource with the given name in the class's loader.
+	 * Converts it to a {@link Path}.
+	 *
+	 * @param cl   The class.
+	 * @param name The resource name.
+	 * @return The path.
+	 * @throws IOException if an I/O exception occurs.
+	 */
+	public Path getResource(Class<?> cl, String name) throws IOException {
+		return getResource(cl.getClassLoader(), name);
 	}
 
-	public void getClasses(ClassLoader cl, String packageName, boolean recursive, Set<Class<?>> classes) throws IOException {
-		Enumeration<URL> en = cl.getResources(packageName.replace('.', '/'));
-		while (en.hasMoreElements()) {
-			try {
-				findClasses(toPath(en.nextElement()), packageName, recursive, classes);
-			} catch (URISyntaxException e) {
-				throw new IOException("Can't get path of package " + packageName, e);
-			}
-		}
-	}
-
-	private void findClasses(Path dir, String packageName, boolean recursive, Set<Class<?>> classes) throws IOException {
-		try (DirectoryStream<Path> st = Files.newDirectoryStream(dir)) {
-			for (Path p : st) {
-				String fn = p.getFileName().toString();
-				if (Files.isDirectory(p)) {
-					if (recursive)
-						findClasses(p, packageName + "." + fn, true, classes);
-				} else if (fn.endsWith(".class")) {
-					String className = packageName + "." + fn.substring(0, fn.length() - 6);
-					try {
-						classes.add(Class.forName(className));
-					} catch (Exception e) {
-						throw new IOException("Can't get class for name " + className, e);
-					}
-				}
-			}
-		} catch (Exception e) {
-			throw new IOException("Can't list classes in package " + packageName, e);
-		}
-	}
-
-	public Path toPath(Class<?> cl, String localResource) throws IOException, URISyntaxException {
-		return toPath(cl.getClassLoader(), localResource);
-	}
-
-	public Path toPath(ClassLoader cl, String localResource) throws IOException, URISyntaxException {
-		URL url = cl.getResource(localResource);
+	/**
+	 * Finds the resource with the given name in the class loader.
+	 * Converts it to a {@link Path}.
+	 *
+	 * @param cl   The class loader.
+	 * @param name The resource name.
+	 * @return The path.
+	 * @throws IOException if an I/O exception occurs.
+	 */
+	public Path getResource(ClassLoader cl, String name) throws IOException {
+		URL url = cl.getResource(name);
 		if (url == null)
 			throw new NoSuchElementException("Resource not found");
 		return toPath(url);
 	}
 
-	public Path toPath(URL url) throws IOException, URISyntaxException {
-		return toPath(url.toURI());
+	/**
+	 * Converts the {@link URL} to a {@link Path}.
+	 *
+	 * @param url The URL.
+	 * @return The path.
+	 * @throws IOException if an I/O exception occurs.
+	 */
+	public Path toPath(URL url) throws IOException {
+		try {
+			return toPath(url.toURI());
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
-	public Path toPath(URI uri) throws IOException, URISyntaxException {
+	/**
+	 * Converts the {@link URI} to a {@link Path}.
+	 *
+	 * @param uri The URI.
+	 * @return The path.
+	 * @throws IOException if an I/O exception occurs.
+	 */
+	public Path toPath(URI uri) throws IOException {
 		try {
 			return Paths.get(uri);
 		} catch (FileSystemNotFoundException e) {
 			String[] a = uri.toString().split("!");
 			FileSystem fs = this.fileSystems.get(a[0]);
 			if (fs == null) {
-				fs = FileSystems.newFileSystem(new URI(a[0]), new HashMap<>());
+				try {
+					fs = FileSystems.newFileSystem(new URI(a[0]), new HashMap<>());
+				} catch (URISyntaxException e2) {
+					throw new IllegalArgumentException(e2);
+				}
 				this.fileSystems.put(a[0], fs);
 			}
 			return fs.getPath(a[1]);
 		}
 	}
 
+	/**
+	 * Close all underlying file systems.
+	 */
+	@Override
 	public void close() {
 		for (FileSystem fs : this.fileSystems.values()) {
 			try {
