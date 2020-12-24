@@ -24,8 +24,18 @@ package net.smoofyuniverse.common.util;
 
 import java.util.Objects;
 
+/**
+ * A static helper for arrays.
+ */
 public class ArrayUtil {
 
+	/**
+	 * Gets whether the array contains the value.
+	 *
+	 * @param array The array.
+	 * @param value The value.
+	 * @return Whether the array contains the value.
+	 */
 	public static boolean contains(Object[] array, Object value) {
 		for (Object obj : array) {
 			if (Objects.equals(obj, value))

@@ -25,8 +25,17 @@ package net.smoofyuniverse.common.util;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * A static helper for URLs.
+ */
 public class URLUtil {
 
+	/**
+	 * Creates an URL from the string representation.
+	 *
+	 * @param url The string representation.
+	 * @return The new URL.
+	 */
 	public static URL newURL(String url) {
 		try {
 			return new URL(url);
@@ -35,10 +44,26 @@ public class URLUtil {
 		}
 	}
 
+	/**
+	 * Creates a copy of the given URL and appends the suffix to the file.
+	 *
+	 * @param url    The URL to copy.
+	 * @param suffix The file suffix.
+	 * @return The new URL.
+	 * @throws MalformedURLException if the new URL is invalid.
+	 */
 	public static URL appendSuffix(URL url, String suffix) throws MalformedURLException {
 		return setFile(url, url.getFile() + suffix);
 	}
 
+	/**
+	 * Creates a copy of the given URL but with the file set to a new value.
+	 *
+	 * @param url  The URL to copy.
+	 * @param file The new file.
+	 * @return The new URL.
+	 * @throws MalformedURLException if the new URL is invalid.
+	 */
 	public static URL setFile(URL url, String file) throws MalformedURLException {
 		return new URL(url.getProtocol(), url.getHost(), url.getPort(), file);
 	}

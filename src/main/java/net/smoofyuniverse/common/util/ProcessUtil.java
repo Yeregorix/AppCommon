@@ -26,12 +26,27 @@ import net.smoofyuniverse.common.app.App;
 
 import java.nio.file.Path;
 
+/**
+ * A static helper for processes.
+ */
 public class ProcessUtil {
-	
+
+	/**
+	 * Creates a new {@link ProcessBuilder}.
+	 * Uses the application's working directory.
+	 *
+	 * @return The process builder.
+	 */
 	public static ProcessBuilder builder() {
 		return builder(App.get().getWorkingDirectory());
 	}
-	
+
+	/**
+	 * Creates a new {@link ProcessBuilder}.
+	 *
+	 * @param dir The directory.
+	 * @return The process builder.
+	 */
 	public static ProcessBuilder builder(Path dir) {
 		return new ProcessBuilder().directory(dir.toFile());
 	}
