@@ -34,6 +34,11 @@ public class TranslatorUpdateEvent implements Event {
 	 */
 	public final Translator translator;
 
+	/**
+	 * Creates a new {@link TranslatorUpdateEvent}.
+	 *
+	 * @param translator The translator.
+	 */
 	public TranslatorUpdateEvent(Translator translator) {
 		if (translator == null)
 			throw new IllegalArgumentException("translator");

@@ -45,6 +45,13 @@ public class LanguageSelectionChangeEvent implements Event {
 	 */
 	public final Language newLang;
 
+	/**
+	 * Creates a new {@link LanguageSelectionChangeEvent}.
+	 *
+	 * @param manager  The resource manager.
+	 * @param prevLang The previous selection.
+	 * @param newLang  The new selection.
+	 */
 	public LanguageSelectionChangeEvent(ResourceManager manager, Language prevLang, Language newLang) {
 		if (manager == null)
 			throw new IllegalArgumentException("manager");

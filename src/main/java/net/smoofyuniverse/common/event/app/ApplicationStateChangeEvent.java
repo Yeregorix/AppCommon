@@ -45,6 +45,13 @@ public class ApplicationStateChangeEvent implements Event {
 	 */
 	public final State newState;
 
+	/**
+	 * Creates a new {@link ApplicationStateChangeEvent}.
+	 *
+	 * @param app       The application.
+	 * @param prevState The previous state.
+	 * @param newState  The new state.
+	 */
 	public ApplicationStateChangeEvent(Application app, State prevState, State newState) {
 		if (app == null)
 			throw new IllegalArgumentException("app");

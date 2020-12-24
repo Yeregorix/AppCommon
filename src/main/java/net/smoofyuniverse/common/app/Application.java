@@ -142,6 +142,11 @@ public abstract class Application {
 		setState(State.SERVICES_INIT);
 	}
 
+	/**
+	 * Resolves the working directory.
+	 *
+	 * @return The directory.
+	 */
 	protected Path resolveDirectory() {
 		String dirName = this.originalArguments.getString("directory", "dir").orElse("");
 		if (!dirName.isEmpty())
@@ -175,6 +180,11 @@ public abstract class Application {
 		_setStaticArguments(args);
 	}
 
+	/**
+	 * Determines whether the UI should be enabled.
+	 *
+	 * @return Whether the UI should be enabled.
+	 */
 	protected boolean enableUI() {
 		return !this.arguments.getBoolean("disableUI");
 	}
@@ -277,6 +287,11 @@ public abstract class Application {
 		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
 	}
 
+	/**
+	 * Initializes the following services: logger factory, event manager, resource manager, executor.
+	 *
+	 * @param executor The executor.
+	 */
 	protected void initServices(ExecutorService executor) {
 		checkState(State.SERVICES_INIT);
 		long start = System.currentTimeMillis();
@@ -290,6 +305,9 @@ public abstract class Application {
 		setState(State.STAGE_INIT);
 	}
 
+	/**
+	 * Initializes the logger factory using {@link Application#setLoggerFactory}.
+	 */
 	protected void initLoggerFactory() {
 		setLoggerFactory(new ParentLogAppender(
 				newFormattedAppender(PrintStreamAppender.system()),
@@ -298,22 +316,46 @@ public abstract class Application {
 						this.fileLogTransformer)));
 	}
 
+	/**
+	 * Initializes the event manager using {@link Application#setEventManager}.
+	 */
 	protected void initEventManager() {
 		setEventManager(new EventManager());
 	}
 
+	/**
+	 * Initializes the resource manager using {@link Application#setResourceManager}.
+	 */
 	protected void initResourceManager() {
 		setResourceManager(new ResourceManager(Languages.ENGLISH, false));
 	}
 
+	/**
+	 * Creates and sets the logger factory using the given appender.
+	 * Must be called once and during {@link State#SERVICES_INIT}.
+	 *
+	 * @param appender The log appender.
+	 */
 	protected final void setLoggerFactory(LogAppender appender) {
 		setLoggerFactory(new LoggerFactory(appender));
 	}
 
+	/**
+	 * Creates a new formatted appender based on {@link Application#formatLog(LogMessage)}
+	 *
+	 * @param appender The string appender.
+	 * @return The formatted appender.
+	 */
 	public final FormattedAppender newFormattedAppender(StringAppender appender) {
 		return new FormattedAppender(appender, this::formatLog);
 	}
 
+	/**
+	 * Sets the event manager.
+	 * Must be called once and during {@link State#SERVICES_INIT}.
+	 *
+	 * @param eventManager The event manager.
+	 */
 	protected final void setEventManager(EventManager eventManager) {
 		checkState(State.SERVICES_INIT);
 
@@ -322,6 +364,12 @@ public abstract class Application {
 		this.eventManager = eventManager;
 	}
 
+	/**
+	 * Sets the resource manager.
+	 * Must be called once and during {@link State#SERVICES_INIT}.
+	 *
+	 * @param resourceManager The resource manager.
+	 */
 	protected final void setResourceManager(ResourceManager resourceManager) {
 		checkState(State.SERVICES_INIT);
 
@@ -358,6 +406,12 @@ public abstract class Application {
 			this.resourceManager.setSelection(Language.of(langId));
 	}
 
+	/**
+	 * Sets the logger factory.
+	 * Must be called once and during {@link State#SERVICES_INIT}.
+	 *
+	 * @param loggerFactory The logger factory.
+	 */
 	protected final void setLoggerFactory(LoggerFactory loggerFactory) {
 		checkState(State.SERVICES_INIT);
 
@@ -640,6 +694,8 @@ public abstract class Application {
 
 	/**
 	 * Initializes the application.
+	 *
+	 * @throws Exception if any exception occurs.
 	 */
 	public abstract void init() throws Exception;
 

@@ -92,6 +92,7 @@ public class ConnectionConfig {
 	 *
 	 * @param url The URL.
 	 * @return The buffered reader.
+	 * @throws IOException if an I/O exception occurs.
 	 */
 	public BufferedReader openBufferedReader(URL url) throws IOException {
 		return new BufferedReader(new InputStreamReader(openStream(url)));
@@ -103,6 +104,7 @@ public class ConnectionConfig {
 	 *
 	 * @param url The URL.
 	 * @return The input stream.
+	 * @throws IOException if an I/O exception occurs.
 	 */
 	public InputStream openStream(URL url) throws IOException {
 		return openConnection(url).getInputStream();
@@ -114,6 +116,7 @@ public class ConnectionConfig {
 	 *
 	 * @param url The URL.
 	 * @return The URL connection.
+	 * @throws IOException if an I/O exception occurs.
 	 */
 	public URLConnection openConnection(URL url) throws IOException {
 		URLConnection co = url.openConnection(this.proxy);
@@ -146,6 +149,7 @@ public class ConnectionConfig {
 	 *
 	 * @param url The URL.
 	 * @return The HTTP connection.
+	 * @throws IOException if an I/O exception occurs.
 	 */
 	public HttpURLConnection openHttpConnection(URL url) throws IOException {
 		return (HttpURLConnection) openConnection(url);

@@ -53,6 +53,15 @@ public class GithubReleaseSource implements ReleaseSource {
 	protected final String owner, repo, accessToken, appName;
 	protected final ConnectionConfig config;
 
+	/**
+	 * Creates a new Github release source.
+	 *
+	 * @param owner       The owner.
+	 * @param repo        The repository.
+	 * @param accessToken The access token.
+	 * @param appName     The application name.
+	 * @param config      The connection configuration.
+	 */
 	public GithubReleaseSource(String owner, String repo, String accessToken, String appName, ConnectionConfig config) {
 		if (owner == null || owner.isEmpty())
 			throw new IllegalArgumentException("owner");

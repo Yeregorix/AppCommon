@@ -33,6 +33,7 @@ public interface EventListener<T extends Event> {
 	 * Handles the event.
 	 *
 	 * @param event The event.
+	 * @throws Exception if any exception occurs.
 	 */
 	void handle(T event) throws Exception;
 }

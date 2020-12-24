@@ -121,7 +121,9 @@ public class FileInfo {
 	/**
 	 * Opens and configures the download connection.
 	 *
+	 * @param config The connection configuration.
 	 * @return The connection.
+	 * @throws IOException if an I/O exception occurs.
 	 */
 	public HttpURLConnection openDownloadConnection(ConnectionConfig config) throws IOException {
 		HttpURLConnection co = config.openHttpConnection(this.url);

@@ -50,10 +50,24 @@ public class SimpleReleaseSource implements ReleaseSource {
 	protected final URL baseUrl;
 	protected final ConnectionConfig config;
 
+	/**
+	 * Creates a new simple release source.
+	 *
+	 * @param baseUrl The URL.
+	 * @param appName The application name.
+	 * @param config  The connection configuration.
+	 */
 	public SimpleReleaseSource(String baseUrl, String appName, ConnectionConfig config) {
 		this(URLUtil.newURL(baseUrl), appName, config);
 	}
 
+	/**
+	 * Creates a new simple release source.
+	 *
+	 * @param baseUrl The URL.
+	 * @param appName The application name.
+	 * @param config  The connection configuration.
+	 */
 	public SimpleReleaseSource(URL baseUrl, String appName, ConnectionConfig config) {
 		if (baseUrl == null)
 			throw new IllegalArgumentException("baseUrl");

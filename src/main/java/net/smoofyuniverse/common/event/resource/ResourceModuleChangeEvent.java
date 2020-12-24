@@ -45,6 +45,13 @@ public class ResourceModuleChangeEvent implements Event {
 	 */
 	public final ResourceModule<?> newModule;
 
+	/**
+	 * Creates a new {@link ResourceModuleChangeEvent}.
+	 *
+	 * @param pack       The resource pack.
+	 * @param prevModule The removed module.
+	 * @param newModule  The inserted module.
+	 */
 	public ResourceModuleChangeEvent(ResourcePack pack, ResourceModule<?> prevModule, ResourceModule<?> newModule) {
 		if (pack == null)
 			throw new IllegalArgumentException("pack");

@@ -35,6 +35,11 @@ import javafx.beans.value.ObservableValue;
 public class ImmutableValue<T> implements ObservableValue<T> {
 	private final T value;
 
+	/**
+	 * Wraps the value in a {@link ImmutableValue}.
+	 *
+	 * @param value The value.
+	 */
 	public ImmutableValue(T value) {
 		this.value = value;
 	}
