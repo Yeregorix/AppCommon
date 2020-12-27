@@ -42,7 +42,7 @@ import java.util.function.Consumer;
  * An helper to check and apply application updates.
  */
 public class ApplicationUpdater {
-	private static final Logger logger = App.getLogger("Updater");
+	private static final Logger logger = App.getLogger("ApplicationUpdater");
 
 	private final Application app;
 	private final ReleaseSource appSource, updaterSource;
@@ -194,13 +194,13 @@ public class ApplicationUpdater {
 			}
 		};
 
-		boolean r;
+		boolean success;
 		if (this.app.isGUIEnabled())
-			r = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
+			success = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
 		else
-			r = App.submit(consumer);
+			success = App.submit(consumer);
 
-		if (r)
+		if (success)
 			this.app.shutdownNow();
 		else
 			logger.info("Update task has been cancelled.");

@@ -58,7 +58,7 @@ public final class App {
 	 * Handles any exceptions the may occur during execution.
 	 *
 	 * @param consumer The consumer.
-	 * @return Whether the task has been cancelled.
+	 * @return Whether the task hasn't been cancelled.
 	 */
 	public static boolean submit(Consumer<ProgressTask> consumer) {
 		return submit(consumer, new SimpleProgressTask());
@@ -70,7 +70,7 @@ public final class App {
 	 *
 	 * @param consumer The consumer.
 	 * @param task     The task.
-	 * @return Whether the task has been cancelled.
+	 * @return Whether the task hasn't been cancelled.
 	 */
 	public static boolean submit(Consumer<ProgressTask> consumer, ProgressTask task) {
 		task.setCancelled(false);
@@ -80,7 +80,7 @@ public final class App {
 			task.cancel();
 			App.getLogger("App").error("Failed to execute a task.", e);
 		}
-		return task.isCancelled();
+		return !task.isCancelled();
 	}
 
 	/**

@@ -28,16 +28,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import net.smoofyuniverse.common.Main;
 import net.smoofyuniverse.common.download.ConnectionConfig;
-import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.task.BaseListener;
-import net.smoofyuniverse.common.task.IncrementalListener;
-import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
 import net.smoofyuniverse.common.util.StringUtil;
@@ -57,17 +53,19 @@ import net.smoofyuniverse.logger.transformer.ParentTransformer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Collections;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
-import java.util.jar.JarFile;
 
 /**
  * The application.
@@ -465,123 +463,6 @@ public abstract class Application {
 			}
 		}
 		shutdownNow();
-	}
-
-	protected final boolean updateDependencies(Path defaultDir, DependencyInfo... deps) {
-		List<DependencyInfo> list = new LinkedList<>();
-		for (DependencyInfo info : deps)
-			list.add(info);
-
-		updateDependencies(defaultDir, list);
-		return list.isEmpty();
-	}
-
-	protected final void updateDependencies(Path defaultDir, Collection<DependencyInfo> deps) {
-		if (deps.isEmpty())
-			return;
-
-		long totalSize = 0;
-		Iterator<DependencyInfo> it = deps.iterator();
-		while (it.hasNext()) {
-			DependencyInfo info = it.next();
-
-			if (info.file == null)
-				info.file = IOUtil.getMavenPath(defaultDir, info.name, ".jar");
-
-			if (info.matches())
-				it.remove();
-			else
-				totalSize += info.size;
-		}
-
-		if (deps.isEmpty())
-			return;
-
-		long totalSizeF = totalSize;
-		Consumer<ProgressTask> consumer = task -> {
-			this.logger.info("Downloading missing dependencies ..");
-			task.setTitle(Translations.dependencies_download_title);
-			IncrementalListener listener = task.expect(totalSizeF);
-
-			Iterator<DependencyInfo> it2 = deps.iterator();
-			while (it2.hasNext()) {
-				if (task.isCancelled())
-					return;
-
-				DependencyInfo info = it2.next();
-				this.logger.info("Downloading dependency " + info.name + " ..");
-				task.setMessage(info.name);
-
-				Path dir = info.file.getParent();
-				if (!Files.isDirectory(dir)) {
-					try {
-						Files.createDirectories(dir);
-					} catch (IOException e) {
-						this.logger.warn("Failed to create directory " + dir, e);
-						continue;
-					}
-				}
-
-				if (!info.download(this.connectionConfig, listener))
-					continue;
-
-				if (task.isCancelled())
-					return;
-
-				if (info.matches())
-					it2.remove();
-				else
-					this.logger.warn("The downloaded dependency has an incorrect signature.");
-			}
-		};
-
-		boolean r;
-		if (this.GUIEnabled)
-			r = Popup.consumer(consumer).title(Translations.dependencies_update_title).submitAndWait();
-		else
-			r = App.submit(consumer);
-
-		if (!r || deps.isEmpty())
-			return;
-
-		StringBuilder b = new StringBuilder();
-		for (DependencyInfo info : deps)
-			b.append("\n- ").append(info.name);
-
-		Popup.error().title(Translations.failed_dependencies_title).message(Translations.failed_dependencies_message.format("list", b.toString())).showAndWait();
-	}
-
-	private static Method addURL;
-
-	protected final void loadDependencies(DependencyInfo... deps) {
-		loadDependencies(Arrays.asList(deps));
-	}
-
-	protected final void loadDependencies(Collection<DependencyInfo> deps) {
-		for (DependencyInfo info : deps) {
-			try {
-				addToSystemClasspath(info.file);
-			} catch (Exception e) {
-				this.logger.error("Failed to load dependency " + info.name, e);
-				fatalError(e);
-			}
-		}
-	}
-
-	private static void addToSystemClasspath(Path jar) throws Exception {
-		if (Main.getInstrumentation() != null) {
-			Main.getInstrumentation().appendToSystemClassLoaderSearch(new JarFile(jar.toFile()));
-			return;
-		}
-
-		URLClassLoader cl = (URLClassLoader) ClassLoader.getSystemClassLoader();
-
-		if (addURL == null) {
-			addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-			addURL.setAccessible(true);
-		}
-
-		addURL.invoke(cl, jar.toUri().toURL());
 	}
 
 	/**
