@@ -49,7 +49,7 @@ public abstract class DialogBuilder<T> {
 	protected Stage owner;
 
 	public DialogBuilder() {
-		App.get().requireUI();
+		App.get().requireGUI();
 	}
 
 	/**

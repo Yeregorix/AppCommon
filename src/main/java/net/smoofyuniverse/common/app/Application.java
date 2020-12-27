@@ -31,9 +31,6 @@ import javafx.stage.Stage;
 import net.smoofyuniverse.common.Main;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.DependencyInfo;
-import net.smoofyuniverse.common.environment.ReleaseInfo;
-import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
-import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.fx.dialog.Popup;
@@ -42,7 +39,6 @@ import net.smoofyuniverse.common.task.BaseListener;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
-import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.appender.log.FormattedAppender;
@@ -85,7 +81,7 @@ public abstract class Application {
 	protected final Arguments originalArguments;
 	protected final Path workingDir, staticArgumentsFile;
 	protected final String name, title, version;
-	protected final boolean UIEnabled, devEnvironment;
+	protected final boolean GUIEnabled, devEnvironment;
 	protected final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 	protected final ParentTransformer fileLogTransformer = new ParentTransformer();
 
@@ -137,7 +133,7 @@ public abstract class Application {
 		System.setProperty("java.net.preferIPv4Stack", "true");
 
 		loadStaticArguments();
-		this.UIEnabled = enableUI();
+		this.GUIEnabled = !disableGUI();
 
 		setState(State.SERVICES_INIT);
 	}
@@ -181,12 +177,13 @@ public abstract class Application {
 	}
 
 	/**
-	 * Determines whether the UI should be enabled.
+	 * Determines whether the GUI should be disabled.
+	 * This method is called once during {@link State#CREATION}.
 	 *
-	 * @return Whether the UI should be enabled.
+	 * @return Whether the GUI should be disabled.
 	 */
-	protected boolean enableUI() {
-		return !this.arguments.getBoolean("disableUI");
+	protected boolean disableGUI() {
+		return this.arguments.getBoolean("disableGUI");
 	}
 
 	private void _setStaticArguments(Arguments arguments) {
@@ -223,18 +220,12 @@ public abstract class Application {
 	}
 
 	/**
-	 * Shows a fatal error popup then exits the JVM.
+	 * Determines whether the update check should be disabled.
 	 *
-	 * @param throwable The throwable.
+	 * @return Whether the update check should be disabled.
 	 */
-	public final void fatalError(Throwable throwable) {
-		if (this.UIEnabled) {
-			try {
-				Popup.error().title(this.title + " " + this.version + " - Fatal error").message(throwable).submitAndWait();
-			} catch (Exception ignored) {
-			}
-		}
-		shutdownNow();
+	public boolean disableUpdateCheck() {
+		return this.arguments.getBoolean("noUpdateCheck");
 	}
 
 	/**
@@ -433,10 +424,6 @@ public abstract class Application {
 		}
 	}
 
-	protected final void tryUpdateApplication(ReleaseSource appSource) {
-		tryUpdateApplication(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater", this.connectionConfig));
-	}
-
 	protected void loadResources() throws Exception {
 		loadTranslations(getResource("lang/common"), "txt");
 	}
@@ -450,129 +437,34 @@ public abstract class Application {
 		getTranslator().bindStaticFields(Translations.class);
 	}
 
-	protected final void tryUpdateApplication(ReleaseSource appSource, ReleaseSource updaterSource) {
-		if (this.arguments.getBoolean("noUpdateCheck"))
-			return;
-
-		Path appJar = getApplicationJar().orElse(null);
-		if (appJar != null) {
-			ReleaseInfo latestApp = appSource.getLatestRelease().orElse(null);
-			if (latestApp != null && !latestApp.matches(appJar)) {
-				ReleaseInfo latestUpdater = updaterSource.getLatestRelease().orElse(null);
-				if (latestUpdater != null && suggestApplicationUpdate())
-					updateApplication(appJar, latestApp, latestUpdater);
-			}
-		}
-	}
-
-	protected final boolean suggestApplicationUpdate() {
-		if (this.UIEnabled)
-			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
-
-		if (this.arguments.getBoolean("autoUpdate"))
-			return true;
-
-		this.logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
-		return false;
-	}
-
-	protected final void updateApplication(Path appJar, ReleaseInfo latestApp, ReleaseInfo latestUpdater) {
-		Consumer<ProgressTask> consumer = task -> {
-			this.logger.info("Starting application update task ..");
-			task.setTitle(Translations.update_download_title);
-
-			Path updaterJar = this.workingDir.resolve("Updater.jar");
-			if (!latestUpdater.matches(updaterJar)) {
-				this.logger.info("Downloading latest updater ..");
-				latestUpdater.download(updaterJar, this.connectionConfig, task);
-
-				if (task.isCancelled())
-					return;
-
-				if (!latestUpdater.matches(updaterJar)) {
-					task.cancel();
-					this.logger.error("Updater file seems invalid, aborting ..");
-					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
-				}
-			}
-
-			if (task.isCancelled())
-				return;
-
-			Path appUpdateJar = this.workingDir.resolve(this.name + "-Update.jar");
-			if (!latestApp.matches(appUpdateJar)) {
-				this.logger.info("Downloading latest application update ..");
-				latestApp.download(appUpdateJar, this.connectionConfig, task);
-
-				if (task.isCancelled())
-					return;
-
-				if (!latestApp.matches(appUpdateJar)) {
-					task.cancel();
-					this.logger.error("Application update file seems invalid, aborting ..");
-					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
-				}
-			}
-
-			if (task.isCancelled())
-				return;
-
-			logger.info("Starting updater process ..");
-			task.setTitle(Translations.update_process_title);
-			task.setMessage(Translations.update_process_message);
-			task.setProgress(-1);
-
-			boolean launch = this.UIEnabled && !this.arguments.getBoolean("noUpdateLaunch");
-			if (!launch)
-				logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
-
-			List<String> cmd = new ArrayList<>();
-			cmd.add("java");
-			cmd.add("-jar");
-			cmd.add(updaterJar.toAbsolutePath().toString());
-			cmd.add("1"); // version
-			cmd.add(appUpdateJar.toAbsolutePath().toString()); // source
-			cmd.add(appJar.toAbsolutePath().toString()); // target
-			cmd.add(String.valueOf(launch)); // launch
-			this.originalArguments.export(cmd::add);
-
-			if (task.isCancelled())
-				return;
-
-			try {
-				ProcessUtil.builder().command(cmd).start();
-			} catch (IOException e) {
-				task.cancel();
-				logger.error("Failed to start updater process", e);
-				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
-			}
-		};
-
-		boolean r;
-		if (this.UIEnabled)
-			r = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
-		else
-			r = App.submit(consumer);
-
-		if (r)
-			shutdownNow();
-		else
-			this.logger.info("Update task has been cancelled.");
-	}
-
 	/**
 	 * Launches the application.
 	 * Handles any errors the may occur during initialization.
 	 */
 	public final void launch() {
 		try {
-			if (this.UIEnabled)
+			if (this.GUIEnabled)
 				initJavaFX();
 			init();
 		} catch (Throwable t) {
 			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
 			fatalError(t);
 		}
+	}
+
+	/**
+	 * Shows a fatal error popup then exits the JVM.
+	 *
+	 * @param throwable The throwable.
+	 */
+	public final void fatalError(Throwable throwable) {
+		if (this.GUIEnabled) {
+			try {
+				Popup.error().title(this.title + " " + this.version + " - Fatal error").message(throwable).submitAndWait();
+			} catch (Exception ignored) {
+			}
+		}
+		shutdownNow();
 	}
 
 	protected final boolean updateDependencies(Path defaultDir, DependencyInfo... deps) {
@@ -644,7 +536,7 @@ public abstract class Application {
 		};
 
 		boolean r;
-		if (this.UIEnabled)
+		if (this.GUIEnabled)
 			r = Popup.consumer(consumer).title(Translations.dependencies_update_title).submitAndWait();
 		else
 			r = App.submit(consumer);
@@ -794,13 +686,13 @@ public abstract class Application {
 	}
 
 	/**
-	 * Checks whether user interface is enabled.
+	 * Checks whether the graphical user interface is enabled.
 	 *
-	 * @throws IllegalArgumentException If user interface is not enabled.
+	 * @throws IllegalArgumentException If the graphical user interface is not enabled.
 	 */
-	public final void requireUI() {
-		if (!this.UIEnabled)
-			throw new IllegalStateException("UI is not enabled");
+	public final void requireGUI() {
+		if (!this.GUIEnabled)
+			throw new IllegalStateException("GUI is not enabled");
 	}
 
 	/**
@@ -974,7 +866,7 @@ public abstract class Application {
 			this.executor = null;
 		}
 
-		if (this.UIEnabled)
+		if (this.GUIEnabled)
 			Platform.runLater(Platform::exit);
 	}
 
@@ -1046,8 +938,8 @@ public abstract class Application {
 	 *
 	 * @return Whether the graphical user interface is enabled.
 	 */
-	public final boolean isUIEnabled() {
-		return this.UIEnabled;
+	public final boolean isGUIEnabled() {
+		return this.GUIEnabled;
 	}
 
 	/**
