@@ -77,7 +77,7 @@ public class DependencyManager {
 	 * Updates and loads dependencies.
 	 * Any missing dependency or error is fatal.
 	 */
-	public void run() {
+	public void setup() {
 		if (update())
 			load();
 		else
