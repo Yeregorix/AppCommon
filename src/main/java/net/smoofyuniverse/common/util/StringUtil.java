@@ -376,9 +376,12 @@ public class StringUtil {
 	}
 
 	public static String toHexString(byte[] bytes) {
-		StringBuilder s = new StringBuilder(bytes.length * 2);
-		for (byte b : bytes)
-			s.append(hexchars[(b & 0xF0) >> 4]).append(hexchars[b & 0x0F]);
-		 return s.toString();
+		char[] chars = new char[bytes.length << 1];
+		int i = 0;
+		for (byte b : bytes) {
+			chars[i++] = hexchars[(b >> 4) & 15];
+			chars[i++] = hexchars[b & 15];
+		}
+		return new String(chars);
 	}
 }
