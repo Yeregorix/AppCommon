@@ -36,18 +36,15 @@ import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.task.BaseListener;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
-import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.appender.log.FormattedAppender;
 import net.smoofyuniverse.logger.appender.log.LogAppender;
 import net.smoofyuniverse.logger.appender.log.ParentLogAppender;
 import net.smoofyuniverse.logger.appender.log.TransformedAppender;
 import net.smoofyuniverse.logger.appender.string.DatedRollingFileAppender;
-import net.smoofyuniverse.logger.appender.string.PrintStreamAppender;
-import net.smoofyuniverse.logger.appender.string.StringAppender;
+import net.smoofyuniverse.logger.core.DefaultImpl;
 import net.smoofyuniverse.logger.core.LogLevel;
 import net.smoofyuniverse.logger.core.LogMessage;
 import net.smoofyuniverse.logger.core.Logger;
-import net.smoofyuniverse.logger.core.LoggerFactory;
 import net.smoofyuniverse.logger.transformer.ParentTransformer;
 
 import java.io.BufferedReader;
@@ -72,6 +69,7 @@ import java.util.concurrent.ExecutorService;
  * Singleton.
  */
 public abstract class Application {
+	private static final Logger logger = Logger.get("Application");
 	private static Application instance;
 
 	private State state = State.CREATION;
@@ -85,11 +83,10 @@ public abstract class Application {
 
 	private Arguments staticArguments, arguments;
 	private ConnectionConfig connectionConfig;
-	private LoggerFactory loggerFactory;
+	private LogAppender logAppender;
 	private EventManager eventManager;
 	private ResourceManager resourceManager;
 	private ExecutorService executor;
-	private Logger logger;
 	private Stage stage;
 	private Optional<Path> applicationJar;
 
@@ -127,11 +124,14 @@ public abstract class Application {
 		this.staticArgumentsFile = this.workingDir.resolve("static-arguments.txt");
 
 		this.resourceLoader = new ResourceLoader();
-		this.logger = new Logger(newFormattedAppender(PrintStreamAppender.system()), "Application");
 		System.setProperty("java.net.preferIPv4Stack", "true");
 
 		loadStaticArguments();
 		this.GUIEnabled = !disableGUI();
+
+		this.fileLogTransformer.children.add(m -> m.transform(s -> IOUtil.USER_HOME.matcher(s).replaceAll("USER_HOME")));
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.log(
+				new LogMessage(logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
 
 		setState(State.SERVICES_INIT);
 	}
@@ -165,9 +165,9 @@ public abstract class Application {
 				if (tmp.getParametersCount() == 0)
 					args = tmp;
 				else
-					this.logger.warn("Static arguments cannot contains parameters");
+					logger.warn("Static arguments cannot contains parameters");
 			} catch (IOException e) {
-				this.logger.warn("Failed to load static arguments", e);
+				logger.warn("Failed to load static arguments", e);
 			}
 		}
 
@@ -243,7 +243,7 @@ public abstract class Application {
 	public void shutdownNow(int code) {
 		try {
 			if (this.state != State.SHUTDOWN) {
-				this.logger.info("Shutting down ..");
+				logger.info("Shutting down ..");
 				setState(State.SHUTDOWN);
 			}
 
@@ -267,16 +267,6 @@ public abstract class Application {
 	}
 
 	/**
-	 * Formats the log message to a string.
-	 *
-	 * @param msg The log message.
-	 * @return The formatted string.
-	 */
-	public String formatLog(LogMessage msg) {
-		return StringUtil.format(msg.time) + " [" + msg.logger.getName() + "] " + msg.level.name() + " - " + msg.getText() + System.lineSeparator();
-	}
-
-	/**
 	 * Initializes the following services: logger factory, event manager, resource manager, executor.
 	 *
 	 * @param executor The executor.
@@ -285,22 +275,22 @@ public abstract class Application {
 		checkState(State.SERVICES_INIT);
 		long start = System.currentTimeMillis();
 
-		initLoggerFactory();
+		initLogAppender();
 		initEventManager();
 		initResourceManager();
 		this.executor = executor;
 
-		this.logger.info("Started " + this.name + " " + this.version + " (" + (System.currentTimeMillis() - start) + "ms).");
+		logger.info("Started " + this.name + " " + this.version + " (" + (System.currentTimeMillis() - start) + "ms).");
 		setState(State.STAGE_INIT);
 	}
 
 	/**
-	 * Initializes the logger factory using {@link Application#setLoggerFactory}.
+	 * Initializes the logger factory using {@link Application#setLogAppender}.
 	 */
-	protected void initLoggerFactory() {
-		setLoggerFactory(new ParentLogAppender(
-				newFormattedAppender(PrintStreamAppender.system()),
-				new TransformedAppender(newFormattedAppender(
+	protected void initLogAppender() {
+		setLogAppender(new ParentLogAppender(
+				DefaultImpl.FORMATTED_SYSTEM_APPENDER,
+				new TransformedAppender(new FormattedAppender(
 						DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build()),
 						this.fileLogTransformer)));
 	}
@@ -317,26 +307,6 @@ public abstract class Application {
 	 */
 	protected void initResourceManager() {
 		setResourceManager(new ResourceManager(Languages.ENGLISH, false));
-	}
-
-	/**
-	 * Creates and sets the logger factory using the given appender.
-	 * Must be called once and during {@link State#SERVICES_INIT}.
-	 *
-	 * @param appender The log appender.
-	 */
-	protected final void setLoggerFactory(LogAppender appender) {
-		setLoggerFactory(new LoggerFactory(appender));
-	}
-
-	/**
-	 * Creates a new formatted appender based on {@link Application#formatLog(LogMessage)}
-	 *
-	 * @param appender The string appender.
-	 * @return The formatted appender.
-	 */
-	public final FormattedAppender newFormattedAppender(StringAppender appender) {
-		return new FormattedAppender(appender, this::formatLog);
 	}
 
 	/**
@@ -366,24 +336,24 @@ public abstract class Application {
 			throw new IllegalStateException();
 		this.resourceManager = resourceManager;
 
-		this.logger.info("Loading resources ..");
+		logger.info("Loading resources ..");
 		try {
 			loadResources();
 		} catch (Exception e) {
-			this.logger.error("Failed to load resources", e);
+			logger.error("Failed to load resources", e);
 			fatalError(e);
 		}
 
 		try {
 			bindTranslations();
 		} catch (Exception e) {
-			this.logger.error("Failed to fill translations", e);
+			logger.error("Failed to fill translations", e);
 			fatalError(e);
 		}
 
 		String langId = this.arguments.getString("language", "lang").orElse(null);
 		if (langId != null && !Language.isValidId(langId)) {
-			this.logger.warn("Argument '" + langId + "' is not a valid language identifier.");
+			logger.warn("Argument '" + langId + "' is not a valid language identifier.");
 			langId = null;
 		}
 		if (langId == null) {
@@ -396,29 +366,17 @@ public abstract class Application {
 	}
 
 	/**
-	 * Sets the logger factory.
-	 * Must be called once and during {@link State#SERVICES_INIT}.
-	 *
-	 * @param loggerFactory The logger factory.
+	 * Launches the application.
+	 * Handles any errors the may occur during initialization.
 	 */
-	protected final void setLoggerFactory(LoggerFactory loggerFactory) {
-		checkState(State.SERVICES_INIT);
-
-		if (this.loggerFactory != null)
-			throw new IllegalStateException();
-		this.loggerFactory = loggerFactory;
-		this.logger = loggerFactory.provideLogger("Application");
-
-		this.fileLogTransformer.children.add(m -> m.transform(s -> IOUtil.USER_HOME.matcher(s).replaceAll("USER_HOME")));
-		Thread.setDefaultUncaughtExceptionHandler((t, e) -> this.logger.log(
-				new LogMessage(this.logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
-
+	public final void launch() {
 		try {
-			Files.createDirectories(this.workingDir);
-			this.logger.info("Working directory: " + this.workingDir);
-		} catch (IOException e) {
-			this.logger.error("Failed to create working directory", e);
-			fatalError(e);
+			if (this.GUIEnabled)
+				initJavaFX();
+			init();
+		} catch (Throwable t) {
+			logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
+			fatalError(t);
 		}
 	}
 
@@ -436,18 +394,24 @@ public abstract class Application {
 	}
 
 	/**
-	 * Launches the application.
-	 * Handles any errors the may occur during initialization.
+	 * Gets the path to the application jar file.
+	 *
+	 * @return The path to the jar file.
 	 */
-	public final void launch() {
-		try {
-			if (this.GUIEnabled)
-				initJavaFX();
-			init();
-		} catch (Throwable t) {
-			this.logger.error(this.title + " " + this.version + " - A fatal error occurred", t);
-			fatalError(t);
+	public Optional<Path> getApplicationJar() {
+		if (this.applicationJar == null) {
+			try {
+				Path p = Paths.get(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+				if (p.getFileName().toString().endsWith(".jar"))
+					this.applicationJar = Optional.of(p);
+				else
+					this.applicationJar = Optional.empty();
+			} catch (URISyntaxException e) {
+				logger.warn("Can't get application's jar", e);
+				this.applicationJar = Optional.empty();
+			}
 		}
+		return this.applicationJar;
 	}
 
 	/**
@@ -502,24 +466,20 @@ public abstract class Application {
 	}
 
 	/**
-	 * Gets the path to the application jar file.
+	 * Sets and saves static arguments.
 	 *
-	 * @return The path to the jar file.
+	 * @param arguments The static arguments.
 	 */
-	public Optional<Path> getApplicationJar() {
-		if (this.applicationJar == null) {
-			try {
-				Path p = Paths.get(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-				if (p.getFileName().toString().endsWith(".jar"))
-					this.applicationJar = Optional.of(p);
-				else
-					this.applicationJar = Optional.empty();
-			} catch (URISyntaxException e) {
-				this.logger.warn("Can't get application's jar", e);
-				this.applicationJar = Optional.empty();
-			}
+	public final void setStaticArguments(Arguments arguments) {
+		if (arguments.getParametersCount() != 0)
+			throw new IllegalArgumentException("Parameters are not allowed");
+		_setStaticArguments(arguments);
+
+		try (BufferedWriter writer = Files.newBufferedWriter(this.staticArgumentsFile)) {
+			writer.write(arguments.toString());
+		} catch (IOException e) {
+			logger.warn("Failed to save static arguments", e);
 		}
-		return this.applicationJar;
 	}
 
 	/**
@@ -607,20 +567,12 @@ public abstract class Application {
 	}
 
 	/**
-	 * Sets and saves static arguments.
+	 * Gets "Application" logger.
 	 *
-	 * @param arguments The static arguments.
+	 * @return The logger.
 	 */
-	public final void setStaticArguments(Arguments arguments) {
-		if (arguments.getParametersCount() != 0)
-			throw new IllegalArgumentException("Parameters are not allowed");
-		_setStaticArguments(arguments);
-
-		try (BufferedWriter writer = Files.newBufferedWriter(this.staticArgumentsFile)) {
-			writer.write(arguments.toString());
-		} catch (IOException e) {
-			this.logger.warn("Failed to save static arguments", e);
-		}
+	public Logger getLogger() {
+		return logger;
 	}
 
 	/**
@@ -643,23 +595,37 @@ public abstract class Application {
 	}
 
 	/**
-	 * Gets "Application" logger.
+	 * Gets the log appender.
 	 *
-	 * @return The logger.
+	 * @return The log appender.
 	 */
-	public Logger getLogger() {
-		return this.logger;
+	public LogAppender getLogAppender() {
+		if (this.logAppender == null)
+			throw new IllegalStateException("LogAppender not initialized");
+		return this.logAppender;
 	}
 
 	/**
-	 * Gets the logger factory.
+	 * Sets the log appender.
+	 * Must be called once and during {@link State#SERVICES_INIT}.
 	 *
-	 * @return The logger factory.
+	 * @param appender The log appender.
 	 */
-	public LoggerFactory getLoggerFactory() {
-		if (this.loggerFactory == null)
-			throw new IllegalStateException("LoggerFactory not initialized");
-		return this.loggerFactory;
+	protected final void setLogAppender(LogAppender appender) {
+		checkState(State.SERVICES_INIT);
+
+		if (this.logAppender != null)
+			throw new IllegalStateException();
+		this.logAppender = appender;
+		DefaultImpl.FACTORY.setAppender(appender);
+
+		try {
+			Files.createDirectories(this.workingDir);
+			logger.info("Working directory: " + this.workingDir);
+		} catch (IOException e) {
+			logger.error("Failed to create working directory", e);
+			fatalError(e);
+		}
 	}
 
 	/**
@@ -736,7 +702,7 @@ public abstract class Application {
 		if (this.state == State.SHUTDOWN)
 			return;
 
-		this.logger.info("Shutting down ..");
+		logger.info("Shutting down ..");
 		setState(State.SHUTDOWN);
 
 		cancelListeners();

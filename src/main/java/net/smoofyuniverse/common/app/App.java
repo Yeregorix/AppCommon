@@ -34,6 +34,7 @@ import java.util.function.Consumer;
  * A static helper with essential application methods.
  */
 public final class App {
+	private static final Logger logger = Logger.get("App");
 
 	/**
 	 * Gets the application.
@@ -78,19 +79,9 @@ public final class App {
 			consumer.accept(task);
 		} catch (Exception e) {
 			task.cancel();
-			App.getLogger("App").error("Failed to execute a task.", e);
+			logger.error("Failed to execute a task.", e);
 		}
 		return !task.isCancelled();
-	}
-
-	/**
-	 * Gets the logger for the given name.
-	 *
-	 * @param name The name.
-	 * @return The logger.
-	 */
-	public static Logger getLogger(String name) {
-		return get().getLoggerFactory().provideLogger(name);
 	}
 
 	/**

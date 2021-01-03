@@ -22,7 +22,6 @@
 
 package net.smoofyuniverse.common.download;
 
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
@@ -39,7 +38,7 @@ import java.nio.file.Path;
  * Optionally holds a path to a local file.
  */
 public class FileInfo {
-	private static final Logger logger = App.getLogger("FileInfo");
+	private static final Logger logger = Logger.get("FileInfo");
 
 	/**
 	 * The URL of the remote file.
@@ -157,7 +156,7 @@ public class FileInfo {
 			if (this.digest != null && this.digestAlgorithm != null && !this.digest.equals(StringUtil.toHexString(IOUtil.digest(file, this.digestAlgorithm))))
 				return false;
 		} catch (Exception e) {
-			App.getLogger("FileInfo").warn("Failed to check file " + file, e);
+			logger.warn("Failed to check file " + file, e);
 			return false;
 		}
 		return true;

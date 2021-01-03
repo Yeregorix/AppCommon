@@ -30,8 +30,8 @@ import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.util.ResourceLoader;
+import net.smoofyuniverse.logger.appender.log.LogAppender;
 import net.smoofyuniverse.logger.core.Logger;
-import net.smoofyuniverse.logger.core.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 
@@ -48,7 +48,7 @@ public enum State {
 
 	/**
 	 * The application is initializing services:
-	 * {@link LoggerFactory},
+	 * {@link LogAppender},
 	 * {@link EventManager},
 	 * {@link ResourceManager},
 	 * {@link ExecutorService}.

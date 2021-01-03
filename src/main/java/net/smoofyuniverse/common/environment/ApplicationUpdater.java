@@ -42,7 +42,7 @@ import java.util.function.Consumer;
  * An helper to check and apply application updates.
  */
 public class ApplicationUpdater {
-	private static final Logger logger = App.getLogger("ApplicationUpdater");
+	private static final Logger logger = Logger.get("ApplicationUpdater");
 
 	private final Application app;
 	private final ReleaseSource appSource, updaterSource;

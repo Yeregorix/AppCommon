@@ -23,7 +23,6 @@
 package net.smoofyuniverse.common.resource;
 
 import javafx.application.Platform;
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
@@ -47,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * An interpreter for string resource modules.
  */
 public final class Translator {
-	private static final Logger logger = App.getLogger("Translator");
+	private static final Logger logger = Logger.get("Translator");
 
 	/**
 	 * The resource manager.

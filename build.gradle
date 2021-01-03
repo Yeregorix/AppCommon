@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
     compile 'net.smoofyuniverse:appcommon-main:1.1.0-SNAPSHOT'
-    compile 'net.smoofyuniverse:smoofylogger:1.1.0-SNAPSHOT'
+    compile 'net.smoofyuniverse:smoofylogger:1.2.0-SNAPSHOT'
     compile 'com.grack:nanojson:1.6'
 
     testCompile 'org.junit.jupiter:junit-jupiter:5.6.0'

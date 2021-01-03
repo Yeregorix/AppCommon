@@ -44,7 +44,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Pattern;
 
 public class IOUtil {
-	private static final Logger logger = App.getLogger("IOUtil");
+	private static final Logger logger = Logger.get("IOUtil");
 
 	public static final Pattern ILLEGAL_PATH = Pattern.compile("[:\\\\/*?|<>\"]+");
 	public static final Pattern USER_HOME = Pattern.compile(Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString(), Pattern.LITERAL | Pattern.CASE_INSENSITIVE);

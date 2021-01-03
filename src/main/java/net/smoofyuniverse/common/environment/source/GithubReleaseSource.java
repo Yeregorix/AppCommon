@@ -24,7 +24,6 @@ package net.smoofyuniverse.common.environment.source;
 
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
 import net.smoofyuniverse.common.util.URLUtil;
@@ -43,7 +42,7 @@ import java.util.Optional;
  * An implemention of {@link ReleaseSource} based on a Github repository.
  */
 public class GithubReleaseSource implements ReleaseSource {
-	private static final Logger logger = App.getLogger("GithubReleaseSource");
+	private static final Logger logger = Logger.get("GithubReleaseSource");
 
 	/**
 	 * Github API base URL.

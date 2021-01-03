@@ -22,7 +22,6 @@
 
 package net.smoofyuniverse.common.event;
 
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.logger.core.Logger;
 
 import java.util.*;
@@ -32,7 +31,7 @@ import java.util.*;
  * Posts {@link Event}s.
  */
 public class EventManager {
-	private static final Logger logger = App.getLogger("EventManager");
+	private static final Logger logger = Logger.get("EventManager");
 
 	private final Set<ListenerRegistration<?>> listeners = Collections.newSetFromMap(new IdentityHashMap<>());
 

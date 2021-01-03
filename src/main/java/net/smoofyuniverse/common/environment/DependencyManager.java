@@ -46,7 +46,7 @@ import java.util.jar.JarFile;
  * An helper to update and load dependencies.
  */
 public class DependencyManager {
-	private static final Logger logger = App.getLogger("DependencyManager");
+	private static final Logger logger = Logger.get("DependencyManager");
 	private static Method addURL;
 
 	private final Application app;
