@@ -22,11 +22,8 @@
 
 package net.smoofyuniverse.common.util;
 
-import java.time.Duration;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -263,50 +260,6 @@ public class StringUtil {
 			b.append('\\');
 
 		return b.toString();
-	}
-
-	public static String format(LocalTime time) {
-		return String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());
-	}
-	
-	public static Duration parseDuration(String s) {
-		long value = 0;
-		Duration result = Duration.ZERO;
-		for (char c : s.toCharArray()) {
-			switch (c) {
-			case 'y':
-				result = result.plus(value *365, ChronoUnit.DAYS);
-				value = 0;
-				break;
-			case 'M':
-				result = result.plus(value *30, ChronoUnit.DAYS);
-				value = 0;
-				break;
-			case 'd':
-				result = result.plus(value, ChronoUnit.DAYS);
-				value = 0;
-				break;
-			case 'h':
-				result = result.plus(value, ChronoUnit.HOURS);
-				value = 0;
-				break;
-			case 'm':
-				result = result.plus(value, ChronoUnit.MINUTES);
-				value = 0;
-				break;
-			case 's':
-				result = result.plus(value, ChronoUnit.SECONDS);
-				value = 0;
-				break;
-			default:
-				int n = Character.getNumericValue(c);
-				if (n < 0 || n > 9)
-					return Duration.ZERO;
-				value *= 10;
-				value += n;
-			}
-		}
-		return result;
 	}
 	
 	public static Predicate<String> regexPredicate(String arg) {
