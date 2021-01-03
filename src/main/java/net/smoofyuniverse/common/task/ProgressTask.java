@@ -23,6 +23,9 @@
 package net.smoofyuniverse.common.task;
 
 import net.smoofyuniverse.common.task.impl.ProgressIncrementalTask;
+import net.smoofyuniverse.logger.core.Logger;
+
+import java.util.function.Consumer;
 
 /**
  * A {@link ProgressListener} with a title and a message;
@@ -37,5 +40,23 @@ public interface ProgressTask extends BaseTask, ProgressListener, IncrementalTas
 	@Override
 	default IncrementalTask expect(long total) {
 		return new ProgressIncrementalTask(this, total, false);
+	}
+
+	/**
+	 * Passes this task to the consumer.
+	 * Handles any exceptions the may occur during execution.
+	 *
+	 * @param consumer The consumer.
+	 * @return Whether the task hasn't been cancelled.
+	 */
+	default boolean submit(Consumer<ProgressTask> consumer) {
+		setCancelled(false);
+		try {
+			consumer.accept(this);
+		} catch (Exception e) {
+			cancel();
+			Logger.get("ProgressTask").error("Failed to execute: " + this, e);
+		}
+		return !isCancelled();
 	}
 }

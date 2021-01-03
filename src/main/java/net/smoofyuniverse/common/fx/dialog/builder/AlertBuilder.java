@@ -27,7 +27,6 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
 import net.smoofyuniverse.common.task.ProgressTask;
@@ -163,7 +162,7 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 
 			AtomicBoolean ended = new AtomicBoolean(false);
 			Future<?> future = this.executor.submit(() -> {
-				App.submit(this.consumer, this.task);
+				this.task.submit(this.consumer);
 				ended.set(true);
 				Platform.runLater(d::hide);
 			});

@@ -23,12 +23,12 @@
 package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.Main;
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.app.Translations;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
+import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
@@ -178,7 +178,7 @@ public class DependencyManager {
 		if (this.app.isGUIEnabled())
 			Popup.consumer(consumer).title(Translations.dependencies_update_title).submitAndWait();
 		else
-			App.submit(consumer);
+			new SimpleProgressTask().submit(consumer);
 
 		if (toUpdate.isEmpty())
 			return true;

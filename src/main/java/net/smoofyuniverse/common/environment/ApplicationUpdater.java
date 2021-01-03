@@ -22,13 +22,13 @@
 
 package net.smoofyuniverse.common.environment;
 
-import net.smoofyuniverse.common.app.App;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.app.Translations;
 import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.task.ProgressTask;
+import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
@@ -198,7 +198,7 @@ public class ApplicationUpdater {
 		if (this.app.isGUIEnabled())
 			success = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
 		else
-			success = App.submit(consumer);
+			success = new SimpleProgressTask().submit(consumer);
 
 		if (success)
 			this.app.shutdownNow();

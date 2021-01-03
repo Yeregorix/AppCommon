@@ -62,6 +62,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -807,5 +808,28 @@ public abstract class Application {
 		if (instance == null)
 			throw new IllegalStateException("Application instance not available");
 		return instance;
+	}
+
+	/**
+	 * Delegates to {@link Platform#runLater(Runnable)} and blocks until execution is complete.
+	 *
+	 * @param runnable The runnable.
+	 */
+	public static void runLater(Runnable runnable) {
+		CountDownLatch lock = new CountDownLatch(1);
+
+		Platform.runLater(() -> {
+			try {
+				runnable.run();
+			} finally {
+				lock.countDown();
+			}
+		});
+
+		try {
+			lock.await();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

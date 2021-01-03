@@ -23,7 +23,7 @@
 package net.smoofyuniverse.common.util;
 
 import javafx.scene.image.Image;
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.app.OperatingSystem;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
@@ -153,7 +153,7 @@ public class IOUtil {
 	}
 
 	public static Image loadImage(String localPath) {
-		URL url = App.class.getClassLoader().getResource(localPath);
+		URL url = Application.class.getClassLoader().getResource(localPath);
 		if (url == null)
 			throw new IllegalArgumentException("localPath");
 		return new Image(url.toString());
