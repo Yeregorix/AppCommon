@@ -29,7 +29,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
-import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.util.StringUtil;
 
 import java.util.Optional;
@@ -49,7 +49,7 @@ public abstract class DialogBuilder<T> {
 	protected Stage owner;
 
 	public DialogBuilder() {
-		App.get().requireGUI();
+		Application.get().requireGUI();
 	}
 
 	/**
@@ -196,15 +196,15 @@ public abstract class DialogBuilder<T> {
 		validate();
 		Dialog<T> d = provide();
 
-		d.initOwner(this.owner == null ? App.get().getStage().orElse(null) : this.owner);
+		d.initOwner(this.owner == null ? Application.get().getStage().orElse(null) : this.owner);
 
 		if (this.titleP != null)
 			d.titleProperty().bind(this.titleP);
 		else
 			d.setTitle(this.title);
-		
+
 		DialogPane p = d.getDialogPane();
-		
+
 		if (this.headerP != null)
 			p.headerTextProperty().bind(this.headerP);
 		else

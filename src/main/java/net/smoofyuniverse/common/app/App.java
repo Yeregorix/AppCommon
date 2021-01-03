@@ -37,24 +37,6 @@ public final class App {
 	private static final Logger logger = Logger.get("App");
 
 	/**
-	 * Gets the application.
-	 *
-	 * @return The application.
-	 */
-	public static Application get() {
-		return Application.get();
-	}
-
-	/**
-	 * Gets whether the application is shut down.
-	 *
-	 * @return Whether the application is shut down.
-	 */
-	public static boolean isShutdown() {
-		return get().getState() == State.SHUTDOWN;
-	}
-
-	/**
 	 * Passes a task to the consumer.
 	 * Handles any exceptions the may occur during execution.
 	 *

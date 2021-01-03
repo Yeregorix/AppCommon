@@ -28,6 +28,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.App;
+import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
 import net.smoofyuniverse.common.task.ProgressTask;
 
@@ -116,9 +117,9 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 		
 		if (this.expandable == null)
 			this.expandable = createTaskContent();
-		
+
 		if (this.executor == null)
-			this.executor = App.get().getExecutor();
+			this.executor = Application.get().getExecutor();
 	}
 	
 	private Node createTaskContent() {
