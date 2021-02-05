@@ -28,7 +28,7 @@ import net.smoofyuniverse.common.task.ProgressListener;
  * The default implementation of {@link ProgressListener}.
  */
 public class SimpleProgressListener extends SimpleBaseListener implements ProgressListener {
-	private double progress;
+	private volatile double progress;
 
 	@Override
 	public double getProgress() {

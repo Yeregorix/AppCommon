@@ -25,6 +25,8 @@ package net.smoofyuniverse.common.task.impl;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressListener;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * This {@link IncrementalListener} updates a {@link ProgressListener}.
  * The progress is sets to the current total divided by the expected maximum.
@@ -45,7 +47,7 @@ public class ProgressIncrementalListener implements IncrementalListener {
 	 */
 	public final boolean limit;
 
-	private long total;
+	private final AtomicLong total = new AtomicLong();
 
 	/**
 	 * Creates a {@link ProgressIncrementalListener}.
@@ -67,7 +69,7 @@ public class ProgressIncrementalListener implements IncrementalListener {
 
 	@Override
 	public long getTotal() {
-		return this.total;
+		return this.total.get();
 	}
 
 	@Override
@@ -75,14 +77,14 @@ public class ProgressIncrementalListener implements IncrementalListener {
 		if (value < 0)
 			throw new IllegalArgumentException("negative value");
 
-		this.total += value;
+		long result = this.total.addAndGet(value);
 		if (this.maximum != 0) {
-			if (this.total >= this.maximum) {
+			if (result >= this.maximum) {
 				this.delegate.setProgress(1);
 				if (this.limit)
 					this.delegate.cancel();
 			} else {
-				this.delegate.setProgress(this.total / (double) this.maximum);
+				this.delegate.setProgress(result / (double) this.maximum);
 			}
 		}
 	}

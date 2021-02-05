@@ -30,7 +30,7 @@ import java.util.Optional;
  * The default implementation of {@link ProgressTask}.
  */
 public class SimpleProgressTask extends SimpleProgressListener implements ProgressTask {
-	private String title, message;
+	private volatile String title, message;
 
 	@Override
 	public Optional<String> getTitle() {

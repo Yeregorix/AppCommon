@@ -30,7 +30,7 @@ import java.util.Optional;
  * The default implementation of {@link IncrementalTask}.
  */
 public class SimpleIncrementalTask extends SimpleIncrementalListener implements IncrementalTask {
-	private String title, message;
+	private volatile String title, message;
 
 	/**
 	 * Creates an incremental task.

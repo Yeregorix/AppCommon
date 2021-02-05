@@ -29,7 +29,7 @@ import net.smoofyuniverse.common.task.BaseListener;
  * The default implementation of {@link BaseListener}.
  */
 public class SimpleBaseListener implements BaseListener {
-	private boolean cancellable = true, cancelled = false;
+	private volatile boolean cancellable = true, cancelled = false;
 
 	/**
 	 * Creates a listener and registers it (weak reference).

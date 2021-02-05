@@ -24,6 +24,8 @@ package net.smoofyuniverse.common.task.impl;
 
 import net.smoofyuniverse.common.task.IncrementalListener;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * The default implementation of {@link IncrementalListener}.
  */
@@ -32,7 +34,8 @@ public class SimpleIncrementalListener extends SimpleBaseListener implements Inc
 	 * If not zero, this listener will be cancelled when the total reaches this value.
 	 */
 	public final long maximum;
-	private long total;
+
+	private final AtomicLong total = new AtomicLong();
 
 	/**
 	 * Creates an incremental listener.
@@ -45,7 +48,7 @@ public class SimpleIncrementalListener extends SimpleBaseListener implements Inc
 
 	@Override
 	public long getTotal() {
-		return this.total;
+		return this.total.get();
 	}
 
 	@Override
@@ -53,8 +56,8 @@ public class SimpleIncrementalListener extends SimpleBaseListener implements Inc
 		if (value < 0)
 			throw new IllegalArgumentException("negative value");
 
-		this.total += value;
-		if (this.maximum != 0 && this.total >= this.maximum)
+		long result = this.total.addAndGet(value);
+		if (this.maximum != 0 && result >= this.maximum)
 			cancel();
 	}
 }
