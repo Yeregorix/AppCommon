@@ -30,10 +30,10 @@ import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
 import net.smoofyuniverse.common.task.ProgressTask;
+import net.smoofyuniverse.logger.core.Logger;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -41,8 +41,10 @@ import java.util.function.Consumer;
  * An {@link Alert} builder.
  */
 public class AlertBuilder extends DialogBuilder<ButtonType> {
+	private static final Logger logger = Logger.get("AlertBuilder");
+
 	private Consumer<ProgressTask> consumer;
-	private ExecutorService executor;
+	private Executor executor;
 	private ObservableProgressTask task;
 	private AlertType type;
 
@@ -74,7 +76,7 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 	 * @param value The task executor.
 	 * @return this.
 	 */
-	public AlertBuilder executor(ExecutorService value) {
+	public AlertBuilder executor(Executor value) {
 		this.executor = value;
 		return this;
 	}
@@ -161,9 +163,12 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 				cancel.disableProperty().bind(this.task.cancellableProperty().not());
 
 			AtomicBoolean ended = new AtomicBoolean(false);
-			Future<?> future = this.executor.submit(() -> {
+			CountDownLatch lock = new CountDownLatch(1);
+
+			this.executor.execute(() -> {
 				this.task.submit(this.consumer);
 				ended.set(true);
+				lock.countDown();
 				Platform.runLater(d::hide);
 			});
 
@@ -174,28 +179,29 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 
 			d.showAndWait();
 
-			if (!ended.get()) {
+			if (!ended.get())
 				this.task.cancel();
 
-				try {
-					future.get();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			try {
+				lock.await();
+			} catch (InterruptedException e) {
+				logger.error(e);
 			}
 
 			return !this.task.isCancelled();
 		} else {
 			AtomicBoolean result = new AtomicBoolean();
 			CountDownLatch lock = new CountDownLatch(1);
+
 			Platform.runLater(() -> {
 				result.set(submitAndWait());
 				lock.countDown();
 			});
+
 			try {
 				lock.await();
 			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
+				logger.error(e);
 			}
 			return result.get();
 		}

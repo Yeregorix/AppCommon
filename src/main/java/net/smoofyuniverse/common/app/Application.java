@@ -64,6 +64,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The application.
@@ -269,17 +270,15 @@ public abstract class Application {
 
 	/**
 	 * Initializes the following services: logger factory, event manager, resource manager, executor.
-	 *
-	 * @param executor The executor.
 	 */
-	protected void initServices(ExecutorService executor) {
+	protected void initServices() {
 		checkState(State.SERVICES_INIT);
 		long start = System.currentTimeMillis();
 
 		initLogAppender();
 		initEventManager();
 		initResourceManager();
-		this.executor = executor;
+		this.executor = Executors.newCachedThreadPool();
 
 		logger.info("Started " + this.name + " " + this.version + " (" + (System.currentTimeMillis() - start) + "ms).");
 		setState(State.STAGE_INIT);
@@ -829,7 +828,7 @@ public abstract class Application {
 		try {
 			lock.await();
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			logger.error(e);
 		}
 	}
 }

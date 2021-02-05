@@ -31,6 +31,7 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.util.StringUtil;
+import net.smoofyuniverse.logger.core.Logger;
 
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -42,6 +43,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * @param <T> The dialog type.
  */
 public abstract class DialogBuilder<T> {
+	private static final Logger logger = Logger.get("DialogBuilder");
+
 	protected ObservableValue<String> titleP, headerP, messageP;
 	protected String title, header, message;
 	protected ButtonType[] buttonTypes;
@@ -247,19 +250,21 @@ public abstract class DialogBuilder<T> {
 	 */
 	public Optional<T> showAndWait() {
 		validate();
-		if (Platform.isFxApplicationThread())
+		if (Platform.isFxApplicationThread()) {
 			return build().showAndWait();
-		else {
+		} else {
 			AtomicReference<Optional<T>> result = new AtomicReference<>();
 			CountDownLatch lock = new CountDownLatch(1);
+
 			Platform.runLater(() -> {
 				result.set(showAndWait());
 				lock.countDown();
 			});
+
 			try {
 				lock.await();
 			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
+				logger.error(e);
 			}
 			return result.get();
 		}
