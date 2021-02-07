@@ -44,8 +44,8 @@ public class NumberInputBuilder extends DialogBuilder<Number> {
 	}
 
 	@Override
-	protected void validate() {
-		super.validate();
+	protected void prepare() {
+		super.prepare();
 
 		if (this.field == null)
 			throw new IllegalArgumentException("field");

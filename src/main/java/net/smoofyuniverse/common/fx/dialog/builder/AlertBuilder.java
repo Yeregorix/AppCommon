@@ -93,52 +93,16 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 	}
 
 	@Override
-	protected void validate() {
+	protected void prepare() {
 		if (this.consumer != null)
 			prepareTask();
 
-		super.validate();
+		super.prepare();
 
 		if (this.type == null)
 			throw new IllegalArgumentException("type");
 	}
 	
-	private void prepareTask() {
-		if (this.task == null)
-			this.task = new ObservableProgressTask();
-		
-		if (this.type == null)
-			this.type = AlertType.INFORMATION;
-		
-		if (this.buttonTypes == null)
-			this.buttonTypes = new ButtonType[] { ButtonType.CANCEL };
-		
-		if (this.message == null && this.messageP == null)
-			this.messageP = this.task.titleProperty();
-		
-		if (this.expandable == null)
-			this.expandable = createTaskContent();
-
-		if (this.executor == null)
-			this.executor = Application.get().getExecutor();
-	}
-	
-	private Node createTaskContent() {
-		Label msg = new Label();
-		ProgressBar p = new ProgressBar();
-		p.setMaxWidth(Integer.MAX_VALUE);
-
-		msg.textProperty().bind(this.task.messageProperty());
-		p.progressProperty().bind(this.task.progressProperty());
-
-		return new VBox(5, msg, p);
-	}
-
-	@Override
-	protected Dialog<ButtonType> provide() {
-		return new Alert(this.type);
-	}
-
 	/**
 	 * If the task is set, executes the task and returns whether the task hasn't been cancelled.
 	 * <p>
@@ -150,17 +114,13 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 	 */
 	@Override
 	public boolean submitAndWait() {
-		validate();
+		prepare();
 
 		if (Platform.isFxApplicationThread()) {
-			Dialog<ButtonType> d = build();
+			Dialog<ButtonType> d = buildDialog();
 
-			if (this.task == null)
+			if (this.consumer == null)
 				return d.showAndWait().orElse(null) == ButtonType.OK;
-
-			Node cancel = d.getDialogPane().lookupButton(ButtonType.CANCEL);
-			if (cancel != null)
-				cancel.disableProperty().bind(this.task.cancellableProperty().not());
 
 			AtomicBoolean ended = new AtomicBoolean(false);
 			CountDownLatch lock = new CountDownLatch(1);
@@ -205,5 +165,44 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 			}
 			return result.get();
 		}
+	}
+
+	private Node createTaskContent() {
+		Label msg = new Label();
+		ProgressBar p = new ProgressBar();
+		p.setMaxWidth(Integer.MAX_VALUE);
+
+		msg.textProperty().bind(this.task.messageProperty());
+		p.progressProperty().bind(this.task.progressProperty());
+
+		return new VBox(5, msg, p);
+	}
+
+	@Override
+	protected Dialog<ButtonType> provide() {
+		return new Alert(this.type);
+	}
+
+	private void prepareTask() {
+		if (this.task == null)
+			this.task = new ObservableProgressTask();
+
+		if (this.type == null)
+			this.type = AlertType.INFORMATION;
+
+		if (this.buttons == null)
+			this.buttons = new ButtonType[]{ButtonType.CANCEL};
+
+		if (this.message == null && this.messageP == null)
+			this.messageP = this.task.titleProperty();
+
+		if (this.expandable == null)
+			this.expandable = createTaskContent();
+
+		if (this.executor == null)
+			this.executor = Application.get().getExecutor();
+
+		if (this.disable == null || !this.disable.containsKey(ButtonType.CANCEL))
+			disable(ButtonType.CANCEL, this.task.cancellableProperty().not());
 	}
 }

@@ -23,6 +23,7 @@
 package net.smoofyuniverse.common.fx.dialog.builder;
 
 import javafx.application.Platform;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -33,6 +34,9 @@ import net.smoofyuniverse.common.app.Application;
 import net.smoofyuniverse.common.util.StringUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,7 +51,8 @@ public abstract class DialogBuilder<T> {
 
 	protected ObservableValue<String> titleP, headerP, messageP;
 	protected String title, header, message;
-	protected ButtonType[] buttonTypes;
+	protected ButtonType[] buttons;
+	protected Map<ButtonType, ObservableBooleanValue> disable;
 	protected Node content, expandable;
 	protected Stage owner;
 
@@ -180,14 +185,27 @@ public abstract class DialogBuilder<T> {
 	 * @param values The button types.
 	 * @return this.
 	 */
-	public DialogBuilder<T> buttonTypes(ButtonType... values) {
-		this.buttonTypes = values;
+	public DialogBuilder<T> buttons(ButtonType... values) {
+		this.buttons = values;
 		return this;
 	}
 
-	protected void validate() {
-		if (this.title == null && this.titleP == null)
-			throw new IllegalArgumentException("title");
+	/**
+	 * Sets whether the button is disabled.
+	 *
+	 * @param buttonType The button type.
+	 * @param value      The observable value.
+	 * @return this.
+	 */
+	public DialogBuilder<T> disable(ButtonType buttonType, ObservableBooleanValue value) {
+		if (buttonType == null)
+			throw new IllegalArgumentException("buttonType");
+
+		if (this.disable == null)
+			this.disable = new HashMap<>();
+
+		this.disable.put(buttonType, value);
+		return this;
 	}
 
 	/**
@@ -195,8 +213,20 @@ public abstract class DialogBuilder<T> {
 	 *
 	 * @return The new dialog.
 	 */
-	public Dialog<T> build() {
-		validate();
+	public final Dialog<T> build() {
+		prepare();
+		return buildDialog();
+	}
+
+	/**
+	 * Validates options and sets default ones when possible.
+	 */
+	protected void prepare() {
+		if (this.title == null && this.titleP == null)
+			throw new IllegalArgumentException("title");
+	}
+
+	protected Dialog<T> buildDialog() {
 		Dialog<T> d = provide();
 
 		d.initOwner(this.owner == null ? Application.get().getStage().orElse(null) : this.owner);
@@ -224,8 +254,19 @@ public abstract class DialogBuilder<T> {
 		if (this.expandable != null)
 			p.setExpandableContent(this.expandable);
 
-		if (this.buttonTypes != null)
-			p.getButtonTypes().setAll(this.buttonTypes);
+		if (this.buttons != null)
+			p.getButtonTypes().setAll(this.buttons);
+
+		if (this.disable != null) {
+			for (Entry<ButtonType, ObservableBooleanValue> e : this.disable.entrySet()) {
+				if (e.getValue() == null)
+					continue;
+
+				Node button = p.lookupButton(e.getKey());
+				if (button != null)
+					button.disableProperty().bind(e.getValue());
+			}
+		}
 
 		return d;
 	}
@@ -236,9 +277,10 @@ public abstract class DialogBuilder<T> {
 	 * Shows the dialog.
 	 */
 	public void show() {
-		validate();
+		prepare();
+
 		if (Platform.isFxApplicationThread())
-			build().show();
+			buildDialog().show();
 		else
 			Platform.runLater(this::show);
 	}
@@ -249,9 +291,10 @@ public abstract class DialogBuilder<T> {
 	 * @return The result. See {@link Dialog#resultProperty()}.
 	 */
 	public Optional<T> showAndWait() {
-		validate();
+		prepare();
+
 		if (Platform.isFxApplicationThread()) {
-			return build().showAndWait();
+			return buildDialog().showAndWait();
 		} else {
 			AtomicReference<Optional<T>> result = new AtomicReference<>();
 			CountDownLatch lock = new CountDownLatch(1);

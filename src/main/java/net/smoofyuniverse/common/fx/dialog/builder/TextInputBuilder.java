@@ -44,7 +44,15 @@ public class TextInputBuilder extends DialogBuilder<String> {
 	}
 
 	@Override
+	protected void prepare() {
+		super.prepare();
+
+		if (this.field == null)
+			this.field = new TextField();
+	}
+
+	@Override
 	protected Dialog<String> provide() {
-		return new TextInputDialog(this.field == null ? new TextField() : this.field);
+		return new TextInputDialog(this.field);
 	}
 }
