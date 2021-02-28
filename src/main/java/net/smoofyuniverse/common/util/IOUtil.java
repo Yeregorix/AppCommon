@@ -152,10 +152,10 @@ public class IOUtil {
 		}
 	}
 
-	public static Image loadImage(String localPath) {
-		URL url = Application.class.getClassLoader().getResource(localPath);
+	public static Image loadImage(String resourcePath) {
+		URL url = Application.class.getClassLoader().getResource(resourcePath);
 		if (url == null)
-			throw new IllegalArgumentException("localPath");
+			throw new IllegalArgumentException("Resource not found: " + resourcePath);
 		return new Image(url.toString());
 	}
 }
