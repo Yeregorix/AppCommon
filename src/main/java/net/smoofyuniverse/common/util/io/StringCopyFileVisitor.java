@@ -27,15 +27,21 @@ import java.nio.file.Path;
 
 public class StringCopyFileVisitor extends AbstractCopyFileVisitor {
 	protected final Path source, target;
+	protected final int sourceLength;
 
 	public StringCopyFileVisitor(Path source, Path target, CopyOption... options) {
 		super(options);
 		this.source = source;
 		this.target = target;
+
+		String sep = source.getFileSystem().getSeparator();
+		String str = source.toString();
+		this.sourceLength = str.endsWith(sep) ? str.length() : (str.length() + sep.length());
 	}
 
 	@Override
 	protected Path getDestination(Path path) {
-		return this.target.resolve(this.source.relativize(path).toString());
+		String str = path.toString();
+		return str.length() > this.sourceLength ? this.target.resolve(str.substring(this.sourceLength)) : this.target;
 	}
 }
