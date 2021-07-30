@@ -139,7 +139,7 @@ public class DependencyManager {
 
 		long totalSizeF = totalSize;
 		Consumer<ProgressTask> consumer = task -> {
-			logger.info("Downloading missing dependencies ..");
+			logger.info("Downloading missing dependencies ...");
 			task.setTitle(Translations.dependencies_download_title);
 			IncrementalListener listener = task.expect(totalSizeF);
 
@@ -149,7 +149,7 @@ public class DependencyManager {
 					return;
 
 				DependencyInfo info = updateIt.next();
-				logger.info("Downloading dependency " + info.name + " ..");
+				logger.info("Downloading dependency " + info.name + " ...");
 				task.setMessage(info.name);
 
 				Path dir = info.file.getParent();

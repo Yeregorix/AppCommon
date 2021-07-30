@@ -124,12 +124,12 @@ public class ApplicationUpdater {
 			throw new IllegalStateException();
 
 		Consumer<ProgressTask> consumer = task -> {
-			logger.info("Starting application update task ..");
+			logger.info("Starting application update task ...");
 			task.setTitle(Translations.update_download_title);
 
 			Path updaterJar = this.app.getWorkingDirectory().resolve("Updater.jar");
 			if (!this.latestUpdater.matches(updaterJar)) {
-				logger.info("Downloading latest updater ..");
+				logger.info("Downloading latest updater ...");
 				this.latestUpdater.download(updaterJar, this.app.getConnectionConfig(), task);
 
 				if (task.isCancelled())
@@ -137,7 +137,7 @@ public class ApplicationUpdater {
 
 				if (!this.latestUpdater.matches(updaterJar)) {
 					task.cancel();
-					logger.error("Updater file seems invalid, aborting ..");
+					logger.error("Updater file seems invalid, aborting ...");
 					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
 				}
 			}
@@ -147,7 +147,7 @@ public class ApplicationUpdater {
 
 			Path appUpdateJar = this.app.getWorkingDirectory().resolve(this.app.getName() + "-Update.jar");
 			if (!this.latestApp.matches(appUpdateJar)) {
-				logger.info("Downloading latest application update ..");
+				logger.info("Downloading latest application update ...");
 				this.latestApp.download(appUpdateJar, this.app.getConnectionConfig(), task);
 
 				if (task.isCancelled())
@@ -155,7 +155,7 @@ public class ApplicationUpdater {
 
 				if (this.latestApp.matches(appUpdateJar)) {
 					task.cancel();
-					logger.error("Application update file seems invalid, aborting ..");
+					logger.error("Application update file seems invalid, aborting ...");
 					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
 				}
 			}
@@ -163,7 +163,7 @@ public class ApplicationUpdater {
 			if (task.isCancelled())
 				return;
 
-			logger.info("Starting updater process ..");
+			logger.info("Starting updater process ...");
 			task.setTitle(Translations.update_process_title);
 			task.setMessage(Translations.update_process_message);
 			task.setProgress(-1);

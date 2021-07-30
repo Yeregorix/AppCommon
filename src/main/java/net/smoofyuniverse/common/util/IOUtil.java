@@ -111,7 +111,7 @@ public class IOUtil {
 				return false;
 			}
 
-			logger.info("Downloading from url " + co.getURL() + " to file: " + file + " ..");
+			logger.info("Downloading from url " + co.getURL() + " to file " + file + " ...");
 			long time = System.currentTimeMillis();
 
 			try (ListenedInputStream in = p.getInputStream(co);

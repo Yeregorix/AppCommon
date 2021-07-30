@@ -245,7 +245,7 @@ public abstract class Application {
 	public void shutdownNow(int code) {
 		try {
 			if (this.state != State.SHUTDOWN) {
-				logger.info("Shutting down ..");
+				logger.info("Shutting down ...");
 				setState(State.SHUTDOWN);
 			}
 
@@ -336,7 +336,7 @@ public abstract class Application {
 			throw new IllegalStateException();
 		this.resourceManager = resourceManager;
 
-		logger.info("Loading resources ..");
+		logger.info("Loading resources ...");
 		try {
 			loadResources();
 		} catch (Exception e) {
@@ -702,7 +702,7 @@ public abstract class Application {
 		if (this.state == State.SHUTDOWN)
 			return;
 
-		logger.info("Shutting down ..");
+		logger.info("Shutting down ...");
 		setState(State.SHUTDOWN);
 
 		cancelListeners();

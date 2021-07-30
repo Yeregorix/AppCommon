@@ -3,17 +3,17 @@ lang_name=English
 ## Application update
 update_available_title=Update available
 update_available_message=An update is available.\nDo you want to install it?
-update_download_title=Downloading the update ..
+update_download_title=Downloading the update ...
 update_cancelled=Update cancelled
 updater_signature_invalid=The update installer has an incorrect signature.\nFor security, the update has been cancelled.
 update_signature_invalid=The downloaded update has an incorrect signature.\nFor security, the update has been cancelled.
-update_process_title=Updating ..
-update_process_message=Starting the process ..
+update_process_title=Updating ...
+update_process_message=Starting the process ...
 update_process_error=An error occurred while starting the update process.
 update_title=Application update
 
 ## Dependencies update
-dependencies_download_title=Downloading missing dependencies ..
+dependencies_download_title=Downloading missing dependencies ...
 dependencies_update_title=Dependencies update
 failed_dependencies_title=Failed dependencies
 failed_dependencies_message=The following dependencies have not been downloaded correctly:{list}
