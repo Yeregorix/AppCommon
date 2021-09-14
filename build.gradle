@@ -40,6 +40,22 @@ tasks.withType(JavaCompile) {
     options.encoding = "utf-8"
 }
 
+sourceSets {
+    main6
+    main {
+        compileClasspath += main6.output
+    }
+}
+
+compileMain6Java {
+    sourceCompatibility = '1.6'
+    targetCompatibility = '1.6'
+}
+
+jar {
+    from sourceSets.main6.output
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -48,7 +64,6 @@ repositories {
 }
 
 dependencies {
-    api 'net.smoofyuniverse:appcommon-main:1.1.0-SNAPSHOT'
     api 'net.smoofyuniverse:smoofylogger:1.2.0-SNAPSHOT'
     api 'com.grack:nanojson:1.6'
 
