@@ -21,16 +21,24 @@
  */
 
 plugins {
-    id 'java'
-    id 'maven'
+    id 'java-library'
+    id 'maven-publish'
 }
 
 group 'net.smoofyuniverse'
-archivesBaseName = 'appcommon'
 version = '1.2.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "utf-8"
+}
 
 repositories {
     mavenCentral()
@@ -40,78 +48,70 @@ repositories {
 }
 
 dependencies {
-    compile 'net.smoofyuniverse:appcommon-main:1.1.0-SNAPSHOT'
-    compile 'net.smoofyuniverse:smoofylogger:1.2.0-SNAPSHOT'
-    compile 'com.grack:nanojson:1.6'
+    api 'net.smoofyuniverse:appcommon-main:1.1.0-SNAPSHOT'
+    api 'net.smoofyuniverse:smoofylogger:1.2.0-SNAPSHOT'
+    api 'com.grack:nanojson:1.6'
 
-    testCompile 'org.junit.jupiter:junit-jupiter:5.6.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
 }
 
 test {
     useJUnitPlatform()
 }
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'appcommon'
+            from components.java
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-if (project.hasProperty("signing.keyId")) {
-    apply plugin: 'signing'
-    signing {
-        sign configurations.archives
-    }
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
-            }
-
-            pom.project {
-                name 'AppCommon'
-                packaging 'jar'
-                description 'Common library for JavaFX applications.'
-                url 'https://github.com/Yeregorix/AppCommon'
+            pom {
+                name = 'AppCommon'
+                packaging = 'jar'
+                description = "Common library for JavaFX applications."
+                url = 'https://github.com/Yeregorix/AppCommon'
 
                 scm {
-                    connection 'scm:git:https://github.com/Yeregorix/AppCommon.git'
-                    developerConnection 'scm:git:https://github.com/Yeregorix/AppCommon.git'
-                    url 'https://github.com/Yeregorix/AppCommon'
+                    connection = 'scm:git:https://github.com/Yeregorix/AppCommon.git'
+                    developerConnection = 'scm:git:https://github.com/Yeregorix/AppCommon.git'
+                    url = 'https://github.com/Yeregorix/AppCommon'
                 }
 
                 licenses {
                     license {
-                        name 'MIT License'
-                        url 'https://opensource.org/licenses/MIT'
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
                     }
                 }
 
                 developers {
                     developer {
-                        id 'Yeregorix'
-                        name 'Hugo Dupanloup'
-                        email 'yeregorix@smoofyuniverse.net'
+                        id = 'Yeregorix'
+                        name = 'Hugo Dupanloup'
+                        email = 'yeregorix@smoofyuniverse.net'
                     }
                 }
             }
         }
+    }
+
+    repositories {
+        maven {
+            url = version.endsWith('SNAPSHOT') ?
+                    "https://oss.sonatype.org/content/repositories/snapshots/"
+                    : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+            credentials {
+                username findProperty('ossrhUsername')
+                password findProperty('ossrhPassword')
+            }
+        }
+    }
+}
+
+if (project.hasProperty("signing.keyId")) {
+    apply plugin: 'signing'
+    signing {
+        sign publishing.publications.mavenJava
     }
 }
