@@ -56,10 +56,6 @@ public abstract class DialogBuilder<T> {
 	protected Node content, expandable;
 	protected Stage owner;
 
-	public DialogBuilder() {
-		Application.get().requireGUI();
-	}
-
 	/**
 	 * Sets the owner.
 	 *
@@ -229,7 +225,7 @@ public abstract class DialogBuilder<T> {
 	protected Dialog<T> buildDialog() {
 		Dialog<T> d = provide();
 
-		d.initOwner(this.owner == null ? Application.get().getStage().orElse(null) : this.owner);
+		d.initOwner(this.owner == null ? Application.get().getStage() : this.owner);
 
 		if (this.titleP != null)
 			d.titleProperty().bind(this.titleP);

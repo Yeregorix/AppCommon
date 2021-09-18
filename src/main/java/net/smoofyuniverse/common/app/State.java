@@ -22,43 +22,23 @@
 
 package net.smoofyuniverse.common.app;
 
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 import net.smoofyuniverse.common.event.EventListener;
-import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
-import net.smoofyuniverse.common.resource.ResourceManager;
-import net.smoofyuniverse.common.util.ResourceLoader;
-import net.smoofyuniverse.logger.appender.log.LogAppender;
-import net.smoofyuniverse.logger.core.Logger;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * A state of the application.
  */
 public enum State {
 	/**
-	 * The application is reading arguments,
-	 * initializing the {@link ResourceLoader}
-	 * and a temporary {@link Logger}.
+	 * The application manager exists but is not ready to operate.
 	 */
 	CREATION,
 
 	/**
-	 * The application is initializing services:
-	 * {@link LogAppender},
-	 * {@link EventManager},
-	 * {@link ResourceManager},
-	 * {@link ExecutorService}.
+	 * The application manager is initializing.
 	 */
-	SERVICES_INIT,
-
-	/**
-	 * If the UI is enabled, the application is initializing the {@link Stage} and the {@link Scene}.
-	 */
-	STAGE_INIT,
+	INITIALIZATION,
 
 	/**
 	 * The application is running.

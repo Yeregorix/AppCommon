@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.event;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.util.ReflectionUtil;
 
 /**
@@ -82,12 +82,12 @@ public class ListenerRegistration<T extends Event> implements Comparable<Listene
 	}
 
 	/**
-	 * Registers this listener in {@link Application}'s event manager.
+	 * Registers this listener in {@link ApplicationManager}'s event manager.
 	 *
 	 * @return Whether this listener wasn't already registered.
 	 */
 	public final boolean register() {
-		return Application.get().getEventManager().register(this);
+		return ApplicationManager.get().getEventManager().register(this);
 	}
 
 	@Override

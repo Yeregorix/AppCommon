@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.task.impl;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.task.BaseListener;
 
 /**
@@ -33,10 +33,10 @@ public class SimpleBaseListener implements BaseListener {
 
 	/**
 	 * Creates a listener and registers it (weak reference).
-	 * See {@link Application#registerListener(BaseListener)}.
+	 * See {@link ApplicationManager#registerListener(BaseListener)}.
 	 */
 	public SimpleBaseListener() {
-		Application.get().registerListener(this);
+		ApplicationManager.get().registerListener(this);
 	}
 
 	@Override

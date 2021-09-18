@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.resource;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -62,7 +62,7 @@ public final class Language {
 	 * @return The name.
 	 */
 	public Optional<String> getName() {
-		return Application.get().getResourceManager().getPack(this).flatMap(p -> p.getModule(String.class)).flatMap(m -> m.get("lang_name"));
+		return ApplicationManager.get().getResourceManager().getPack(this).flatMap(p -> p.getModule(String.class)).flatMap(m -> m.get("lang_name"));
 	}
 
 	/**

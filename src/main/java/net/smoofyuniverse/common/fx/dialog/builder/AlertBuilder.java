@@ -27,7 +27,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.logger.core.Logger;
@@ -200,7 +200,7 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 			this.expandable = createTaskContent();
 
 		if (this.executor == null)
-			this.executor = Application.get().getExecutor();
+			this.executor = ApplicationManager.get().getExecutor();
 
 		if (this.disable == null || !this.disable.containsKey(ButtonType.CANCEL))
 			disable(ButtonType.CANCEL, this.task.cancellableProperty().not());

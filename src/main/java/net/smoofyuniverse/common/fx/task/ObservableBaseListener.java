@@ -25,7 +25,7 @@ package net.smoofyuniverse.common.fx.task;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.task.BaseListener;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,10 +41,10 @@ public class ObservableBaseListener implements BaseListener {
 
 	/**
 	 * Creates a listener and registers it (weak reference).
-	 * See {@link Application#registerListener(BaseListener)}.
+	 * See {@link ApplicationManager#registerListener(BaseListener)}.
 	 */
 	public ObservableBaseListener() {
-		Application.get().registerListener(this);
+		ApplicationManager.get().registerListener(this);
 	}
 
 	/**

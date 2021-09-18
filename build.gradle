@@ -23,6 +23,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'net.smoofyuniverse.dependency-exporter' version '1.0.0'
 }
 
 group 'net.smoofyuniverse'
@@ -63,11 +64,37 @@ repositories {
     }
 }
 
+configurations {
+    javaFXRuntime {
+        transitive = false
+    }
+}
+
+dependencyExport {
+    javafx {
+        path = "dep/javafx.json"
+        config = configurations.javaFXRuntime
+        constraint("win", ["windows"], ["x64"])
+        constraint("win-x86", ["windows"], ["x86"])
+        constraint("mac", ["macos"], ["x64"])
+        constraint("mac-aarch64", ["macos"], ["arm64"])
+        constraint("linux", ["linux"], ["x64"])
+        constraint("linux-aarch64", ["linux"], ["arm64"])
+        constraint("linux-arm32-monocle", ["linux"], ["arm32"])
+    }
+}
+
 dependencies {
     api 'net.smoofyuniverse:smoofylogger:1.2.0-SNAPSHOT'
     api 'com.grack:nanojson:1.7'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+
+    for (classifier in dependencyExport.javafx.constraints.names) {
+        for (name in ["base", "graphics", "controls"]) {
+            javaFXRuntime 'org.openjfx:javafx-' + name + ':17:' + classifier
+        }
+    }
 }
 
 test {

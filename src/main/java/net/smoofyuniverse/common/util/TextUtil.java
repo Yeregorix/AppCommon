@@ -27,7 +27,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
-import net.smoofyuniverse.common.app.OperatingSystem;
+import net.smoofyuniverse.common.platform.OperatingSystem;
 
 import java.net.URI;
 import java.net.URISyntaxException;

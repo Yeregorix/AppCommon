@@ -20,28 +20,35 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.platform;
 
-import net.smoofyuniverse.common.app.ApplicationManager;
+import java.util.Locale;
 
 /**
- * An event that can be posted in a {@link EventManager}.
+ * A processor architecture.
  */
-public interface Event {
+public enum Architecture {
+	X86,
+	X64,
+	ARM32,
+	ARM64,
+	UNKNOWN;
 
 	/**
-	 * Gets whether this event is cancelled.
-	 *
-	 * @return Whether this event is cancelled.
+	 * The current architecture.
 	 */
-	default boolean isCancelled() { return false; }
+	public static final Architecture CURRENT = getCurrent();
 
-	/**
-	 * Posts this event in {@link ApplicationManager}'s event manager.
-	 *
-	 * @return Whether this event hasn't been cancelled.
-	 */
-	default boolean post() {
-		return ApplicationManager.get().getEventManager().postEvent(this);
+	private static Architecture getCurrent() {
+		String arch = System.getProperty("os.arch").toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "");
+		if (arch.matches("^(x8664|amd64|ia32e|em64t|x64)$"))
+			return X64;
+		if (arch.matches("^(x8632|x86|i[3-6]86|ia32|x32)$"))
+			return X86;
+		if (arch.matches("^(aarch64|arm64)$"))
+			return ARM64;
+		if (arch.matches("^(arm|arm32)$"))
+			return ARM32;
+		return UNKNOWN;
 	}
 }

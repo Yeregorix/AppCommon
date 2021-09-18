@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.util;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 
 import java.nio.file.Path;
 
@@ -38,7 +38,7 @@ public class ProcessUtil {
 	 * @return The process builder.
 	 */
 	public static ProcessBuilder builder() {
-		return builder(Application.get().getWorkingDirectory());
+		return builder(ApplicationManager.get().getWorkingDirectory());
 	}
 
 	/**

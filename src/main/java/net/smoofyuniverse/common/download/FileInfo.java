@@ -87,6 +87,24 @@ public class FileInfo {
 	}
 
 	/**
+	 * Creates parent directory.
+	 *
+	 * @return Whether the directory was created without error.
+	 */
+	public boolean createParent() {
+		Path dir = this.file.getParent();
+		if (!Files.isDirectory(dir)) {
+			try {
+				Files.createDirectories(dir);
+			} catch (IOException e) {
+				logger.warn("Failed to create directory " + dir, e);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Downloads the remote file to the local file.
 	 *
 	 * @param config The connection configuration.

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.app;
+package net.smoofyuniverse.common.platform;
 
 import net.smoofyuniverse.common.util.ProcessUtil;
 
@@ -59,20 +59,20 @@ public enum OperatingSystem {
 	/**
 	 * The current operating system.
 	 */
-	public static final OperatingSystem CURRENT = getPlatform();
+	public static final OperatingSystem CURRENT = getCurrent();
 
 	/**
 	 * The value of system property {@code user.home}.
 	 */
 	public static final String USER_HOME = System.getProperty("user.home", ".");
 
-	private static OperatingSystem getPlatform() {
-		String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-		if (osName.contains("win"))
+	private static OperatingSystem getCurrent() {
+		String name = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+		if (name.contains("win"))
 			return WINDOWS;
-		if (osName.contains("mac"))
+		if (name.contains("mac"))
 			return MACOS;
-		if (osName.contains("linux") || osName.contains("unix"))
+		if (name.contains("linux") || name.contains("unix"))
 			return LINUX;
 		return UNKNOWN;
 	}

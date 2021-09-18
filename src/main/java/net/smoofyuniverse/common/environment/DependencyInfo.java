@@ -22,10 +22,20 @@
 
 package net.smoofyuniverse.common.environment;
 
+import com.grack.nanojson.JsonArray;
+import com.grack.nanojson.JsonObject;
+import com.grack.nanojson.JsonParser;
 import net.smoofyuniverse.common.download.FileInfo;
+import net.smoofyuniverse.common.platform.Architecture;
+import net.smoofyuniverse.common.platform.OperatingSystem;
+import net.smoofyuniverse.common.util.ArrayUtil;
 import net.smoofyuniverse.common.util.URLUtil;
 
+import java.io.BufferedReader;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
 
 /**
  * Information about a dependency.
@@ -37,17 +47,14 @@ public class DependencyInfo extends FileInfo {
 	public final String name;
 
 	/**
-	 * Creates a new dependency.
-	 *
-	 * @param name            The name.
-	 * @param url             The URL.
-	 * @param size            The size.
-	 * @param digest          The hexadecimal representation of the digest.
-	 * @param digestAlgorithm The algorithm used to compute the digest.
+	 * The operating systems compatible with this dependency.
 	 */
-	public DependencyInfo(String name, String url, long size, String digest, String digestAlgorithm) {
-		this(name, URLUtil.newURL(url), size, digest, digestAlgorithm);
-	}
+	public final OperatingSystem[] systems;
+
+	/**
+	 * The processor architectures compatible with this dependency.
+	 */
+	public final Architecture[] archs;
 
 	/**
 	 * Creates a new dependency.
@@ -57,11 +64,89 @@ public class DependencyInfo extends FileInfo {
 	 * @param size            The size.
 	 * @param digest          The hexadecimal representation of the digest.
 	 * @param digestAlgorithm The algorithm used to compute the digest.
+	 * @param systems         The systems.
+	 * @param archs           The architectures.
 	 */
-	public DependencyInfo(String name, URL url, long size, String digest, String digestAlgorithm) {
+	public DependencyInfo(String name, URL url, long size,
+						  String digest, String digestAlgorithm,
+						  OperatingSystem[] systems, Architecture[] archs) {
 		super(url, size, digest, digestAlgorithm);
 		if (name == null || name.isEmpty())
 			throw new IllegalArgumentException("name");
+		if (systems == null)
+			throw new IllegalArgumentException("systems");
+		if (archs == null)
+			throw new IllegalArgumentException("archs");
+
 		this.name = name;
+		this.systems = systems;
+		this.archs = archs;
+	}
+
+	/**
+	 * Gets whether this dependency is compatible with the current system and architecture.
+	 *
+	 * @return Whether this dependency is compatible.
+	 */
+	public boolean isCompatible() {
+		return ArrayUtil.contains(this.systems, OperatingSystem.CURRENT) && ArrayUtil.contains(this.archs, Architecture.CURRENT);
+	}
+
+	/**
+	 * Loads all {@link DependencyInfo}s in a json file.
+	 *
+	 * @param file The file.
+	 * @return The dependencies.
+	 */
+	public static DependencyInfo[] loadAll(Path file) throws Exception {
+		try (BufferedReader r = Files.newBufferedReader(file)) {
+			return loadAll(JsonParser.array().from(r));
+		}
+	}
+
+	/**
+	 * Loads all {@link DependencyInfo}s in a json array.
+	 *
+	 * @param array The json array.
+	 * @return The dependencies.
+	 */
+	public static DependencyInfo[] loadAll(JsonArray array) {
+		DependencyInfo[] deps = new DependencyInfo[array.size()];
+		for (int i = 0; i < deps.length; i++)
+			deps[i] = load((JsonObject) array.get(i));
+		return deps;
+	}
+
+	/**
+	 * Loads a {@link DependencyInfo} from a json object.
+	 *
+	 * @param obj The json object.
+	 * @return The dependency.
+	 */
+	public static DependencyInfo load(JsonObject obj) {
+		JsonArray systemsArray = obj.getArray("systems");
+		OperatingSystem[] systems;
+		if (systemsArray == null) {
+			systems = OperatingSystem.values();
+		} else {
+			systems = new OperatingSystem[systemsArray.size()];
+			for (int i = 0; i < systems.length; i++)
+				systems[i] = OperatingSystem.valueOf(systemsArray.getString(i).toUpperCase(Locale.ROOT));
+		}
+
+		JsonArray archsArray = obj.getArray("archs");
+		Architecture[] archs;
+		if (archsArray == null) {
+			archs = Architecture.values();
+		} else {
+			archs = new Architecture[archsArray.size()];
+			for (int i = 0; i < archs.length; i++)
+				archs[i] = Architecture.valueOf(archsArray.getString(i).toUpperCase(Locale.ROOT));
+		}
+
+		return new DependencyInfo(obj.getString("name"),
+				URLUtil.newURL(obj.getString("url")), obj.getLong("size", -1),
+				obj.getString("digest"), obj.getString("digest-algorithm", "sha1"),
+				systems, archs);
 	}
 }

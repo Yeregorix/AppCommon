@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.environment.source;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
 
 import java.util.Optional;
@@ -40,12 +40,12 @@ public interface ReleaseSource {
 	Optional<String> getLatestVersion();
 
 	/**
-	 * Gets the release of the current {@link Application} version.
+	 * Gets the release of the current {@link ApplicationManager} version.
 	 *
 	 * @return The current release.
 	 */
 	default Optional<ReleaseInfo> getCurrentRelease() {
-		return getRelease(Application.get().getVersion());
+		return getRelease(ApplicationManager.get().getVersion());
 	}
 
 	/**

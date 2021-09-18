@@ -23,54 +23,41 @@
 package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.Main;
-import net.smoofyuniverse.common.app.Application;
-import net.smoofyuniverse.common.app.Translations;
-import net.smoofyuniverse.common.fx.dialog.Popup;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.task.IncrementalListener;
-import net.smoofyuniverse.common.task.ProgressTask;
-import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
+import net.smoofyuniverse.common.task.impl.SimpleIncrementalListener;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
-import java.io.IOException;
+import javax.swing.*;
+import java.awt.*;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.jar.JarFile;
 
 /**
  * An helper to update and load dependencies.
  */
 public class DependencyManager {
-	private static final Logger logger = Logger.get("DependencyManager");
+	protected static final Logger logger = Logger.get("DependencyManager");
 	private static Method addURL;
 
-	private final Application app;
-	private final Collection<DependencyInfo> deps;
+	protected final ApplicationManager app;
+	protected final Collection<DependencyInfo> dependencies;
 
 	/**
-	 * Creates a manager.
+	 * Creates a dependency manager.
 	 *
-	 * @param app  The application.
-	 * @param deps The dependencies.
+	 * @param app          The application.
+	 * @param dependencies The dependencies.
 	 */
-	public DependencyManager(Application app, DependencyInfo... deps) {
-		this(app, Arrays.asList(deps));
-	}
-
-	/**
-	 * Creates a manager.
-	 *
-	 * @param app  The application.
-	 * @param deps The dependencies.
-	 */
-	public DependencyManager(Application app, Collection<DependencyInfo> deps) {
+	protected DependencyManager(ApplicationManager app, Collection<DependencyInfo> dependencies) {
 		this.app = app;
-		this.deps = deps;
+		this.dependencies = dependencies;
 	}
 
 	/**
@@ -87,108 +74,105 @@ public class DependencyManager {
 	/**
 	 * Updates the dependencies using the default directory.
 	 *
-	 * @return Whether all dependencies has been updated.
+	 * @return Whether all dependencies have been updated.
 	 */
 	public boolean update() {
 		return update(this.app.getWorkingDirectory().resolve("libraries"));
 	}
 
 	/**
-	 * Loads the dependencies.
-	 * Any error is fatal.
-	 */
-	public void load() {
-		for (DependencyInfo dep : this.deps) {
-			try {
-				addToSystemClasspath(dep.file);
-			} catch (Exception e) {
-				logger.error("Failed to load dependency " + dep.name, e);
-				this.app.fatalError(e);
-			}
-		}
-	}
-
-	/**
 	 * Updates the dependencies.
 	 *
 	 * @param defaultDir The default directory where dependencies will be saved.
-	 * @return Whether all dependencies has been updated.
+	 * @return Whether all dependencies have been updated.
 	 */
 	public boolean update(Path defaultDir) {
-		if (this.deps.isEmpty())
+		if (this.dependencies.isEmpty())
 			return true;
 
-		List<DependencyInfo> toUpdate = new LinkedList<>(this.deps);
+		List<DependencyInfo> deps = new LinkedList<>(this.dependencies);
 
 		long totalSize = 0;
-		Iterator<DependencyInfo> checkIt = toUpdate.iterator();
-		while (checkIt.hasNext()) {
-			DependencyInfo info = checkIt.next();
+		Iterator<DependencyInfo> it = deps.iterator();
+		while (it.hasNext()) {
+			DependencyInfo info = it.next();
+
+			if (!info.isCompatible()) {
+				it.remove();
+				continue;
+			}
 
 			if (info.file == null)
 				info.file = IOUtil.getMavenPath(defaultDir, info.name, ".jar");
 
 			if (info.matches())
-				checkIt.remove();
+				it.remove();
 			else
 				totalSize += info.size;
 		}
 
-		if (toUpdate.isEmpty())
+		if (deps.isEmpty())
 			return true;
 
-		long totalSizeF = totalSize;
-		Consumer<ProgressTask> consumer = task -> {
-			logger.info("Downloading missing dependencies ...");
-			task.setTitle(Translations.dependencies_download_title);
-			IncrementalListener listener = task.expect(totalSizeF);
+		download(deps, totalSize);
 
-			Iterator<DependencyInfo> updateIt = toUpdate.iterator();
-			while (updateIt.hasNext()) {
-				if (task.isCancelled())
-					return;
-
-				DependencyInfo info = updateIt.next();
-				logger.info("Downloading dependency " + info.name + " ...");
-				task.setMessage(info.name);
-
-				Path dir = info.file.getParent();
-				if (!Files.isDirectory(dir)) {
-					try {
-						Files.createDirectories(dir);
-					} catch (IOException e) {
-						logger.warn("Failed to create directory " + dir, e);
-						continue;
-					}
-				}
-
-				if (!info.download(this.app.getConnectionConfig(), listener))
-					continue;
-
-				if (task.isCancelled())
-					return;
-
-				if (info.matches())
-					updateIt.remove();
-				else
-					logger.warn("The downloaded dependency has an incorrect signature.");
-			}
-		};
-
-		if (this.app.isGUIEnabled())
-			Popup.consumer(consumer).title(Translations.dependencies_update_title).submitAndWait();
-		else
-			new SimpleProgressTask().submit(consumer);
-
-		if (toUpdate.isEmpty())
+		if (deps.isEmpty())
 			return true;
 
-		StringBuilder b = new StringBuilder();
-		for (DependencyInfo info : toUpdate)
-			b.append("\n- ").append(info.name);
-
-		Popup.error().title(Translations.failed_dependencies_title).message(Translations.failed_dependencies_message.format("list", b.toString())).showAndWait();
+		failed(deps);
 		return false;
+	}
+
+	protected void download(List<DependencyInfo> deps, long totalSize) {
+		JLabel label = new JLabel();
+		JOptionPane pane = new JOptionPane(label, JOptionPane.INFORMATION_MESSAGE);
+		pane.setOptions(new Object[0]);
+
+		JDialog dialog = new JDialog((Frame) null, "Dependencies update");
+		dialog.setContentPane(pane);
+		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.setVisible(true);
+		dialog.setLocationRelativeTo(null);
+
+		logger.info("Downloading missing dependencies ...");
+		IncrementalListener listener = new SimpleIncrementalListener(0);
+
+		Iterator<DependencyInfo> it = deps.iterator();
+		while (it.hasNext()) {
+			DependencyInfo dep = it.next();
+			logger.info("Downloading dependency " + dep.name + " ...");
+			label.setText(dep.name);
+			dialog.pack();
+
+			if (!dep.createParent() || !dep.download(this.app.getConnectionConfig(), listener))
+				continue;
+
+			if (dep.matches())
+				it.remove();
+			else
+				logger.warn("The downloaded dependency has an incorrect signature.");
+		}
+
+		dialog.dispose();
+	}
+
+	protected void failed(List<DependencyInfo> deps) {}
+
+	/**
+	 * Loads the dependencies.
+	 * Any error is fatal.
+	 */
+	public void load() {
+		for (DependencyInfo dep : this.dependencies) {
+			if (dep.isCompatible()) {
+				try {
+					addToSystemClasspath(dep.file);
+				} catch (Exception e) {
+					logger.error("Failed to load dependency " + dep.name, e);
+					this.app.fatalError(e);
+				}
+			}
+		}
 	}
 
 	/**
@@ -211,5 +195,31 @@ public class DependencyManager {
 		}
 
 		addURL.invoke(cl, jar.toUri().toURL());
+	}
+
+	/**
+	 * Creates a dependency manager.
+	 * This manager uses JavaFX if loaded, Swing otherwise.
+	 *
+	 * @param app          The application manager.
+	 * @param dependencies The dependencies.
+	 * @return The dependency manager.
+	 */
+	public static DependencyManager create(ApplicationManager app, DependencyInfo... dependencies) {
+		return create(app, Arrays.asList(dependencies));
+	}
+
+	/**
+	 * Creates a dependency manager.
+	 * This manager uses JavaFX if loaded, Swing otherwise.
+	 *
+	 * @param app          The application manager.
+	 * @param dependencies The dependencies.
+	 * @return The dependency manager.
+	 */
+	public static DependencyManager create(ApplicationManager app, Collection<DependencyInfo> dependencies) {
+		if (app.isJavaFXLoaded())
+			return new DependencyManagerFX(app, dependencies);
+		return new DependencyManager(app, dependencies);
 	}
 }

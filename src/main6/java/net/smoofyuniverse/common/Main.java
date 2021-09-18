@@ -26,9 +26,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 
@@ -37,7 +34,13 @@ public class Main {
 
 	private static Instrumentation instrumentation;
 
+	public static void premain(String args, Instrumentation inst) {
+		System.out.println("Instrumentation initialized (premain).");
+		instrumentation = inst;
+	}
+
 	public static void agentmain(String args, Instrumentation inst) {
+		System.out.println("Instrumentation initialized (agentmain).");
 		instrumentation = inst;
 	}
 
@@ -46,25 +49,12 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		String[] info = getApplicationInfo();
-		requireVersion(info[1]);
-		launchApplication(Main.class.getClassLoader().loadClass(info[0]), args);
-	}
-
-	public static String[] getApplicationInfo() throws IOException {
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream("/application.main")));
-			String main = in.readLine(), javaVersion = in.readLine();
-			return new String[]{main, javaVersion == null ? "1.8.0_40" : javaVersion};
-		} finally {
-			if (in != null)
-				in.close();
-		}
+		requireVersion("1.8.0_40");
+		launchApplication(Main.class.getClassLoader().loadClass("net.smoofyuniverse.common.app.ApplicationManager"), args);
 	}
 
 	public static void requireVersion(String requiredVersion) {
-		String version = getCurrentVersion();
+		String version = System.getProperty("java.version");
 		if (getVersionValue(version) < getVersionValue(requiredVersion)) {
 			loadLanguage();
 			if (!GraphicsEnvironment.isHeadless())
@@ -74,16 +64,12 @@ public class Main {
 	}
 
 	public static void launchApplication(Class<?> main, String[] args) throws Throwable {
-		System.out.println("Launching application " + main.getName() + " ...");
+		System.out.println("Launching main class " + main.getName() + " ...");
 		try {
 			main.getMethod("main", String[].class).invoke(null, new Object[]{args});
 		} catch (InvocationTargetException e) {
 			throw e.getCause();
 		}
-	}
-
-	public static String getCurrentVersion() {
-		return System.getProperty("java.version");
 	}
 
 	// https://github.com/SpongePowered/SpongeCommon/blob/stable-7/src/java6/java/org/spongepowered/launch/JavaVersionCheckUtils.java

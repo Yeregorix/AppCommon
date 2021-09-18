@@ -20,28 +20,19 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.event;
+package net.smoofyuniverse.common.util;
 
+import javafx.scene.image.Image;
 import net.smoofyuniverse.common.app.ApplicationManager;
 
-/**
- * An event that can be posted in a {@link EventManager}.
- */
-public interface Event {
+import java.net.URL;
 
-	/**
-	 * Gets whether this event is cancelled.
-	 *
-	 * @return Whether this event is cancelled.
-	 */
-	default boolean isCancelled() { return false; }
+public class ImageUtil {
 
-	/**
-	 * Posts this event in {@link ApplicationManager}'s event manager.
-	 *
-	 * @return Whether this event hasn't been cancelled.
-	 */
-	default boolean post() {
-		return ApplicationManager.get().getEventManager().postEvent(this);
+	public static Image loadImage(String resourcePath) {
+		URL url = ApplicationManager.class.getClassLoader().getResource(resourcePath);
+		if (url == null)
+			throw new IllegalArgumentException("Resource not found: " + resourcePath);
+		return new Image(url.toString());
 	}
 }

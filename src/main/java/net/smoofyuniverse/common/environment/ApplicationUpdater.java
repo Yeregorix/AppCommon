@@ -22,13 +22,11 @@
 
 package net.smoofyuniverse.common.environment;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.app.Translations;
-import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.task.ProgressTask;
-import net.smoofyuniverse.common.task.impl.SimpleProgressTask;
 import net.smoofyuniverse.common.util.ProcessUtil;
 import net.smoofyuniverse.logger.core.Logger;
 
@@ -44,21 +42,11 @@ import java.util.function.Consumer;
 public class ApplicationUpdater {
 	private static final Logger logger = Logger.get("ApplicationUpdater");
 
-	private final Application app;
+	private final ApplicationManager app;
 	private final ReleaseSource appSource, updaterSource;
 
 	private Path appJar;
 	private ReleaseInfo latestApp, latestUpdater;
-
-	/**
-	 * Creates an updater using the default updater release source.
-	 *
-	 * @param app       The application.
-	 * @param appSource The application release source.
-	 */
-	public ApplicationUpdater(Application app, ReleaseSource appSource) {
-		this(app, appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater", app.getConnectionConfig()));
-	}
 
 	/**
 	 * Creates an updater.
@@ -67,7 +55,7 @@ public class ApplicationUpdater {
 	 * @param appSource     The application release source.
 	 * @param updaterSource The updater release source.
 	 */
-	public ApplicationUpdater(Application app, ReleaseSource appSource, ReleaseSource updaterSource) {
+	public ApplicationUpdater(ApplicationManager app, ReleaseSource appSource, ReleaseSource updaterSource) {
 		this.app = app;
 		this.appSource = appSource;
 		this.updaterSource = updaterSource;
@@ -106,14 +94,7 @@ public class ApplicationUpdater {
 	 * @return Whether the update should be applied.
 	 */
 	public boolean notifyUpdate() {
-		if (this.app.isGUIEnabled())
-			return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
-
-		if (this.app.getArguments().getBoolean("autoUpdate"))
-			return true;
-
-		logger.info("An update is available. Please restart with the --autoUpdate argument to update the application.");
-		return false;
+		return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
 	}
 
 	/**
@@ -168,7 +149,7 @@ public class ApplicationUpdater {
 			task.setMessage(Translations.update_process_message);
 			task.setProgress(-1);
 
-			boolean launch = this.app.isGUIEnabled() && !this.app.getArguments().getBoolean("noUpdateLaunch");
+			boolean launch = !this.app.getArguments().getBoolean("noUpdateLaunch");
 			if (!launch)
 				logger.info("The updater will only apply the modifications. You will have to restart the application manually.");
 
@@ -194,12 +175,7 @@ public class ApplicationUpdater {
 			}
 		};
 
-		boolean success;
-		if (this.app.isGUIEnabled())
-			success = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
-		else
-			success = new SimpleProgressTask().submit(consumer);
-
+		boolean success = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
 		if (success)
 			this.app.shutdownNow();
 		else

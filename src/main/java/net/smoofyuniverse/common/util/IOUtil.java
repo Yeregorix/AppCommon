@@ -22,10 +22,8 @@
 
 package net.smoofyuniverse.common.util;
 
-import javafx.scene.image.Image;
-import net.smoofyuniverse.common.app.Application;
-import net.smoofyuniverse.common.app.OperatingSystem;
 import net.smoofyuniverse.common.download.ConnectionConfig;
+import net.smoofyuniverse.common.platform.OperatingSystem;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.common.task.io.ListenedInputStream;
 import net.smoofyuniverse.logger.core.Logger;
@@ -150,12 +148,5 @@ public class IOUtil {
 				md.update(buffer, 0, len);
 			return md.digest();
 		}
-	}
-
-	public static Image loadImage(String resourcePath) {
-		URL url = Application.class.getClassLoader().getResource(resourcePath);
-		if (url == null)
-			throw new IllegalArgumentException("Resource not found: " + resourcePath);
-		return new Image(url.toString());
 	}
 }

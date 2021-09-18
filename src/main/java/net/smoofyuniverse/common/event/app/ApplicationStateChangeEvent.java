@@ -22,7 +22,7 @@
 
 package net.smoofyuniverse.common.event.app;
 
-import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Event;
 
@@ -33,7 +33,7 @@ public class ApplicationStateChangeEvent implements Event {
 	/**
 	 * The application.
 	 */
-	public final Application application;
+	public final ApplicationManager applicationManager;
 
 	/**
 	 * The previous state.
@@ -52,13 +52,13 @@ public class ApplicationStateChangeEvent implements Event {
 	 * @param prevState The previous state.
 	 * @param newState  The new state.
 	 */
-	public ApplicationStateChangeEvent(Application app, State prevState, State newState) {
+	public ApplicationStateChangeEvent(ApplicationManager app, State prevState, State newState) {
 		if (app == null)
 			throw new IllegalArgumentException("app");
 		if (prevState == newState)
 			throw new IllegalArgumentException("No change");
 
-		this.application = app;
+		this.applicationManager = app;
 		this.prevState = prevState;
 		this.newState = newState;
 	}
