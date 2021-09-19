@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * An helper to load resources as {@link Path}s.
+ * A helper to load resources as {@link Path}s.
  */
 public class ResourceLoader implements AutoCloseable {
 	private final Map<String, FileSystem> fileSystems = new HashMap<>();

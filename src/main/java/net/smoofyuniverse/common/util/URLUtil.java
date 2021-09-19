@@ -31,7 +31,7 @@ import java.net.URL;
 public class URLUtil {
 
 	/**
-	 * Creates an URL from the string representation.
+	 * Creates a URL from the string representation.
 	 *
 	 * @param url The string representation.
 	 * @return The new URL.

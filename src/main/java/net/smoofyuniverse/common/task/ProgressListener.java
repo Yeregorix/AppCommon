@@ -25,7 +25,7 @@ package net.smoofyuniverse.common.task;
 import net.smoofyuniverse.common.task.impl.ProgressIncrementalListener;
 
 /**
- * A {@link BaseListener} with a progress.
+ * A {@link BaseListener} with progress.
  */
 public interface ProgressListener extends BaseListener, IncrementalListenerProvider {
 	double INDETERMINATE = -1;

@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  */
 public final class Language {
 	/**
-	 * A identifier must matches this pattern to be valid.
+	 * An identifier must matches this pattern to be valid.
 	 */
 	public static final Pattern ID_PATTERN = Pattern.compile("^[a-z_]+$");
 

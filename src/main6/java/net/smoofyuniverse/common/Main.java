@@ -86,7 +86,7 @@ public class Main {
 		double weight = 1;
 		for (String part : version.split("\\.")) {
 			try {
-				// The value of the part of the version is related to it's proximity to the beginning
+				// The value of the part of the version is related to its proximity to the beginning
 				value += Integer.parseInt(part) * weight;
 			} catch (NumberFormatException ignored) {
 			}

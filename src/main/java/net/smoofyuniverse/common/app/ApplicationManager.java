@@ -30,7 +30,7 @@ import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.ApplicationUpdater;
 import net.smoofyuniverse.common.environment.DependencyInfo;
 import net.smoofyuniverse.common.environment.DependencyManager;
-import net.smoofyuniverse.common.environment.source.GithubReleaseSource;
+import net.smoofyuniverse.common.environment.source.GitHubReleaseSource;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
@@ -155,7 +155,7 @@ public class ApplicationManager {
 	 * @param appSource The application release source.
 	 */
 	public void runUpdater(ReleaseSource appSource) {
-		runUpdater(appSource, new GithubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater", getConnectionConfig()));
+		runUpdater(appSource, new GitHubReleaseSource("Yeregorix", "AppCommonUpdater", null, "Updater", getConnectionConfig()));
 	}
 
 	/**

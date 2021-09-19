@@ -87,7 +87,7 @@ public enum OperatingSystem {
 	}
 
 	/**
-	 * Launches the default browser to display an URI.
+	 * Launches the default browser to display a URI.
 	 *
 	 * @param uri the URI to be displayed.
 	 * @return Whether the operation was successful.

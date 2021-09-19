@@ -40,21 +40,20 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * An implemention of {@link ReleaseSource} based on a Github repository.
+ * An implemention of {@link ReleaseSource} based on a GitHub repository.
  */
-public class GithubReleaseSource implements ReleaseSource {
-	private static final Logger logger = ApplicationLogger.get(GithubReleaseSource.class);
-
+public class GitHubReleaseSource implements ReleaseSource {
 	/**
-	 * Github API base URL.
+	 * GitHub API base URL.
 	 */
 	public static final URL URL_BASE = URLUtil.newURL("https://api.github.com/repos/");
+	private static final Logger logger = ApplicationLogger.get(GitHubReleaseSource.class);
 
 	protected final String owner, repo, accessToken, appName;
 	protected final ConnectionConfig config;
 
 	/**
-	 * Creates a new Github release source.
+	 * Creates a new GitHub release source.
 	 *
 	 * @param owner       The owner.
 	 * @param repo        The repository.
@@ -62,7 +61,7 @@ public class GithubReleaseSource implements ReleaseSource {
 	 * @param appName     The application name.
 	 * @param config      The connection configuration.
 	 */
-	public GithubReleaseSource(String owner, String repo, String accessToken, String appName, ConnectionConfig config) {
+	public GitHubReleaseSource(String owner, String repo, String accessToken, String appName, ConnectionConfig config) {
 		if (owner == null || owner.isEmpty())
 			throw new IllegalArgumentException("owner");
 		if (repo == null || repo.isEmpty())

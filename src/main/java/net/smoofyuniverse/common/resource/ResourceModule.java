@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  */
 public final class ResourceModule<T> {
 	/**
-	 * A key must matches this pattern to be valid.
+	 * A key must match this pattern to be valid.
 	 */
 	public static final Pattern KEY_PATTERN = Pattern.compile("^[a-z0-9_]+$");
 

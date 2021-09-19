@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * An helper to check and apply application updates.
+ * A helper to check and apply application updates.
  */
 public class ApplicationUpdater {
 	private static final Logger logger = ApplicationLogger.get(ApplicationUpdater.class);
