@@ -35,22 +35,13 @@ import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.fx.dialog.Popup;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.platform.OperatingSystem;
 import net.smoofyuniverse.common.resource.ResourceManager;
 import net.smoofyuniverse.common.resource.Translator;
 import net.smoofyuniverse.common.task.BaseListener;
-import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.ResourceLoader;
-import net.smoofyuniverse.logger.appender.log.FormattedAppender;
-import net.smoofyuniverse.logger.appender.log.LogAppender;
-import net.smoofyuniverse.logger.appender.log.ParentLogAppender;
-import net.smoofyuniverse.logger.appender.log.TransformedAppender;
-import net.smoofyuniverse.logger.appender.string.DatedRollingFileAppender;
-import net.smoofyuniverse.logger.core.DefaultImpl;
-import net.smoofyuniverse.logger.core.LogLevel;
-import net.smoofyuniverse.logger.core.LogMessage;
-import net.smoofyuniverse.logger.core.Logger;
-import net.smoofyuniverse.logger.transformer.ParentTransformer;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -61,7 +52,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -74,13 +64,12 @@ import java.util.concurrent.Executors;
  * Singleton.
  */
 public class ApplicationManager {
-	private static final Logger logger = Logger.get("ApplicationManager");
+	private static final Logger logger = ApplicationLogger.get(ApplicationManager.class);
 	private static ApplicationManager instance;
 	private final Arguments originalArguments;
 	private final ExecutorService executor;
 	private final ResourceLoader resourceLoader;
 	private final boolean devEnvironment;
-	private final ParentTransformer fileLogTransformer = new ParentTransformer();
 	private final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 	private State state = State.CREATION;
 	private boolean javaFXLoaded = false;
@@ -110,9 +99,7 @@ public class ApplicationManager {
 		this.resourceLoader = new ResourceLoader();
 		this.devEnvironment = arguments.getBoolean("development", "dev");
 
-		this.fileLogTransformer.children.add(m -> m.transform(s -> IOUtil.USER_HOME.matcher(s).replaceAll("USER_HOME")));
-		Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.log(
-				new LogMessage(logger, LogLevel.ERROR, LocalTime.now(), t, e, "Uncaught exception in thread: " + t.getName())));
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("Uncaught exception in thread: " + t.getName(), e));
 	}
 
 	/**
@@ -209,15 +196,6 @@ public class ApplicationManager {
 	 */
 	public boolean disableUpdateCheck() {
 		return this.arguments.getBoolean("noUpdateCheck");
-	}
-
-	/**
-	 * Gets the file log transformer.
-	 *
-	 * @return The file log transformer.
-	 */
-	public ParentTransformer getFileLogTransformer() {
-		return this.fileLogTransformer;
 	}
 
 	/**
@@ -467,11 +445,15 @@ public class ApplicationManager {
 		this.staticArgumentsFile = this.workingDir.resolve("static-arguments.txt");
 		loadStaticArguments();
 
-		DefaultImpl.FACTORY.setAppender(createLogAppender());
+		if (!this.devEnvironment)
+			setupDependencies("logger");
 
-		if (!detectJavaFX() && getJavaVersion() >= 11) {
+		logger.info("Switching logger implementation ...");
+		ApplicationLogger._bind();
+		logger.info("Logger implementation switched: " + ApplicationLogger.getFactory().getClass().getName());
+
+		if (!detectJavaFX() && getJavaVersion() >= 11)
 			setupDependencies("javafx");
-		}
 
 		logger.info("Initializing JavaFX ...");
 		initJavaFX();
@@ -562,19 +544,6 @@ public class ApplicationManager {
 		}
 
 		_setStaticArguments(args);
-	}
-
-	/**
-	 * Creates the logger appender.
-	 *
-	 * @return The logger appender.
-	 */
-	protected LogAppender createLogAppender() {
-		return new ParentLogAppender(
-				DefaultImpl.FORMATTED_SYSTEM_APPENDER,
-				new TransformedAppender(new FormattedAppender(
-						DatedRollingFileAppender.builder().directory(this.workingDir.resolve("logs")).maxFiles(60).build()),
-						this.fileLogTransformer));
 	}
 
 	private static boolean detectJavaFX() {

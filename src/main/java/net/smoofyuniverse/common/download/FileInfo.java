@@ -22,10 +22,11 @@
 
 package net.smoofyuniverse.common.download;
 
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.common.util.IOUtil;
 import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -38,7 +39,7 @@ import java.nio.file.Path;
  * Optionally holds a path to a local file.
  */
 public class FileInfo {
-	private static final Logger logger = Logger.get("FileInfo");
+	private static final Logger logger = ApplicationLogger.get(FileInfo.class);
 
 	/**
 	 * The URL of the remote file.

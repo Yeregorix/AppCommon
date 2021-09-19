@@ -97,6 +97,7 @@ public class DependencyInfo extends FileInfo {
 	 *
 	 * @param file The file.
 	 * @return The dependencies.
+	 * @throws Exception if any exception occurs while loading file.
 	 */
 	public static DependencyInfo[] loadAll(Path file) throws Exception {
 		try (BufferedReader r = Files.newBufferedReader(file)) {

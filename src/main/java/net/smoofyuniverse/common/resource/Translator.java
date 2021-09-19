@@ -27,8 +27,9 @@ import net.smoofyuniverse.common.event.ListenerRegistration;
 import net.smoofyuniverse.common.event.resource.LanguageSelectionChangeEvent;
 import net.smoofyuniverse.common.event.resource.ResourceModuleChangeEvent;
 import net.smoofyuniverse.common.event.resource.TranslatorUpdateEvent;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -46,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * An interpreter for string resource modules.
  */
 public final class Translator {
-	private static final Logger logger = Logger.get("Translator");
+	private static final Logger logger = ApplicationLogger.get(Translator.class);
 
 	/**
 	 * The resource manager.

@@ -20,11 +20,31 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    repositories {
-        mavenLocal()
-        gradlePluginPortal()
-    }
-}
+package net.smoofyuniverse.common.logger;
 
-rootProject.name = 'AppCommon'
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class LoggerFactoryProxy implements ILoggerFactory {
+	private final Map<String, LoggerProxy> loggers = new HashMap<>();
+	private ILoggerFactory delegate;
+
+	public synchronized void setDelegate(ILoggerFactory value) {
+		if (this.delegate != null)
+			throw new IllegalStateException("Delegate already changed");
+
+		this.delegate = value;
+		for (LoggerProxy logger : this.loggers.values())
+			logger.setDelegate(this.delegate);
+	}
+
+	@Override
+	public synchronized Logger getLogger(String name) {
+		if (this.delegate != null)
+			return this.delegate.getLogger(name);
+		return this.loggers.computeIfAbsent(name, LoggerProxy::new);
+	}
+}

@@ -20,11 +20,30 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    repositories {
-        mavenLocal()
-        gradlePluginPortal()
-    }
-}
+package net.smoofyuniverse.common.logger;
 
-rootProject.name = 'AppCommon'
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.impl.StaticLoggerBinder;
+
+public class ApplicationLogger {
+	private static ILoggerFactory factory = new LoggerFactoryProxy();
+
+	public static void _bind() {
+		ILoggerFactory newFactory = StaticLoggerBinder.getSingleton().getLoggerFactory();
+		((LoggerFactoryProxy) factory).setDelegate(newFactory);
+		factory = newFactory;
+	}
+
+	public static Logger get(Class<?> cl) {
+		return get(cl.getName());
+	}
+
+	public static Logger get(String name) {
+		return getFactory().getLogger(name);
+	}
+
+	public static ILoggerFactory getFactory() {
+		return factory;
+	}
+}

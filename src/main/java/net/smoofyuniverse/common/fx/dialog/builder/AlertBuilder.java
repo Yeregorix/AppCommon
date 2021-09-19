@@ -29,8 +29,9 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.VBox;
 import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.fx.task.ObservableProgressTask;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.task.ProgressTask;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -41,7 +42,7 @@ import java.util.function.Consumer;
  * An {@link Alert} builder.
  */
 public class AlertBuilder extends DialogBuilder<ButtonType> {
-	private static final Logger logger = Logger.get("AlertBuilder");
+	private static final Logger logger = ApplicationLogger.get(AlertBuilder.class);
 
 	private Consumer<ProgressTask> consumer;
 	private Executor executor;
@@ -145,7 +146,7 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 			try {
 				lock.await();
 			} catch (InterruptedException e) {
-				logger.error(e);
+				logger.error("Interruption", e);
 			}
 
 			return !this.task.isCancelled();
@@ -161,7 +162,7 @@ public class AlertBuilder extends DialogBuilder<ButtonType> {
 			try {
 				lock.await();
 			} catch (InterruptedException e) {
-				logger.error(e);
+				logger.error("Interruption", e);
 			}
 			return result.get();
 		}

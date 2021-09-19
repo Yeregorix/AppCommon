@@ -26,9 +26,10 @@ import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.app.Translations;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.fx.dialog.Popup;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.task.ProgressTask;
 import net.smoofyuniverse.common.util.ProcessUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -40,7 +41,7 @@ import java.util.function.Consumer;
  * An helper to check and apply application updates.
  */
 public class ApplicationUpdater {
-	private static final Logger logger = Logger.get("ApplicationUpdater");
+	private static final Logger logger = ApplicationLogger.get(ApplicationUpdater.class);
 
 	private final ApplicationManager app;
 	private final ReleaseSource appSource, updaterSource;

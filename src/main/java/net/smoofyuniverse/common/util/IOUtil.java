@@ -23,10 +23,10 @@
 package net.smoofyuniverse.common.util;
 
 import net.smoofyuniverse.common.download.ConnectionConfig;
-import net.smoofyuniverse.common.platform.OperatingSystem;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.task.IncrementalListenerProvider;
 import net.smoofyuniverse.common.task.io.ListenedInputStream;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -36,16 +36,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Pattern;
 
 public class IOUtil {
-	private static final Logger logger = Logger.get("IOUtil");
+	private static final Logger logger = ApplicationLogger.get(IOUtil.class);
 
 	public static final Pattern ILLEGAL_PATH = Pattern.compile("[:\\\\/*?|<>\"]+");
-	public static final Pattern USER_HOME = Pattern.compile(Paths.get(OperatingSystem.USER_HOME).toAbsolutePath().toString(), Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
 
 	public static boolean contentEquals(InputStream in1, InputStream in2) throws IOException {
 		if (in1 == in2)

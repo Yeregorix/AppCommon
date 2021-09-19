@@ -22,8 +22,8 @@
 
 package net.smoofyuniverse.common.task;
 
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.task.impl.ProgressIncrementalTask;
-import net.smoofyuniverse.logger.core.Logger;
 
 import java.util.function.Consumer;
 
@@ -55,7 +55,7 @@ public interface ProgressTask extends BaseTask, ProgressListener, IncrementalTas
 			consumer.accept(this);
 		} catch (Exception e) {
 			cancel();
-			Logger.get("ProgressTask").error("Failed to execute: " + this, e);
+			ApplicationLogger.get(ProgressTask.class).error("Failed to execute: " + this, e);
 		}
 		return !isCancelled();
 	}

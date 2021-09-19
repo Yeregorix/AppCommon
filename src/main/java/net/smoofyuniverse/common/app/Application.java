@@ -27,16 +27,17 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.event.EventManager;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.util.ImageUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 
 public abstract class Application {
-	private static final Logger logger = Logger.get("Application");
+	private static final Logger logger = ApplicationLogger.get(Application.class);
 
 	ApplicationManager manager;
 	private Stage stage;
@@ -188,7 +189,7 @@ public abstract class Application {
 		try {
 			lock.await();
 		} catch (InterruptedException e) {
-			logger.error(e);
+			logger.error("Interruption", e);
 		}
 	}
 }

@@ -26,8 +26,9 @@ import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.ReleaseInfo;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.util.URLUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -43,7 +44,7 @@ import java.util.Optional;
  * <p>{@code %version%/%appname%-%version%.json} : Json data about the release.
  */
 public class SimpleReleaseSource implements ReleaseSource {
-	private static final Logger logger = Logger.get("SimpleReleaseSource");
+	private static final Logger logger = ApplicationLogger.get(SimpleReleaseSource.class);
 
 	protected final String appName;
 	protected final URL baseUrl;

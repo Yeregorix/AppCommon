@@ -31,8 +31,9 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.util.StringUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @param <T> The dialog type.
  */
 public abstract class DialogBuilder<T> {
-	private static final Logger logger = Logger.get("DialogBuilder");
+	private static final Logger logger = ApplicationLogger.get(DialogBuilder.class);
 
 	protected ObservableValue<String> titleP, headerP, messageP;
 	protected String title, header, message;
@@ -303,7 +304,7 @@ public abstract class DialogBuilder<T> {
 			try {
 				lock.await();
 			} catch (InterruptedException e) {
-				logger.error(e);
+				logger.error("Interruption", e);
 			}
 			return result.get();
 		}

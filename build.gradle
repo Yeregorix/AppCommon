@@ -59,18 +59,23 @@ jar {
 
 repositories {
     mavenCentral()
-    maven {
-        url 'https://oss.sonatype.org/content/repositories/snapshots'
-    }
 }
 
 configurations {
+    loggerImpl
+    implementation.extendsFrom loggerImpl
+
     javaFXRuntime {
         transitive = false
     }
 }
 
 dependencyExport {
+    loggerImpl {
+        path = "dep/logger.json"
+        config = configurations.loggerImpl
+    }
+
     javafx {
         path = "dep/javafx.json"
         config = configurations.javaFXRuntime
@@ -85,16 +90,21 @@ dependencyExport {
 }
 
 dependencies {
-    api 'net.smoofyuniverse:smoofylogger:1.2.0-SNAPSHOT'
+    api 'org.slf4j:slf4j-api:1.7.32'
     api 'com.grack:nanojson:1.7'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+    loggerImpl 'org.apache.logging.log4j:log4j-core:2.14.1'
+    loggerImpl('org.apache.logging.log4j:log4j-slf4j-impl:2.14.1') {
+        exclude group: "org.slf4j", module: "slf4j-api"
+    }
 
     for (classifier in dependencyExport.javafx.constraints.names) {
         for (name in ["base", "graphics", "controls"]) {
             javaFXRuntime 'org.openjfx:javafx-' + name + ':17:' + classifier
         }
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
 }
 
 test {

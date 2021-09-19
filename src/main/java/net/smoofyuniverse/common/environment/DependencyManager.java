@@ -24,10 +24,11 @@ package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.Main;
 import net.smoofyuniverse.common.app.ApplicationManager;
+import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.impl.SimpleIncrementalListener;
 import net.smoofyuniverse.common.util.IOUtil;
-import net.smoofyuniverse.logger.core.Logger;
+import org.slf4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,7 +44,7 @@ import java.util.jar.JarFile;
  * An helper to update and load dependencies.
  */
 public class DependencyManager {
-	protected static final Logger logger = Logger.get("DependencyManager");
+	protected static final Logger logger = ApplicationLogger.get(DependencyManager.class);
 	private static Method addURL;
 
 	protected final ApplicationManager app;
