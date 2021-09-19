@@ -22,6 +22,7 @@
 
 package net.smoofyuniverse.common.logger;
 
+import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MarkerIgnoringBase;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -49,20 +50,50 @@ public class DefaultLogger extends MarkerIgnoringBase {
 		log("TRACE", msg);
 	}
 
+	@Override
+	public void trace(String format, Object arg) {
+		if (isTraceEnabled())
+			_trace(MessageFormatter.format(format, arg));
+	}
+
 	protected void _debug(String msg) {
 		log("DEBUG", msg);
+	}
+
+	protected void _trace(FormattingTuple msg) {
+		_trace(msg.getMessage());
+		if (msg.getThrowable() != null)
+			msg.getThrowable().printStackTrace();
 	}
 
 	protected void _info(String msg) {
 		log("INFO ", msg);
 	}
 
+	@Override
+	public void trace(String format, Object arg1, Object arg2) {
+		if (isTraceEnabled())
+			_trace(MessageFormatter.format(format, arg1, arg2));
+	}
+
 	protected void _warn(String msg) {
 		log("WARN ", msg);
 	}
 
+	@Override
+	public void trace(String format, Object... arguments) {
+		if (isTraceEnabled())
+			_trace(MessageFormatter.arrayFormat(format, arguments));
+	}
+
 	protected void _error(String msg) {
 		log("ERROR", msg);
+	}
+
+	@Override
+	public void debug(String format, Object arg) {
+		if (isDebugEnabled())
+			_debug(MessageFormatter.format(format, arg));
 	}
 
 	@Override
@@ -76,22 +107,22 @@ public class DefaultLogger extends MarkerIgnoringBase {
 			_trace(msg);
 	}
 
-	@Override
-	public void trace(String format, Object arg) {
-		if (isTraceEnabled())
-			_trace(MessageFormatter.format(format, arg).getMessage());
+	protected void _debug(FormattingTuple msg) {
+		_debug(msg.getMessage());
+		if (msg.getThrowable() != null)
+			msg.getThrowable().printStackTrace();
 	}
 
 	@Override
-	public void trace(String format, Object arg1, Object arg2) {
-		if (isTraceEnabled())
-			_trace(MessageFormatter.format(format, arg1, arg2).getMessage());
+	public void debug(String format, Object arg1, Object arg2) {
+		if (isDebugEnabled())
+			_debug(MessageFormatter.format(format, arg1, arg2));
 	}
 
 	@Override
-	public void trace(String format, Object... arguments) {
-		if (isTraceEnabled())
-			_trace(MessageFormatter.arrayFormat(format, arguments).getMessage());
+	public void debug(String format, Object... arguments) {
+		if (isDebugEnabled())
+			_debug(MessageFormatter.arrayFormat(format, arguments));
 	}
 
 	@Override
@@ -114,21 +145,21 @@ public class DefaultLogger extends MarkerIgnoringBase {
 	}
 
 	@Override
-	public void debug(String format, Object arg) {
-		if (isDebugEnabled())
-			_debug(MessageFormatter.format(format, arg).getMessage());
+	public void info(String format, Object arg) {
+		if (isInfoEnabled())
+			_info(MessageFormatter.format(format, arg));
+	}
+
+	protected void _info(FormattingTuple msg) {
+		_info(msg.getMessage());
+		if (msg.getThrowable() != null)
+			msg.getThrowable().printStackTrace();
 	}
 
 	@Override
-	public void debug(String format, Object arg1, Object arg2) {
-		if (isDebugEnabled())
-			_debug(MessageFormatter.format(format, arg1, arg2).getMessage());
-	}
-
-	@Override
-	public void debug(String format, Object... arguments) {
-		if (isDebugEnabled())
-			_debug(MessageFormatter.arrayFormat(format, arguments).getMessage());
+	public void info(String format, Object arg1, Object arg2) {
+		if (isInfoEnabled())
+			_info(MessageFormatter.format(format, arg1, arg2));
 	}
 
 	@Override
@@ -151,21 +182,21 @@ public class DefaultLogger extends MarkerIgnoringBase {
 	}
 
 	@Override
-	public void info(String format, Object arg) {
-		if (isInfoEnabled())
-			_info(MessageFormatter.format(format, arg).getMessage());
-	}
-
-	@Override
-	public void info(String format, Object arg1, Object arg2) {
-		if (isInfoEnabled())
-			_info(MessageFormatter.format(format, arg1, arg2).getMessage());
-	}
-
-	@Override
 	public void info(String format, Object... arguments) {
 		if (isInfoEnabled())
-			_info(MessageFormatter.arrayFormat(format, arguments).getMessage());
+			_info(MessageFormatter.arrayFormat(format, arguments));
+	}
+
+	@Override
+	public void warn(String format, Object arg) {
+		if (isWarnEnabled())
+			_warn(MessageFormatter.format(format, arg));
+	}
+
+	protected void _warn(FormattingTuple msg) {
+		_warn(msg.getMessage());
+		if (msg.getThrowable() != null)
+			msg.getThrowable().printStackTrace();
 	}
 
 	@Override
@@ -188,21 +219,21 @@ public class DefaultLogger extends MarkerIgnoringBase {
 	}
 
 	@Override
-	public void warn(String format, Object arg) {
+	public void warn(String format, Object... arguments) {
 		if (isWarnEnabled())
-			_warn(MessageFormatter.format(format, arg).getMessage());
+			_warn(MessageFormatter.arrayFormat(format, arguments));
 	}
 
 	@Override
 	public void warn(String format, Object arg1, Object arg2) {
 		if (isWarnEnabled())
-			_warn(MessageFormatter.format(format, arg1, arg2).getMessage());
+			_warn(MessageFormatter.format(format, arg1, arg2));
 	}
 
 	@Override
-	public void warn(String format, Object... arguments) {
-		if (isWarnEnabled())
-			_warn(MessageFormatter.arrayFormat(format, arguments).getMessage());
+	public void error(String format, Object arg) {
+		if (isErrorEnabled())
+			_error(MessageFormatter.format(format, arg));
 	}
 
 	@Override
@@ -224,22 +255,22 @@ public class DefaultLogger extends MarkerIgnoringBase {
 			_error(msg);
 	}
 
-	@Override
-	public void error(String format, Object arg) {
-		if (isErrorEnabled())
-			_error(MessageFormatter.format(format, arg).getMessage());
+	protected void _error(FormattingTuple msg) {
+		_error(msg.getMessage());
+		if (msg.getThrowable() != null)
+			msg.getThrowable().printStackTrace();
 	}
 
 	@Override
 	public void error(String format, Object arg1, Object arg2) {
 		if (isErrorEnabled())
-			_error(MessageFormatter.format(format, arg1, arg2).getMessage());
+			_error(MessageFormatter.format(format, arg1, arg2));
 	}
 
 	@Override
 	public void error(String format, Object... arguments) {
 		if (isErrorEnabled())
-			_error(MessageFormatter.arrayFormat(format, arguments).getMessage());
+			_error(MessageFormatter.arrayFormat(format, arguments));
 	}
 
 	@Override
