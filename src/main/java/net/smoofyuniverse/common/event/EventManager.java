@@ -95,7 +95,7 @@ public class EventManager {
 			try {
 				l.listener.handle(event);
 			} catch (Exception e) {
-				logger.error("Failed to handle event " + event.getClass().getSimpleName(), e);
+				logger.error("Failed to handle event {}", event.getClass().getSimpleName(), e);
 			}
 		}
 

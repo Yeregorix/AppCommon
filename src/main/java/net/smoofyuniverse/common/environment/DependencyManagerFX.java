@@ -52,7 +52,7 @@ public class DependencyManagerFX extends DependencyManager {
 					return;
 
 				DependencyInfo dep = it.next();
-				logger.info("Downloading dependency " + dep.name + " ...");
+				logger.info("Downloading dependency {} ...", dep.name);
 				task.setMessage(dep.name);
 
 				if (!dep.createParent() || !dep.download(this.app.getConnectionConfig(), listener))

@@ -101,7 +101,7 @@ public class SimpleReleaseSource implements ReleaseSource {
 		try {
 			return Optional.of(getRelease(version, getURL(version + "/" + this.appName + "-" + version + ".json")));
 		} catch (Exception e) {
-			logger.info("Failed to get release " + version, e);
+			logger.info("Failed to get release {}", version, e);
 			return Optional.empty();
 		}
 	}

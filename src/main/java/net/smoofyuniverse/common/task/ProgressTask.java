@@ -55,7 +55,7 @@ public interface ProgressTask extends BaseTask, ProgressListener, IncrementalTas
 			consumer.accept(this);
 		} catch (Exception e) {
 			cancel();
-			ApplicationLogger.get(ProgressTask.class).error("Failed to execute: " + this, e);
+			ApplicationLogger.get(ProgressTask.class).error("Failed to execute: {}", this, e);
 		}
 		return !isCancelled();
 	}

@@ -92,7 +92,7 @@ public class IOUtil {
 			co = config.openHttpConnection(url);
 			co.setRequestProperty("Accept", "application/octet-stream");
 		} catch (IOException e) {
-			logger.warn("Failed to open connection to url " + url + ".", e);
+			logger.warn("Failed to open connection to url {}.", url, e);
 			return false;
 		}
 
@@ -103,11 +103,11 @@ public class IOUtil {
 		try {
 			co.connect();
 			if (co.getResponseCode() / 100 != 2) {
-				logger.info("Server at url " + co.getURL() + " returned a bad response code: " + co.getResponseCode());
+				logger.info("Server at url {} returned a bad response code: {}", co.getURL(), co.getResponseCode());
 				return false;
 			}
 
-			logger.info("Downloading from url " + co.getURL() + " to file " + file + " ...");
+			logger.info("Downloading from url {} to file {} ...", co.getURL(), file);
 			long time = System.currentTimeMillis();
 
 			try (ListenedInputStream in = p.getInputStream(co);
@@ -118,15 +118,15 @@ public class IOUtil {
 					out.write(buffer, 0, length);
 
 				if (in.listener.isCancelled()) {
-					logger.debug("Download cancelled (" + (System.currentTimeMillis() - time) / 1000F + "s).");
+					logger.debug("Download cancelled ({}s).", (System.currentTimeMillis() - time) / 1000F);
 					return false;
 				}
 			}
 
-			logger.debug("Download ended (" + (System.currentTimeMillis() - time) / 1000F + "s).");
+			logger.debug("Download ended ({}s).", (System.currentTimeMillis() - time) / 1000F);
 			return true;
 		} catch (IOException e) {
-			logger.warn("Download from url " + co.getURL() + " failed.", e);
+			logger.warn("Download from url {} failed.", co.getURL(), e);
 			return false;
 		} finally {
 			co.disconnect();

@@ -97,7 +97,7 @@ public class GithubReleaseSource implements ReleaseSource {
 		try {
 			return Optional.of(getRelease(getURL("releases/tags/" + version)));
 		} catch (Exception e) {
-			logger.info("Failed to get release " + version, e);
+			logger.info("Failed to get release {}", version, e);
 			return Optional.empty();
 		}
 	}

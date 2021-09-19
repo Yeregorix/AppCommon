@@ -301,14 +301,14 @@ public final class Translator {
 							load(builder, p);
 							map.put(Language.of(id), builder.build());
 						} catch (Exception e) {
-							logger.error("Failed to load lang file " + fn, e);
+							logger.error("Failed to load lang file {}", fn, e);
 						}
 						builder.reset();
 					}
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Can't list lang files in directory " + dir, e);
+			logger.error("Can't list lang files in directory {}", dir, e);
 		}
 
 		return map;

@@ -99,7 +99,7 @@ public class ApplicationManager {
 		this.resourceLoader = new ResourceLoader();
 		this.devEnvironment = arguments.getBoolean("development", "dev");
 
-		Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("Uncaught exception in thread: " + t.getName(), e));
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("Uncaught exception in thread: {}", t.getName(), e));
 	}
 
 	/**
@@ -421,7 +421,7 @@ public class ApplicationManager {
 		try {
 			initialize();
 		} catch (Throwable t) {
-			logger.error(this.name + " " + this.version + " - A fatal error occurred", t);
+			logger.error("{} {} - A fatal error occurred", this.name, this.version, t);
 			fatalError(t);
 		}
 	}
@@ -439,7 +439,7 @@ public class ApplicationManager {
 		this.version = config.getString("version", "");
 
 		this.workingDir = resolveDirectory().toAbsolutePath();
-		logger.info("Working directory: " + this.workingDir);
+		logger.info("Working directory: {}", this.workingDir);
 		Files.createDirectories(this.workingDir);
 
 		this.staticArgumentsFile = this.workingDir.resolve("static-arguments.txt");
@@ -450,7 +450,7 @@ public class ApplicationManager {
 
 		logger.info("Switching logger implementation ...");
 		ApplicationLogger._bind();
-		logger.info("Logger implementation switched: " + ApplicationLogger.getFactory().getClass().getName());
+		logger.info("Logger implementation switched: {}", ApplicationLogger.getFactory().getClass().getName());
 
 		if (!detectJavaFX() && getJavaVersion() >= 11)
 			setupDependencies("javafx");
@@ -459,7 +459,7 @@ public class ApplicationManager {
 		initJavaFX();
 		this.javaFXLoaded = true;
 
-		logger.info("Constructing application " + appClass + " ...");
+		logger.info("Constructing application {} ...", appClass);
 		this.application = (Application) getClass().getClassLoader().loadClass(appClass).newInstance();
 		this.application.manager = this;
 
@@ -471,7 +471,7 @@ public class ApplicationManager {
 
 		setState(State.RUNNING);
 
-		logger.info("Started " + this.name + " " + this.version + " (" + (System.currentTimeMillis() - start) + "ms).");
+		logger.info("Started {} {} ({}ms).", this.name, this.version, System.currentTimeMillis() - start);
 
 		this.application.run();
 	}

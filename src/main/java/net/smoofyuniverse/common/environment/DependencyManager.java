@@ -141,7 +141,7 @@ public class DependencyManager {
 		Iterator<DependencyInfo> it = deps.iterator();
 		while (it.hasNext()) {
 			DependencyInfo dep = it.next();
-			logger.info("Downloading dependency " + dep.name + " ...");
+			logger.info("Downloading dependency {} ...", dep.name);
 			label.setText(dep.name);
 			dialog.pack();
 
@@ -169,7 +169,7 @@ public class DependencyManager {
 				try {
 					addToSystemClasspath(dep.file);
 				} catch (Exception e) {
-					logger.error("Failed to load dependency " + dep.name, e);
+					logger.error("Failed to load dependency {}", dep.name, e);
 					this.app.fatalError(e);
 				}
 			}

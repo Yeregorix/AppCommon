@@ -78,7 +78,7 @@ public abstract class Application {
 	protected void selectLanguage() {
 		String langId = getManager().getArguments().getString("language", "lang").orElse(null);
 		if (langId != null && !Language.isValidId(langId)) {
-			logger.warn("Argument '" + langId + "' is not a valid language identifier.");
+			logger.warn("Argument '{}' is not a valid language identifier.", langId);
 			langId = null;
 		}
 		if (langId == null) {

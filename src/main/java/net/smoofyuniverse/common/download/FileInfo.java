@@ -98,7 +98,7 @@ public class FileInfo {
 			try {
 				Files.createDirectories(dir);
 			} catch (IOException e) {
-				logger.warn("Failed to create directory " + dir, e);
+				logger.warn("Failed to create directory {}", dir, e);
 				return false;
 			}
 		}
@@ -129,7 +129,7 @@ public class FileInfo {
 		try {
 			co = openDownloadConnection(config);
 		} catch (IOException e) {
-			logger.warn("Failed to open connection to url " + url + ".", e);
+			logger.warn("Failed to open connection to url {}.", url, e);
 			return false;
 		}
 
@@ -175,7 +175,7 @@ public class FileInfo {
 			if (this.digest != null && this.digestAlgorithm != null && !this.digest.equals(StringUtil.toHexString(IOUtil.digest(file, this.digestAlgorithm))))
 				return false;
 		} catch (Exception e) {
-			logger.warn("Failed to check file " + file, e);
+			logger.warn("Failed to check file {}", file, e);
 			return false;
 		}
 		return true;
