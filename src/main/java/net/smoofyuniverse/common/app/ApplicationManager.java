@@ -74,7 +74,7 @@ public class ApplicationManager {
 	private State state = State.CREATION;
 	private boolean javaFXLoaded = false;
 	private String name, title, version;
-	private Path workingDir, staticArgumentsFile;
+	private Path directory, staticArgumentsFile;
 	private Arguments staticArguments, arguments;
 	private Application application;
 
@@ -250,12 +250,12 @@ public class ApplicationManager {
 	}
 
 	/**
-	 * Gets the working directory.
+	 * Gets the directory containing application's data.
 	 *
-	 * @return The working directory.
+	 * @return The directory.
 	 */
-	public final Path getWorkingDirectory() {
-		return this.workingDir;
+	public final Path getDirectory() {
+		return this.directory;
 	}
 
 	/**
@@ -438,11 +438,18 @@ public class ApplicationManager {
 		this.title = config.getString("title", this.name);
 		this.version = config.getString("version", "");
 
-		this.workingDir = resolveDirectory().toAbsolutePath();
-		logger.info("Working directory: {}", this.workingDir);
-		Files.createDirectories(this.workingDir);
+		this.directory = resolveDirectory().toAbsolutePath();
+		String dirStr = this.directory.toString();
+		String dirSep = this.directory.getFileSystem().getSeparator();
+		if (!dirStr.endsWith(dirSep))
+			dirStr += dirSep;
 
-		this.staticArgumentsFile = this.workingDir.resolve("static-arguments.txt");
+		System.setProperty("app.directory", dirStr);
+
+		logger.info("Application directory: {}", dirStr);
+		Files.createDirectories(this.directory);
+
+		this.staticArgumentsFile = this.directory.resolve("static-arguments.txt");
 		loadStaticArguments();
 
 		if (!this.devEnvironment)

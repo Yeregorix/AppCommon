@@ -38,7 +38,7 @@ public class ProcessUtil {
 	 * @return The process builder.
 	 */
 	public static ProcessBuilder builder() {
-		return builder(ApplicationManager.get().getWorkingDirectory());
+		return builder(ApplicationManager.get().getDirectory());
 	}
 
 	/**

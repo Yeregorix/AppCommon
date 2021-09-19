@@ -109,7 +109,7 @@ public class ApplicationUpdater {
 			logger.info("Starting application update task ...");
 			task.setTitle(Translations.update_download_title);
 
-			Path updaterJar = this.app.getWorkingDirectory().resolve("Updater.jar");
+			Path updaterJar = this.app.getDirectory().resolve("Updater.jar");
 			if (!this.latestUpdater.matches(updaterJar)) {
 				logger.info("Downloading latest updater ...");
 				this.latestUpdater.download(updaterJar, this.app.getConnectionConfig(), task);
@@ -127,7 +127,7 @@ public class ApplicationUpdater {
 			if (task.isCancelled())
 				return;
 
-			Path appUpdateJar = this.app.getWorkingDirectory().resolve(this.app.getName() + "-Update.jar");
+			Path appUpdateJar = this.app.getDirectory().resolve(this.app.getName() + "-Update.jar");
 			if (!this.latestApp.matches(appUpdateJar)) {
 				logger.info("Downloading latest application update ...");
 				this.latestApp.download(appUpdateJar, this.app.getConnectionConfig(), task);

@@ -78,7 +78,7 @@ public class DependencyManager {
 	 * @return Whether all dependencies have been updated.
 	 */
 	public boolean update() {
-		return update(this.app.getWorkingDirectory().resolve("libraries"));
+		return update(this.app.getDirectory().resolve("libraries"));
 	}
 
 	/**
