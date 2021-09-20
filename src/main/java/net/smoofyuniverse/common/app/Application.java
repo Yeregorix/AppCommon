@@ -23,7 +23,6 @@
 package net.smoofyuniverse.common.app;
 
 import javafx.application.Platform;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.event.EventManager;
@@ -34,6 +33,7 @@ import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 public abstract class Application {
@@ -140,25 +140,14 @@ public abstract class Application {
 	 *
 	 * @return The stage.
 	 */
-	public Stage getStage() {
-		if (this.stage == null)
-			throw new IllegalStateException("Stage is not initialized");
-		return this.stage;
+	public Optional<Stage> getStage() {
+		return Optional.ofNullable(this.stage);
 	}
 
 	protected void setStage(Stage stage) {
 		this.stage = stage;
 		if (stage != null)
 			stage.setOnCloseRequest(e -> getManager().shutdown());
-	}
-
-	/**
-	 * Gets the scene.
-	 *
-	 * @return The scene.
-	 */
-	public Scene getScene() {
-		return this.stage.getScene();
 	}
 
 	/**
