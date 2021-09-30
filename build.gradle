@@ -23,7 +23,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.smoofyuniverse.dependency-exporter' version '1.0.0'
+    id 'net.smoofyuniverse.dependency-exporter' version '1.0.1'
 }
 
 group 'net.smoofyuniverse'
