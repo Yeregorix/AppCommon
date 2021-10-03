@@ -35,6 +35,7 @@ import java.io.BufferedReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Locale;
 
 /**
@@ -93,29 +94,30 @@ public class DependencyInfo extends FileInfo {
 	}
 
 	/**
-	 * Loads all {@link DependencyInfo}s in a json file.
+	 * Loads all {@link DependencyInfo}s from a json file to a collection.
 	 *
 	 * @param file The file.
-	 * @return The dependencies.
+	 * @param col  The collection.
 	 * @throws Exception if any exception occurs while loading file.
 	 */
-	public static DependencyInfo[] loadAll(Path file) throws Exception {
+	public static void loadAll(Path file, Collection<DependencyInfo> col) throws Exception {
+		if (!Files.exists(file))
+			return;
+
 		try (BufferedReader r = Files.newBufferedReader(file)) {
-			return loadAll(JsonParser.array().from(r));
+			loadAll(JsonParser.array().from(r), col);
 		}
 	}
 
 	/**
-	 * Loads all {@link DependencyInfo}s in a json array.
+	 * Loads all {@link DependencyInfo}s from a json array to a collection.
 	 *
 	 * @param array The json array.
-	 * @return The dependencies.
+	 * @param col   The collection.
 	 */
-	public static DependencyInfo[] loadAll(JsonArray array) {
-		DependencyInfo[] deps = new DependencyInfo[array.size()];
-		for (int i = 0; i < deps.length; i++)
-			deps[i] = load((JsonObject) array.get(i));
-		return deps;
+	public static void loadAll(JsonArray array, Collection<DependencyInfo> col) {
+		for (Object obj : array)
+			col.add(load((JsonObject) obj));
 	}
 
 	/**

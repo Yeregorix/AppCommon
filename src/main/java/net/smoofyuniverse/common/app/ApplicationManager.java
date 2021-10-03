@@ -52,10 +52,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -432,12 +429,17 @@ public class ApplicationManager {
 
 		long start = System.currentTimeMillis();
 
+		// Load configuration
 		JsonObject config = getApplicationConfig();
 		String appClass = config.getString("application");
 		this.name = config.getString("name", "Application");
 		this.title = config.getString("title", this.name);
 		this.version = config.getString("version", "");
+		List<String> deps = (List) config.getArray("dependencies");
+		if (deps == null)
+			deps = Collections.singletonList("application");
 
+		// Prepare directory
 		this.directory = resolveDirectory().toAbsolutePath();
 		String dirStr = this.directory.toString();
 		String dirSep = this.directory.getFileSystem().getSeparator();
@@ -449,9 +451,11 @@ public class ApplicationManager {
 		logger.info("Application directory: {}", dirStr);
 		Files.createDirectories(this.directory);
 
+		// Load static arguments
 		this.staticArgumentsFile = this.directory.resolve("static-arguments.txt");
 		loadStaticArguments();
 
+		// Setup logger
 		if (!this.devEnvironment)
 			setupDependencies("logger");
 
@@ -459,6 +463,7 @@ public class ApplicationManager {
 		ApplicationLogger._bind();
 		logger.info("Logger implementation switched: {}", ApplicationLogger.getFactory().getClass().getName());
 
+		// Setup JavaFX
 		if (!detectJavaFX() && getJavaVersion() >= 11)
 			setupDependencies("javafx");
 
@@ -466,6 +471,11 @@ public class ApplicationManager {
 		initJavaFX();
 		this.javaFXLoaded = true;
 
+		// Setup application dependencies
+		if (!this.devEnvironment)
+			setupDependencies(deps);
+
+		// Initialize application
 		logger.info("Constructing application {} ...", appClass);
 		this.application = (Application) getClass().getClassLoader().loadClass(appClass).newInstance();
 		this.application.manager = this;
@@ -576,13 +586,26 @@ public class ApplicationManager {
 	}
 
 	/**
-	 * Updates and loads dependencies specified in the corresponding configuration file.
+	 * Updates and loads dependencies specified in the corresponding configuration files.
 	 *
-	 * @param name The name of the configuration.
-	 * @throws Exception if any exception occurs while loading configuration.
+	 * @param names The names of the configurations.
+	 * @throws Exception if any exception occurs while loading configurations.
 	 */
-	public void setupDependencies(String name) throws Exception {
-		DependencyManager.create(this, DependencyInfo.loadAll(getResource("dep/" + name + ".json"))).setup();
+	public void setupDependencies(String... names) throws Exception {
+		setupDependencies(Arrays.asList(names));
+	}
+
+	/**
+	 * Updates and loads dependencies specified in the corresponding configuration files.
+	 *
+	 * @param names The names of the configurations.
+	 * @throws Exception if any exception occurs while loading configurations.
+	 */
+	public void setupDependencies(Iterable<String> names) throws Exception {
+		List<DependencyInfo> deps = new ArrayList<>();
+		for (String name : names)
+			DependencyInfo.loadAll(getResource("dep/" + name + ".json"), deps);
+		DependencyManager.create(this, deps).setup();
 	}
 
 	private static void initJavaFX() throws Exception {
