@@ -62,7 +62,7 @@ public class ResourceLoader implements AutoCloseable {
 	public Path getResource(ClassLoader cl, String name) throws IOException {
 		URL url = cl.getResource(name);
 		if (url == null)
-			throw new NoSuchElementException("Resource not found");
+			throw new NoSuchElementException("Resource not found: " + name);
 		return toPath(url);
 	}
 
