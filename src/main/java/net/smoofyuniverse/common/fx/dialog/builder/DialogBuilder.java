@@ -31,6 +31,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 import net.smoofyuniverse.common.app.Application;
+import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.util.StringUtil;
 import org.slf4j.Logger;
@@ -226,7 +227,7 @@ public abstract class DialogBuilder<T> {
 	protected Dialog<T> buildDialog() {
 		Dialog<T> d = provide();
 
-		d.initOwner(this.owner == null ? Application.get().getStage().orElse(null) : this.owner);
+		d.initOwner(this.owner == null ? ApplicationManager.get().getApplication().flatMap(Application::getStage).orElse(null) : this.owner);
 
 		if (this.titleP != null)
 			d.titleProperty().bind(this.titleP);

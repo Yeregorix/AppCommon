@@ -346,8 +346,8 @@ public class ApplicationManager {
 	 *
 	 * @return The application.
 	 */
-	public final Application getApplication() {
-		return this.application;
+	public final Optional<Application> getApplication() {
+		return Optional.ofNullable(this.application);
 	}
 
 	/**

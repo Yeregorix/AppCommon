@@ -156,7 +156,7 @@ public abstract class Application {
 	 * @return The application.
 	 */
 	public static Application get() {
-		return ApplicationManager.get().getApplication();
+		return ApplicationManager.get().getApplication().get();
 	}
 
 	/**
