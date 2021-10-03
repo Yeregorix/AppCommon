@@ -23,7 +23,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.smoofyuniverse.dependency-exporter' version '1.0.2'
+    id 'net.smoofyuniverse.dependency-exporter' version '1.0.4'
 }
 
 group 'net.smoofyuniverse'
@@ -79,13 +79,7 @@ dependencyExport {
     javafx {
         path = "dep/javafx.json"
         config = configurations.javaFXRuntime
-        constraint("win", ["windows"], ["x64"])
-        constraint("win-x86", ["windows"], ["x86"])
-        constraint("mac", ["macos"], ["x64"])
-        constraint("mac-aarch64", ["macos"], ["arm64"])
-        constraint("linux", ["linux"], ["x64"])
-        constraint("linux-aarch64", ["linux"], ["arm64"])
-        constraint("linux-arm32-monocle", ["linux"], ["arm32"])
+        presetOpenJFX()
     }
 }
 
