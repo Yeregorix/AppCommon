@@ -23,7 +23,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.smoofyuniverse.dependency-exporter' version '1.0.1'
+    id 'net.smoofyuniverse.dependency-exporter' version '1.0.2'
 }
 
 group 'net.smoofyuniverse'
@@ -104,7 +104,7 @@ dependencies {
         }
     }
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 }
 
 test {
