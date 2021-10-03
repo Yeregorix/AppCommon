@@ -25,14 +25,10 @@ package net.smoofyuniverse.common.app;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import net.smoofyuniverse.common.event.EventManager;
 import net.smoofyuniverse.common.logger.ApplicationLogger;
-import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.util.ImageUtil;
 import org.slf4j.Logger;
 
-import java.nio.file.Path;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
@@ -41,59 +37,6 @@ public abstract class Application {
 
 	ApplicationManager manager;
 	private Stage stage;
-
-	/**
-	 * Creates the event manager.
-	 *
-	 * @return The event manager.
-	 */
-	protected EventManager createEventManager() {
-		return new EventManager();
-	}
-
-	/**
-	 * Creates the resource manager.
-	 *
-	 * @return The resource manager.
-	 */
-	protected ResourceManager createResourceManager() {
-		return new ResourceManager(Languages.ENGLISH, false);
-	}
-
-	void preInit() throws Exception {
-		logger.info("Loading resources ...");
-		loadResources();
-		bindTranslations();
-		selectLanguage();
-	}
-
-	protected void loadResources() throws Exception {
-		loadTranslations(getManager().getResource("lang/common"), "txt");
-	}
-
-	protected void bindTranslations() throws Exception {
-		getManager().getTranslator().bindStaticFields(Translations.class);
-	}
-
-	protected void selectLanguage() {
-		String langId = getManager().getArguments().getString("language", "lang").orElse(null);
-		if (langId != null && !Language.isValidId(langId)) {
-			logger.warn("Argument '{}' is not a valid language identifier.", langId);
-			langId = null;
-		}
-		if (langId == null) {
-			langId = System.getProperty("user.language");
-			if (langId != null && !Language.isValidId(langId))
-				langId = null;
-		}
-		if (langId != null)
-			getManager().getResourceManager().setSelection(Language.of(langId));
-	}
-
-	protected final void loadTranslations(Path dir, String extension) {
-		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
-			getManager().getResourceManager().getOrCreatePack(e.getKey()).addModule(e.getValue());
-	}
 
 	public final ApplicationManager getManager() {
 		return this.manager;

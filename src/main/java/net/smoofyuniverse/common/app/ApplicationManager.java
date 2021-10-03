@@ -37,8 +37,7 @@ import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.platform.OperatingSystem;
-import net.smoofyuniverse.common.resource.ResourceManager;
-import net.smoofyuniverse.common.resource.Translator;
+import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.task.BaseListener;
 import net.smoofyuniverse.common.util.ResourceLoader;
 import org.slf4j.Logger;
@@ -53,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -471,6 +471,15 @@ public class ApplicationManager {
 		initJavaFX();
 		this.javaFXLoaded = true;
 
+		// Load resources
+		logger.info("Loading resources ...");
+		this.eventManager = new EventManager();
+		this.resourceManager = new ResourceManager(Languages.ENGLISH, false);
+
+		loadTranslations("common");
+		bindTranslations(Translations.class);
+		selectLanguage();
+
 		// Setup application dependencies
 		if (!this.devEnvironment)
 			setupDependencies(deps);
@@ -480,10 +489,6 @@ public class ApplicationManager {
 		this.application = (Application) getClass().getClassLoader().loadClass(appClass).newInstance();
 		this.application.manager = this;
 
-		this.eventManager = this.application.createEventManager();
-		this.resourceManager = this.application.createResourceManager();
-
-		this.application.preInit();
 		this.application.init();
 
 		setState(State.RUNNING);
@@ -606,6 +611,53 @@ public class ApplicationManager {
 		for (String name : names)
 			DependencyInfo.loadAll(getResource("dep/" + name + ".json"), deps);
 		DependencyManager.create(this, deps).setup();
+	}
+
+	/**
+	 * Loads translations included in application's JAR.
+	 *
+	 * @param name The directory name.
+	 * @throws IOException if an I/O exception occurs.
+	 */
+	public void loadTranslations(String name) throws IOException {
+		loadTranslations(getResource("lang/" + name));
+	}
+
+	/**
+	 * Binds all empty translations in static fields of the class.
+	 *
+	 * @param target The class.
+	 * @throws IllegalAccessException – If any reflection error occurs.
+	 */
+	public void bindTranslations(Class<?> target) throws IllegalAccessException {
+		getTranslator().bindStaticFields(target);
+	}
+
+	protected void selectLanguage() {
+		String id = this.arguments.getString("language", "lang").orElse(null);
+		if (id != null && !Language.isValidId(id)) {
+			logger.warn("Argument '{}' is not a valid language identifier.", id);
+			id = null;
+		}
+
+		if (id == null) {
+			id = System.getProperty("user.language");
+			if (id != null && !Language.isValidId(id))
+				id = null;
+		}
+
+		if (id != null)
+			this.resourceManager.setSelection(Language.of(id));
+	}
+
+	/**
+	 * Loads translations located in the given directory.
+	 *
+	 * @param dir The directory.
+	 */
+	public void loadTranslations(Path dir) {
+		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
+			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
 	}
 
 	private static void initJavaFX() throws Exception {
