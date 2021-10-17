@@ -66,9 +66,14 @@ public class ObservableProgressTask extends ObservableProgressListener implement
 	@Override
 	public void setTitle(String value) {
 		if (Platform.isFxApplicationThread())
-			this.title.set(value);
+			_setTitle(value);
 		else if (this.titleUpdate.getAndSet(value) == null)
-			Platform.runLater(() -> this.title.set(this.titleUpdate.getAndSet(null)));
+			Platform.runLater(() -> _setTitle(this.titleUpdate.getAndSet(null)));
+	}
+
+	private void _setTitle(String value) {
+		this.title.unbind();
+		this.title.set(value);
 	}
 
 	@Override
@@ -89,9 +94,14 @@ public class ObservableProgressTask extends ObservableProgressListener implement
 	@Override
 	public void setMessage(String value) {
 		if (Platform.isFxApplicationThread())
-			this.message.set(value);
+			_setMessage(value);
 		else if (this.messageUpdate.getAndSet(value) == null)
-			Platform.runLater(() -> this.message.set(this.messageUpdate.getAndSet(null)));
+			Platform.runLater(() -> _setMessage(this.messageUpdate.getAndSet(null)));
+	}
+
+	private void _setMessage(String value) {
+		this.message.unbind();
+		this.message.set(value);
 	}
 
 	@Override
