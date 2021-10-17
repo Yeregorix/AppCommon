@@ -25,11 +25,16 @@ package net.smoofyuniverse.common.task.impl;
 import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.task.BaseListener;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 /**
  * The default implementation of {@link BaseListener}.
  */
 public class SimpleBaseListener implements BaseListener {
 	private volatile boolean cancellable = true, cancelled = false;
+	private final List<Consumer<Boolean>> actions = new ArrayList<>(0);
 
 	/**
 	 * Creates a listener and registers it (weak reference).
@@ -56,6 +61,19 @@ public class SimpleBaseListener implements BaseListener {
 
 	@Override
 	public void setCancelled(boolean value) {
-		this.cancelled = value;
+		synchronized (this.actions) {
+			if (this.cancelled != value) {
+				this.cancelled = value;
+				for (Consumer<Boolean> a : this.actions)
+					a.accept(value);
+			}
+		}
+	}
+
+	@Override
+	public void cancelled(Consumer<Boolean> action) {
+		synchronized (this.actions) {
+			this.actions.add(action);
+		}
 	}
 }

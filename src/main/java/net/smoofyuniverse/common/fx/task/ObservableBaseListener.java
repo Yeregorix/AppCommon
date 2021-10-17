@@ -29,6 +29,7 @@ import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.task.BaseListener;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * An observable implementation of {@link BaseListener}.
@@ -76,6 +77,11 @@ public class ObservableBaseListener implements BaseListener {
 			this.cancelled.set(value);
 		else if (this.cancelledUpdate.getAndSet(value) == null)
 			Platform.runLater(() -> this.cancelled.set(this.cancelledUpdate.getAndSet(null)));
+	}
+
+	@Override
+	public void cancelled(Consumer<Boolean> action) {
+		this.cancelled.addListener((v, oldV, newV) -> action.accept(newV));
 	}
 
 	@Override

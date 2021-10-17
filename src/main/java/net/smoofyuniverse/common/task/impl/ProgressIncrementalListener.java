@@ -26,6 +26,7 @@ import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressListener;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * This {@link IncrementalListener} updates a {@link ProgressListener}.
@@ -107,5 +108,10 @@ public class ProgressIncrementalListener implements IncrementalListener {
 	@Override
 	public void setCancelled(boolean value) {
 		this.delegate.setCancelled(value);
+	}
+
+	@Override
+	public void cancelled(Consumer<Boolean> action) {
+		this.delegate.cancelled(action);
 	}
 }

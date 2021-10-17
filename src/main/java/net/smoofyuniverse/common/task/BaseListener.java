@@ -22,6 +22,8 @@
 
 package net.smoofyuniverse.common.task;
 
+import java.util.function.Consumer;
+
 /**
  * Basically anything that might be cancellable.
  */
@@ -61,4 +63,23 @@ public interface BaseListener {
 	default void cancel() {
 		setCancelled(true);
 	}
+
+	/**
+	 * Executes the action when this listener is cancelled.
+	 *
+	 * @param action The action.
+	 */
+	default void onCancel(Runnable action) {
+		cancelled(v -> {
+			if (v)
+				action.run();
+		});
+	}
+
+	/**
+	 * Executes the action when the "cancelled" state is changed.
+	 *
+	 * @param action The action.
+	 */
+	void cancelled(Consumer<Boolean> action);
 }
