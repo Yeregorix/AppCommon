@@ -135,7 +135,7 @@ public class ApplicationUpdater {
 				if (task.isCancelled())
 					return;
 
-				if (this.latestApp.matches(appUpdateJar)) {
+				if (!this.latestApp.matches(appUpdateJar)) {
 					task.cancel();
 					logger.error("Application update file seems invalid, aborting ...");
 					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
