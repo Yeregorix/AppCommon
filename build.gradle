@@ -84,11 +84,11 @@ dependencyExport {
 }
 
 dependencies {
-    api 'org.slf4j:slf4j-api:1.7.35'
+    api 'org.slf4j:slf4j-api:1.7.36'
     api 'com.grack:nanojson:1.7'
 
-    loggerImpl 'org.apache.logging.log4j:log4j-core:2.17.1'
-    loggerImpl('org.apache.logging.log4j:log4j-slf4j-impl:2.17.1') {
+    loggerImpl 'org.apache.logging.log4j:log4j-core:2.17.2'
+    loggerImpl('org.apache.logging.log4j:log4j-slf4j-impl:2.17.2') {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
 
