@@ -33,8 +33,6 @@ import org.slf4j.Logger;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
@@ -183,19 +181,10 @@ public class DependencyManager {
 	 * @throws Exception if any exception occurs.
 	 */
 	public static void addToSystemClasspath(Path jar) throws Exception {
-		if (Main.getInstrumentation() != null) {
-			Main.getInstrumentation().appendToSystemClassLoaderSearch(new JarFile(jar.toFile()));
-			return;
+		if (Main.getInstrumentation() == null) {
+			throw new IllegalStateException("Instrumentation is not available");
 		}
-
-		URLClassLoader cl = (URLClassLoader) ClassLoader.getSystemClassLoader();
-
-		if (addURL == null) {
-			addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-			addURL.setAccessible(true);
-		}
-
-		addURL.invoke(cl, jar.toUri().toURL());
+		Main.getInstrumentation().appendToSystemClassLoaderSearch(new JarFile(jar.toFile()));
 	}
 
 	/**

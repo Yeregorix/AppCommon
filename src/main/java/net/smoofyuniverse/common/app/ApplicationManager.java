@@ -25,7 +25,6 @@ package net.smoofyuniverse.common.app;
 import com.grack.nanojson.JsonObject;
 import com.grack.nanojson.JsonParser;
 import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
 import net.smoofyuniverse.common.download.ConnectionConfig;
 import net.smoofyuniverse.common.environment.ApplicationUpdater;
 import net.smoofyuniverse.common.environment.DependencyInfo;
@@ -662,11 +661,8 @@ public class ApplicationManager {
 
 	private static void initJavaFX() throws Exception {
 		Platform.setImplicitExit(false);
-		try {
-			Platform.class.getDeclaredMethod("startup", Runnable.class).invoke(null, (Runnable) () -> {});
-		} catch (NoSuchMethodException e) {
-			new JFXPanel();
-		}
+		Platform.startup(() -> {
+		});
 	}
 
 	/**

@@ -1,0 +1,182 @@
+[
+    {
+        "name": "org.openjfx:javafx-base:21.0.1:linux",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar",
+        "size": 754325,
+        "digest": "76f2c504904f96208026fde914701001a668716e",
+        "systems": [
+            "linux"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-base:21.0.1:linux-aarch64",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux-aarch64.jar",
+        "size": 754326,
+        "digest": "e8d960421a991229e373a417a1202da19b1782d8",
+        "systems": [
+            "linux"
+        ],
+        "archs": [
+            "arm64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-base:21.0.1:mac",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-mac.jar",
+        "size": 754326,
+        "digest": "a2fdc6292a7727a389dc41d42dd1a86040ee7625",
+        "systems": [
+            "macos"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-base:21.0.1:mac-aarch64",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-mac-aarch64.jar",
+        "size": 754326,
+        "digest": "d9e58df4eb0c61e90165665c404d2f51ea39408b",
+        "systems": [
+            "macos"
+        ],
+        "archs": [
+            "arm64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-base:21.0.1:win",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-win.jar",
+        "size": 754326,
+        "digest": "0adb6ee2aa7dff77286a0673dd0c001e318e7224",
+        "systems": [
+            "windows"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-graphics:21.0.1:linux",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar",
+        "size": 4689419,
+        "digest": "2e2f66b5323151883c1bfed372c60eca594c76f7",
+        "systems": [
+            "linux"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-graphics:21.0.1:linux-aarch64",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux-aarch64.jar",
+        "size": 4673909,
+        "digest": "4e2e682b65edf70691f4dabef37bdf97653bbc4c",
+        "systems": [
+            "linux"
+        ],
+        "archs": [
+            "arm64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-graphics:21.0.1:mac",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-mac.jar",
+        "size": 4871912,
+        "digest": "258d136765a04d6d5541e60fa9a571ebb43e0ba4",
+        "systems": [
+            "macos"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-graphics:21.0.1:mac-aarch64",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-mac-aarch64.jar",
+        "size": 4833861,
+        "digest": "b3d31e071b0b98795a65305900d7465cd93b1fb8",
+        "systems": [
+            "macos"
+        ],
+        "archs": [
+            "arm64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-graphics:21.0.1:win",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-win.jar",
+        "size": 5918808,
+        "digest": "f92cc4656711f2ce8b1928d3b063fd4746ea23e4",
+        "systems": [
+            "windows"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-controls:21.0.1:linux",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar",
+        "size": 2585144,
+        "digest": "60c9424fefd23680ed3b221c424a24b9d8ee052c",
+        "systems": [
+            "linux"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-controls:21.0.1:linux-aarch64",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux-aarch64.jar",
+        "size": 2585144,
+        "digest": "ad7b31977534f66e80ebb939a88651cba2c34122",
+        "systems": [
+            "linux"
+        ],
+        "archs": [
+            "arm64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-controls:21.0.1:mac",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-mac.jar",
+        "size": 2585115,
+        "digest": "f59d8d37aeffa5226bad1bf31793c69df545b82a",
+        "systems": [
+            "macos"
+        ],
+        "archs": [
+            "x64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-controls:21.0.1:mac-aarch64",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-mac-aarch64.jar",
+        "size": 2585130,
+        "digest": "f5802c41bcedc86721fd5a08555783229f4b0c96",
+        "systems": [
+            "macos"
+        ],
+        "archs": [
+            "arm64"
+        ]
+    },
+    {
+        "name": "org.openjfx:javafx-controls:21.0.1:win",
+        "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-win.jar",
+        "size": 2585104,
+        "digest": "f97557705aba7fb552fe1bf6e4bdb72bab1924ba",
+        "systems": [
+            "windows"
+        ],
+        "archs": [
+            "x64"
+        ]
+    }
+]

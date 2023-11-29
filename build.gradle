@@ -23,7 +23,8 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.smoofyuniverse.dependency-exporter' version '1.0.5'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'net.smoofyuniverse.dependency-exporter' version '1.0.6'
 }
 
 group 'net.smoofyuniverse'
@@ -31,42 +32,46 @@ version = '1.4.0-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(17)
     }
     withJavadocJar()
     withSourcesJar()
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = "utf-8"
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
 sourceSets {
-    main6
+    main7
     main {
-        compileClasspath += main6.output
+        compileClasspath += main7.output
     }
 }
 
-compileMain6Java {
-    sourceCompatibility = '1.6'
-    targetCompatibility = '1.6'
+compileMain7Java {
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
 }
 
 jar {
-    from sourceSets.main6.output
+    from sourceSets.main7.output
 }
 
 repositories {
     mavenCentral()
 }
 
+def generateJavaFXDeps = false
+
 configurations {
     loggerImpl
     implementation.extendsFrom loggerImpl
 
-    javaFXRuntime {
-        transitive = false
+    if (generateJavaFXDeps) {
+        javaFXRuntime {
+            transitive = false
+        }
     }
 }
 
@@ -76,11 +81,19 @@ dependencyExport {
         config = configurations.loggerImpl
     }
 
-    javafx {
-        path = "dep/javafx.json"
-        config = configurations.javaFXRuntime
-        presetOpenJFX()
+    if (generateJavaFXDeps) {
+        javafx {
+            path = "dep/javafx.json"
+            config = configurations.javaFXRuntime
+            presetOpenJFX()
+        }
     }
+}
+
+javafx {
+    version = '21.0.1'
+    modules = ['javafx.controls']
+    configuration = 'compileOnly'
 }
 
 dependencies {
@@ -92,9 +105,11 @@ dependencies {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
 
-    for (classifier in dependencyExport.javafx.constraints.names) {
-        for (name in ["base", "graphics", "controls"]) {
-            javaFXRuntime 'org.openjfx:javafx-' + name + ':17.0.2:' + classifier
+    if (generateJavaFXDeps) {
+        for (classifier in dependencyExport.javafx.constraints.names) {
+            for (name in ["base", "graphics", "controls"]) {
+                javaFXRuntime 'org.openjfx:javafx-' + name + ':21.0.1:' + classifier
+            }
         }
     }
 
