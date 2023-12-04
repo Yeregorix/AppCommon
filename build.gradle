@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'org.openjfx.javafxplugin' version '0.1.0'
-    id 'net.smoofyuniverse.dependency-exporter' version '1.0.6'
+    id 'net.smoofyuniverse.dependency-exporter' version '1.0.7'
     id 'com.diffplug.spotless' version '6.23.1'
 }
 

@@ -117,7 +117,15 @@ public class SimpleReleaseSource implements ReleaseSource {
 	}
 
 	protected ReleaseInfo getRelease(String version, JsonObject obj) throws Exception {
+		String digest = obj.getString("sha256");
+		String digestAlgorithm = "SHA-256";
+
+		if (digest == null) {
+			digest = obj.getString("sha1");
+			digestAlgorithm = "SHA-1";
+		}
+
 		return new ReleaseInfo(version, Instant.parse(obj.getString("date")), obj.getObject("extra"),
-				getURL(version + "/" + this.appName + "-" + version + ".jar"), obj.getNumber("size").longValue(), obj.getString("sha1"), "sha1");
+				getURL(version + "/" + this.appName + "-" + version + ".jar"), obj.getNumber("size").longValue(), digest, digestAlgorithm);
 	}
 }

@@ -144,20 +144,28 @@ public class GitHubReleaseSource implements ReleaseSource {
 
 		JsonObject extraData = null;
 		String digest = null;
+		String digestAlgorithm = null;
 
 		if (jsonAsset != null) {
 			HttpURLConnection co = openAssetConnection(new URL(jsonAsset.getString("url")), this.config);
 
 			try (InputStream in = co.getInputStream()) {
 				JsonObject data = JsonParser.object().withLazyNumbers().from(in);
-				digest = data.getString("sha1");
 				extraData = data.getObject("extra");
+
+				digest = data.getString("sha256");
+				digestAlgorithm = "SHA-256";
+
+				if (digest == null) {
+					digest = data.getString("sha1");
+					digestAlgorithm = "SHA-1";
+				}
 			} finally {
 				co.disconnect();
 			}
 		}
 
-		return new ReleaseInfo(version, date, extraData, url, size, digest, "sha1") {
+		return new ReleaseInfo(version, date, extraData, url, size, digest, digestAlgorithm) {
 			@Override
 			public HttpURLConnection openDownloadConnection(ConnectionConfig config) throws IOException {
 				return openAssetConnection(this.url, config);

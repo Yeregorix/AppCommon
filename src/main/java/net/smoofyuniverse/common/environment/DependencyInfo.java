@@ -149,7 +149,7 @@ public class DependencyInfo extends FileInfo {
 
 		return new DependencyInfo(obj.getString("name"),
 				URLUtil.newURL(obj.getString("url")), obj.getLong("size", -1),
-				obj.getString("digest"), obj.getString("digest-algorithm", "sha1"),
+				obj.getString("digest"), obj.getString("digestAlgorithm", "SHA-256"),
 				systems, archs);
 	}
 }
