@@ -3,10 +3,10 @@
 AppCommon is a library for developing JavaFX applications that includes many services to improve application quality
 easily.
 
-## Java 8 and 11+ support
+## Java 17+ support
 
-AppCommon applications are compatible with Java 8 and any Java version >= 11. Java 9 and 10 are not supported. On Java
-11+, JavaFX runtime is automatically downloaded when missing.
+AppCommon applications are compatible with any Java version >= 17. The JavaFX runtime is automatically downloaded when
+missing.
 
 ## Gradle integration
 
