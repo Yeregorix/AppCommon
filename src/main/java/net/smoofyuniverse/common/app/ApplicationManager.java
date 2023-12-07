@@ -459,7 +459,7 @@ public class ApplicationManager {
 		logger.info("Logger implementation switched: {}", ApplicationLogger.getFactory().getClass().getName());
 
 		// Setup JavaFX
-		if (!detectJavaFX() && getJavaVersion() >= 11)
+		if (!detectJavaFX())
 			setupDependencies("javafx");
 
 		logger.info("Initializing JavaFX ...");
@@ -564,19 +564,6 @@ public class ApplicationManager {
 		} catch (ClassNotFoundException e) {
 			return false;
 		}
-	}
-
-	/**
-	 * Gets the java specification version as an int.
-	 *
-	 * @return The java specification version.
-	 */
-	public static int getJavaVersion() {
-		String version = System.getProperty("java.specification.version");
-		int i = version.indexOf('.');
-		if (i != -1)
-			version = version.substring(i + 1);
-		return Integer.parseInt(version);
 	}
 
 	/**
