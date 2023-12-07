@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,14 @@
 
 package net.smoofyuniverse.common.app;
 
-import net.smoofyuniverse.common.resource.ObservableTranslation;
-
-import static net.smoofyuniverse.common.resource.ObservableTranslation.empty;
+import net.smoofyuniverse.common.translator.ObservableTranslation;
+import net.smoofyuniverse.common.translator.ResourceBundleTranslator;
+import net.smoofyuniverse.common.translator.Translator;
 
 public final class Translations {
+	private static final Translator translator = new ResourceBundleTranslator("lang/common");
 
-	public static final ObservableTranslation
-			dependencies_download_title = empty(), dependencies_update_title = empty(), failed_dependencies_title = empty(),
-			failed_dependencies_message = empty(), update_available_title = empty(), update_available_message = empty(),
-			update_download_title = empty(), update_cancelled = empty(), updater_signature_invalid = empty(),
-			update_signature_invalid = empty(), update_process_title = empty(), update_process_message = empty(),
-			update_process_error = empty(), update_title = empty(), task_list_cancel = empty();
+	public static ObservableTranslation t(String key) {
+		return translator.getTranslation(key);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,64 +20,39 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.resource;
+package net.smoofyuniverse.common.translator;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyStringPropertyBase;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Label;
-import net.smoofyuniverse.common.util.StringUtil;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * An observable translated string.
  */
 public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
-	private String key, value;
+	/**
+	 * The key of the resource.
+	 */
+	public final String key;
 
-	ObservableTranslation() {
-		this.key = "";
-		this.value = "";
-	}
+	private MessageFormat format;
 
-	void setKey(Translator translator, String key) {
+	ObservableTranslation(String key) {
 		this.key = key;
-		this.value = translator._translate(key);
 	}
 
-	/**
-	 * Gets the key of the resource.
-	 *
-	 * @return The key.
-	 */
-	public String getKey() {
-		return this.key;
-	}
-
-	void update(Translator translator) {
-		String newValue = translator._translate(this.key);
-		if (this.value.equals(newValue))
+	void update(MessageFormat format) {
+		if (format.equals(this.format))
 			return;
-
-		this.value = newValue;
+		this.format = format;
 		fireValueChangedEvent();
-	}
-
-	/**
-	 * Creates an empty translation.
-	 * This translation currently have an empty key and an empty value.
-	 * The key can be late-initiliazed
-	 *
-	 * @return The new translation.
-	 */
-	public static ObservableTranslation empty() {
-		return new ObservableTranslation();
 	}
 
 	@Override
@@ -92,7 +67,7 @@ public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
 
 	@Override
 	public String get() {
-		return this.value;
+		return this.format.format(null);
 	}
 
 	/**
@@ -109,35 +84,35 @@ public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
 	/**
 	 * Creates a new label with text bound to this translation.
 	 *
-	 * @param parameters The parameters.
+	 * @param arguments The arguments.
 	 * @return The new label.
 	 */
-	public Label newLabel(String... parameters) {
+	public Label newLabel(Object... arguments) {
 		Label l = new Label();
-		l.textProperty().bind(format(parameters));
+		l.textProperty().bind(format(arguments));
 		return l;
 	}
 
 	/**
-	 * Gets an observable value where parameters are replaced.
+	 * Gets an observable value where arguments are replaced.
 	 *
-	 * @param parameters The parameters.
+	 * @param arguments The arguments.
 	 * @return The observable value.
 	 */
-	public StringExpression format(String... parameters) {
-		if (parameters.length == 0)
+	public StringExpression format(Object... arguments) {
+		if (arguments.length == 0)
 			return this;
-		return Bindings.createStringBinding(() -> get(parameters), this);
+		return Bindings.createStringBinding(() -> get(arguments), this);
 	}
 
 	/**
-	 * Gets the value and replaces parameters.
+	 * Gets the value and replaces arguments.
 	 *
-	 * @param parameters The parameters.
+	 * @param arguments The arguments.
 	 * @return The value.
 	 */
-	public String get(String... parameters) {
-		return StringUtil.replaceParameters(this.value, parameters);
+	public String get(Object... arguments) {
+		return this.format.format(arguments);
 	}
 
 	/**
@@ -154,8 +129,8 @@ public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
 	 */
 	public static class FormatBuilder {
 		private final ObservableTranslation parent;
-		private final List<ObservableValue<String>> dependencies = new ArrayList<>();
-		private final Map<String, Supplier<String>> map = new HashMap<>();
+		private final List<ObservableValue<?>> dependencies = new ArrayList<>();
+		private final List<Supplier<?>> arguments = new ArrayList<>();
 
 		private FormatBuilder(ObservableTranslation parent) {
 			this.parent = parent;
@@ -163,27 +138,25 @@ public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
 		}
 
 		/**
-		 * Replaces the parameter with a constant value.
+		 * Replaces the argument with a constant value.
 		 *
-		 * @param name The name of the parameter.
-		 * @param replacement The replacement.
+		 * @param argument The argument.
 		 * @return this.
 		 */
-		public FormatBuilder add(String name, String replacement) {
-			this.map.put(name, () -> replacement);
+		public FormatBuilder add(Object argument) {
+			this.arguments.add(() -> argument);
 			return this;
 		}
 
 		/**
-		 * Replaces the parameter with an observable value.
+		 * Replaces the argument with an observable value.
 		 *
-		 * @param name The name of the parameter.
-		 * @param replacement The observable replacement.
+		 * @param argument The observable argument.
 		 * @return this.
 		 */
-		public FormatBuilder add(String name, ObservableValue<String> replacement) {
-			this.map.put(name, replacement::getValue);
-			this.dependencies.add(replacement);
+		public FormatBuilder add(ObservableValue<?> argument) {
+			this.arguments.add(argument::getValue);
+			this.dependencies.add(argument);
 			return this;
 		}
 
@@ -204,9 +177,18 @@ public final class ObservableTranslation extends ReadOnlyStringPropertyBase {
 		 * @return The observable translation.
 		 */
 		public StringExpression build() {
-			if (this.map.isEmpty())
+			if (this.arguments.isEmpty())
 				return this.parent;
-			return Bindings.createStringBinding(() -> StringUtil.replaceParameters(this.parent.value, s -> map.get(s).get()), this.dependencies.toArray(new ObservableValue[0]));
+
+			Supplier<?>[] suppliers = this.arguments.toArray(new Supplier[0]);
+			ObservableValue<?>[] deps = this.dependencies.toArray(new ObservableValue[0]);
+
+			return Bindings.createStringBinding(() -> {
+				Object[] args = new Object[suppliers.length];
+				for (int i = 0; i < args.length; i++)
+					args[i] = suppliers[i].get();
+				return this.parent.get(args);
+			}, deps);
 		}
 	}
 }

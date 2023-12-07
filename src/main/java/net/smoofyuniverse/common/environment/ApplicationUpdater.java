@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.app.ApplicationManager;
-import net.smoofyuniverse.common.app.Translations;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.logger.ApplicationLogger;
@@ -36,6 +35,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static net.smoofyuniverse.common.app.Translations.t;
 
 /**
  * A helper to check and apply application updates.
@@ -95,7 +96,7 @@ public class ApplicationUpdater {
 	 * @return Whether the update should be applied.
 	 */
 	public boolean notifyUpdate() {
-		return Popup.confirmation().title(Translations.update_available_title).message(Translations.update_available_message).submitAndWait();
+		return Popup.confirmation().title(t("update.available.title")).message(t("update.available.message")).submitAndWait();
 	}
 
 	/**
@@ -107,7 +108,7 @@ public class ApplicationUpdater {
 
 		Consumer<ProgressTask> consumer = task -> {
 			logger.info("Starting application update task ...");
-			task.setTitle(Translations.update_download_title);
+			task.setTitle(t("update.download.title"));
 
 			Path updaterJar = this.app.getDirectory().resolve("Updater.jar");
 			if (!this.latestUpdater.matches(updaterJar)) {
@@ -120,7 +121,7 @@ public class ApplicationUpdater {
 				if (!this.latestUpdater.matches(updaterJar)) {
 					task.cancel();
 					logger.error("Updater file seems invalid, aborting ...");
-					Popup.error().title(Translations.update_cancelled).message(Translations.updater_signature_invalid).show();
+					Popup.error().title(t("update.cancelled")).message(t("update.signature.invalid.updater")).show();
 				}
 			}
 
@@ -138,7 +139,7 @@ public class ApplicationUpdater {
 				if (!this.latestApp.matches(appUpdateJar)) {
 					task.cancel();
 					logger.error("Application update file seems invalid, aborting ...");
-					Popup.error().title(Translations.update_cancelled).message(Translations.update_signature_invalid).show();
+					Popup.error().title(t("update.cancelled")).message(t("update.signature.invalid.app")).show();
 				}
 			}
 
@@ -146,8 +147,8 @@ public class ApplicationUpdater {
 				return;
 
 			logger.info("Starting updater process ...");
-			task.setTitle(Translations.update_process_title);
-			task.setMessage(Translations.update_process_message);
+			task.setTitle(t("update.process.title"));
+			task.setMessage(t("update.process.message"));
 			task.setProgress(-1);
 
 			boolean launch = !this.app.getArguments().getBoolean("noUpdateLaunch");
@@ -172,11 +173,11 @@ public class ApplicationUpdater {
 			} catch (IOException e) {
 				task.cancel();
 				logger.error("Failed to start updater process", e);
-				Popup.error().title(Translations.update_cancelled).message(Translations.update_process_error).show();
+				Popup.error().title(t("update.cancelled")).message(t("update.process.error")).show();
 			}
 		};
 
-		boolean success = Popup.consumer(consumer).title(Translations.update_title).submitAndWait();
+		boolean success = Popup.consumer(consumer).title(t("update.title")).submitAndWait();
 		if (success)
 			this.app.shutdownNow();
 		else

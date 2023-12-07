@@ -23,11 +23,9 @@ in the main jar so that it stays small.
 The application can check for updates on GitHub or on a dedicated host. A notification is displayed to the user so that
 he can automatically download the update and restart the application.
 
-## Resource manager
+## Observable translations
 
-A modular resource manager allows the user to select the language and the developer to get the corresponding resources (
-strings, images, sounds, etc). Translations can be get as JavaFX string properties that automatically update when the
-user changes his language.
+Localized strings as observable JavaFX properties to make application internationalization easier.
 
 ## Event manager
 

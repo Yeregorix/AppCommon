@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 package net.smoofyuniverse.common.environment;
 
 import net.smoofyuniverse.common.app.ApplicationManager;
-import net.smoofyuniverse.common.app.Translations;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.task.IncrementalListener;
 import net.smoofyuniverse.common.task.ProgressTask;
@@ -32,6 +31,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static net.smoofyuniverse.common.app.Translations.t;
 
 public class DependencyManagerFX extends DependencyManager {
 
@@ -43,7 +44,7 @@ public class DependencyManagerFX extends DependencyManager {
 	protected void download(List<DependencyInfo> deps, long totalSize) {
 		Consumer<ProgressTask> consumer = task -> {
 			logger.info("Downloading missing dependencies ...");
-			task.setTitle(Translations.dependencies_download_title);
+            task.setTitle(t("dependencies.download.title"));
 			IncrementalListener listener = task.expect(totalSize);
 
 			Iterator<DependencyInfo> it = deps.iterator();
@@ -68,7 +69,7 @@ public class DependencyManagerFX extends DependencyManager {
 			}
 		};
 
-		Popup.consumer(consumer).title(Translations.dependencies_update_title).submitAndWait();
+        Popup.consumer(consumer).title(t("dependencies.update.title")).submitAndWait();
 	}
 
 	@Override
@@ -77,6 +78,6 @@ public class DependencyManagerFX extends DependencyManager {
 		for (DependencyInfo dep : deps)
 			b.append("\n- ").append(dep.name);
 
-		Popup.error().title(Translations.failed_dependencies_title).message(Translations.failed_dependencies_message.format("list", b.toString())).showAndWait();
+        Popup.error().title(t("dependencies.failed.title")).message(t("dependencies.failed.message").format(b.toString())).showAndWait();
 	}
 }

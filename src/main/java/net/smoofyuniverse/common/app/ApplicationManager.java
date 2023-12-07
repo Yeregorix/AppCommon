@@ -32,11 +32,11 @@ import net.smoofyuniverse.common.environment.DependencyManager;
 import net.smoofyuniverse.common.environment.source.GitHubReleaseSource;
 import net.smoofyuniverse.common.environment.source.ReleaseSource;
 import net.smoofyuniverse.common.event.EventManager;
+import net.smoofyuniverse.common.event.app.ApplicationLocaleChangeEvent;
 import net.smoofyuniverse.common.event.app.ApplicationStateChangeEvent;
 import net.smoofyuniverse.common.fx.dialog.Popup;
 import net.smoofyuniverse.common.logger.ApplicationLogger;
 import net.smoofyuniverse.common.platform.OperatingSystem;
-import net.smoofyuniverse.common.resource.*;
 import net.smoofyuniverse.common.task.BaseListener;
 import net.smoofyuniverse.common.util.ResourceLoader;
 import org.slf4j.Logger;
@@ -51,7 +51,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -68,6 +67,7 @@ public class ApplicationManager {
 	private final boolean devEnvironment;
 	private final Set<BaseListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
 	private State state = State.CREATION;
+	private Locale locale = Locale.getDefault();
 	private boolean javaFXLoaded = false;
 	private String name, title, version;
 	private Path directory, staticArgumentsFile;
@@ -75,7 +75,6 @@ public class ApplicationManager {
 	private Application application;
 
 	private EventManager eventManager;
-	private ResourceManager resourceManager;
 
 	private ConnectionConfig connectionConfig;
 	private Optional<Path> applicationJar;
@@ -120,7 +119,7 @@ public class ApplicationManager {
 	}
 
 	/**
-	 * Gets the state.
+	 * Gets the state of the application.
 	 *
 	 * @return The state.
 	 */
@@ -131,9 +130,26 @@ public class ApplicationManager {
 	private void setState(State state) {
 		if (this.state == state)
 			return;
-		if (this.eventManager != null)
-			this.eventManager.postEvent(new ApplicationStateChangeEvent(this, this.state, state));
+
+		State oldState = this.state;
 		this.state = state;
+
+		if (this.eventManager != null)
+			this.eventManager.postEvent(new ApplicationStateChangeEvent(oldState, state));
+	}
+
+	public final Locale getLocale() {
+		return this.locale;
+	}
+
+	public final void setLocale(Locale locale) {
+		if (locale == null)
+			throw new IllegalArgumentException("locale");
+
+		Locale oldLocale = this.locale;
+		this.locale = locale;
+
+		this.eventManager.postEvent(new ApplicationLocaleChangeEvent(oldLocale, locale));
 	}
 
 	/**
@@ -272,26 +288,6 @@ public class ApplicationManager {
 	 */
 	public ExecutorService getExecutor() {
 		return this.executor;
-	}
-
-	/**
-	 * Gets the translator.
-	 *
-	 * @return The translator.
-	 */
-	public Translator getTranslator() {
-		return getResourceManager().translator;
-	}
-
-	/**
-	 * Gets the resource manager.
-	 *
-	 * @return The resource manager.
-	 */
-	public ResourceManager getResourceManager() {
-		if (this.resourceManager == null)
-			throw new IllegalStateException("Resource manager is not initialized");
-		return this.resourceManager;
 	}
 
 	/**
@@ -470,14 +466,8 @@ public class ApplicationManager {
 		initJavaFX();
 		this.javaFXLoaded = true;
 
-		// Load resources
-		logger.info("Loading resources ...");
+		// Instantiate services
 		this.eventManager = new EventManager();
-		this.resourceManager = new ResourceManager(Languages.ENGLISH, false);
-
-		loadTranslations("common");
-		bindTranslations(Translations.class);
-		selectLanguage();
 
 		// Setup application dependencies
 		if (!this.devEnvironment)
@@ -485,7 +475,7 @@ public class ApplicationManager {
 
 		// Initialize application
 		logger.info("Constructing application {} ...", appClass);
-		this.application = (Application) getClass().getClassLoader().loadClass(appClass).newInstance();
+		this.application = (Application) getClass().getClassLoader().loadClass(appClass).getConstructor().newInstance();
 		this.application.manager = this;
 
 		this.application.init();
@@ -610,53 +600,6 @@ public class ApplicationManager {
 		for (String name : names)
 			DependencyInfo.loadAll(getResource("dep/" + name + ".json"), deps);
 		DependencyManager.create(this, deps).setup();
-	}
-
-	/**
-	 * Loads translations included in application's JAR.
-	 *
-	 * @param name The directory name.
-	 * @throws IOException if an I/O exception occurs.
-	 */
-	public void loadTranslations(String name) throws IOException {
-		loadTranslations(getResource("lang/" + name));
-	}
-
-	/**
-	 * Binds all empty translations in static fields of the class.
-	 *
-	 * @param target The class.
-	 * @throws IllegalAccessException – If any reflection error occurs.
-	 */
-	public void bindTranslations(Class<?> target) throws IllegalAccessException {
-		getTranslator().bindStaticFields(target);
-	}
-
-	protected void selectLanguage() {
-		String id = this.arguments.getString("language", "lang").orElse(null);
-		if (id != null && !Language.isValidId(id)) {
-			logger.warn("Argument '{}' is not a valid language identifier.", id);
-			id = null;
-		}
-
-		if (id == null) {
-			id = System.getProperty("user.language");
-			if (id != null && !Language.isValidId(id))
-				id = null;
-		}
-
-		if (id != null)
-			this.resourceManager.setSelection(Language.of(id));
-	}
-
-	/**
-	 * Loads translations located in the given directory.
-	 *
-	 * @param dir The directory.
-	 */
-	public void loadTranslations(Path dir) {
-		for (Entry<Language, ResourceModule<String>> e : Translator.loadAll(dir, "txt").entrySet())
-			this.resourceManager.getOrCreatePack(e.getKey()).addModule(e.getValue());
 	}
 
 	private static void initJavaFX() throws Exception {

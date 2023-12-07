@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,7 @@ package net.smoofyuniverse.common.util;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -127,64 +124,6 @@ public class StringUtil {
 
 		if (lastEnd != 0)
 			b.setLength(lastEnd - 1);
-		return b.toString();
-	}
-
-	public static String replaceParameters(String value, String... parameters) {
-		int size = parameters.length;
-		if (size == 0)
-			return value;
-
-		if (size > 40) {
-			Map<String, String> map = new HashMap<>(size / 2 + 1);
-			for (int i = 0; i + 1 < size; i += 2)
-				map.put(parameters[i], parameters[i + 1]);
-
-			return replaceParameters(value, map::get);
-		} else {
-			return replaceParameters(value, arg -> {
-				for (int i = 0; i + 1 < size; i += 2) {
-					if (arg.equals(parameters[i]))
-						return parameters[i + 1];
-				}
-				return null;
-			});
-		}
-	}
-
-	public static String replaceParameters(String value, Function<String, String> params) {
-		if (value == null)
-			return null;
-
-		int size = value.length();
-		StringBuilder b = new StringBuilder(), argB = new StringBuilder();
-		boolean inArg = false;
-
-		for (int i = 0; i < size; i++) {
-			char ch = value.charAt(i);
-			if (inArg) {
-				if (ch == '}') {
-					String arg = argB.toString(), param = params.apply(arg);
-					if (param == null)
-						b.append('{').append(arg).append('}');
-					else
-						b.append(param);
-
-					argB.setLength(0);
-					inArg = false;
-				} else
-					argB.append(ch);
-			} else {
-				if (ch == '{')
-					inArg = true;
-				else
-					b.append(ch);
-			}
-		}
-
-		if (inArg)
-			b.append('{').append(argB);
-
 		return b.toString();
 	}
 

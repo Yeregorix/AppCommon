@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 
 package net.smoofyuniverse.common.event.app;
 
-import net.smoofyuniverse.common.app.ApplicationManager;
 import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Event;
 
@@ -30,11 +29,6 @@ import net.smoofyuniverse.common.event.Event;
  * Posted when the application changes his state.
  */
 public class ApplicationStateChangeEvent implements Event {
-	/**
-	 * The application.
-	 */
-	public final ApplicationManager applicationManager;
-
 	/**
 	 * The previous state.
 	 */
@@ -48,17 +42,13 @@ public class ApplicationStateChangeEvent implements Event {
 	/**
 	 * Creates a new {@link ApplicationStateChangeEvent}.
 	 *
-	 * @param app       The application.
 	 * @param prevState The previous state.
 	 * @param newState  The new state.
 	 */
-	public ApplicationStateChangeEvent(ApplicationManager app, State prevState, State newState) {
-		if (app == null)
-			throw new IllegalArgumentException("app");
+    public ApplicationStateChangeEvent(State prevState, State newState) {
 		if (prevState == newState)
 			throw new IllegalArgumentException("No change");
 
-		this.applicationManager = app;
 		this.prevState = prevState;
 		this.newState = newState;
 	}

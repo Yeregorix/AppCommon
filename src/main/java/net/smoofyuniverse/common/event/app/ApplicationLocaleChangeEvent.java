@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,41 @@
  * SOFTWARE.
  */
 
-package net.smoofyuniverse.common.resource;
+package net.smoofyuniverse.common.event.app;
+
+import net.smoofyuniverse.common.event.Event;
+
+import java.util.Locale;
 
 /**
- * Languages supported by default.
+ * Posted when the language selection changes.
  */
-public final class Languages {
-	public static final Language ENGLISH = Language.of("en"), FRENCH = Language.of("fr");
+public class ApplicationLocaleChangeEvent implements Event {
+    /**
+     * The previous selection.
+     */
+    public final Locale prevLocale;
+
+    /**
+     * The new selection.
+     */
+    public final Locale newLocale;
+
+    /**
+     * Creates a new {@link ApplicationLocaleChangeEvent}.
+     *
+     * @param prevLocale The previous selection.
+     * @param newLocale  The new selection.
+     */
+    public ApplicationLocaleChangeEvent(Locale prevLocale, Locale newLocale) {
+        if (prevLocale == null)
+            throw new IllegalArgumentException("prevLocale");
+        if (newLocale == null)
+            throw new IllegalArgumentException("newLocale");
+        if (prevLocale.equals(newLocale))
+            throw new IllegalArgumentException("No change");
+
+        this.prevLocale = prevLocale;
+        this.newLocale = newLocale;
+	}
 }
