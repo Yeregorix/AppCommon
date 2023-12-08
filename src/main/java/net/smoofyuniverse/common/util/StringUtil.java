@@ -26,6 +26,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -35,6 +36,16 @@ public class StringUtil {
 			TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
 	
 	private static final char[] hexchars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+	public static String capitalize(String value) {
+		return capitalize(value, Locale.getDefault());
+	}
+
+	public static String capitalize(String value, Locale locale) {
+		if (value.isEmpty())
+			return value;
+		return value.substring(0, 1).toUpperCase(locale) + value.substring(1);
+	}
 
 	public static List<String> parseCommandLine(String line) {
 		List<String> args = new ArrayList<>();
