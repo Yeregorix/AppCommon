@@ -38,7 +38,7 @@ Basic platform detection is operated so that the developer can easily do OS or a
 
 ## Tasks
 
-A advanced system for listening for progressions of a task. This includes a title, a message and an incremental counter
+An advanced system for listening for progressions of a task. This includes a title, a message and an incremental counter
 or a progression. A task might be cancellable or not.
 
 ## Popups
