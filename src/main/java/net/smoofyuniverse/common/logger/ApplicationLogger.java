@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,13 @@ package net.smoofyuniverse.common.logger;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.impl.StaticLoggerBinder;
+import org.slf4j.LoggerFactory;
 
 public class ApplicationLogger {
 	private static ILoggerFactory factory = new LoggerFactoryProxy();
 
 	public static void _bind() {
-		ILoggerFactory newFactory = StaticLoggerBinder.getSingleton().getLoggerFactory();
+		ILoggerFactory newFactory = LoggerFactory.getILoggerFactory();
 		((LoggerFactoryProxy) factory).setDelegate(newFactory);
 		factory = newFactory;
 	}
