@@ -149,6 +149,7 @@ public class ApplicationManager {
 		Locale oldLocale = this.locale;
 		this.locale = locale;
 
+		Locale.setDefault(locale);
 		this.eventManager.postEvent(new ApplicationLocaleChangeEvent(oldLocale, locale));
 	}
 
