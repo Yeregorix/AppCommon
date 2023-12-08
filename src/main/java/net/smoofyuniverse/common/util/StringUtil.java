@@ -58,9 +58,7 @@ public class StringUtil {
 			if (c == '\\')
 				backslashs++;
 			else if (c == '"') {
-				int count = backslashs / 2;
-				for (int j = 0; j < count; j++)
-					b.append('\\');
+				b.append("\\".repeat(backslashs / 2));
 
 				if (backslashs % 2 == 0)
 					inQuote = !inQuote;
@@ -69,8 +67,7 @@ public class StringUtil {
 
 				backslashs = 0;
 			} else {
-				for (int j = 0; j < backslashs; j++)
-					b.append('\\');
+				b.append("\\".repeat(backslashs));
 				backslashs = 0;
 
 				if (c == ' ' && !inQuote) {
@@ -81,8 +78,7 @@ public class StringUtil {
 			}
 		}
 
-		for (int j = 0; j < backslashs; j++)
-			b.append('\\');
+		b.append("\\".repeat(backslashs));
 
 		args.add(b.toString());
 		return args;
@@ -103,8 +99,7 @@ public class StringUtil {
 					backslashs++;
 				else {
 					if (c == '"') {
-						for (int j = -1; j < backslashs; j++)
-							b.append('\\');
+						b.append("\\".repeat(backslashs + 1));
 					} else if (c == ' ') {
 						quote = true;
 					}
@@ -115,7 +110,7 @@ public class StringUtil {
 				b.append(c);
 			}
 
-			if (arg.length() == 0)
+			if (arg.isEmpty())
 				quote = true;
 
 			if (quote) {

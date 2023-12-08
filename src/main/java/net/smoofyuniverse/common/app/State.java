@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ public enum State {
 	 */
 	public ListenerRegistration<ApplicationStateChangeEvent> newListener(EventListener<ApplicationStateChangeEvent> listener, int order) {
 		return new ListenerRegistration<>(ApplicationStateChangeEvent.class, e -> {
-			if (e.newState == this)
+			if (e.newState() == this)
 				listener.handle(e);
 		}, order);
 	}

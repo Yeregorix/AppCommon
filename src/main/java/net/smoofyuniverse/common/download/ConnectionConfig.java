@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,44 +33,17 @@ import java.net.URLConnection;
 
 /**
  * A configuration for URL connections.
+ *
+ * @param proxy          The proxy.
+ * @param userAgent      The user agent.
+ * @param connectTimeout The connect timeout in milliseconds.
+ *                       See {@link URLConnection#setConnectTimeout(int)}.
+ * @param readTimeout    The read timeout in milliseconds.
+ *                       See {@link URLConnection#setReadTimeout(int)}.
+ * @param bufferSize     The default byte buffer size for most IO operations with an open connection.
  */
-public class ConnectionConfig {
-	/**
-	 * The connect timeout in milliseconds.
-	 * See {@link URLConnection#setConnectTimeout(int)}.
-	 */
-	public final int connectTimeout;
+public record ConnectionConfig(Proxy proxy, String userAgent, int connectTimeout, int readTimeout, int bufferSize) {
 
-	/**
-	 * The read timeout in milliseconds.
-	 * See {@link URLConnection#setReadTimeout(int)}.
-	 */
-	public final int readTimeout;
-
-	/**
-	 * The default byte buffer size for most IO operations with an open connection.
-	 */
-	public final int bufferSize;
-
-	/**
-	 * The user agent.
-	 */
-	public final String userAgent;
-
-	/**
-	 * The proxy.
-	 */
-	public final Proxy proxy;
-
-	/**
-	 * Creates a new configuration.
-	 *
-	 * @param proxy          The proxy.
-	 * @param userAgent      The user agent.
-	 * @param connectTimeout The connect timeout.
-	 * @param readTimeout    The read timeout.
-	 * @param bufferSize     The default buffer size.
-	 */
 	public ConnectionConfig(Proxy proxy, String userAgent, int connectTimeout, int readTimeout, int bufferSize) {
 		if (connectTimeout < 0)
 			throw new IllegalArgumentException("connectTimeout");

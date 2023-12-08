@@ -27,34 +27,19 @@ import net.smoofyuniverse.common.event.Event;
 import java.util.Locale;
 
 /**
- * Posted when the language selection changes.
+ * Posted when the application locale changes.
+ *
+ * @param prevLocale The previous locale.
+ * @param newLocale  The new locale.
  */
-public class ApplicationLocaleChangeEvent implements Event {
-    /**
-     * The previous selection.
-     */
-    public final Locale prevLocale;
+public record ApplicationLocaleChangeEvent(Locale prevLocale, Locale newLocale) implements Event {
 
-    /**
-     * The new selection.
-     */
-    public final Locale newLocale;
-
-    /**
-     * Creates a new {@link ApplicationLocaleChangeEvent}.
-     *
-     * @param prevLocale The previous selection.
-     * @param newLocale  The new selection.
-     */
-    public ApplicationLocaleChangeEvent(Locale prevLocale, Locale newLocale) {
+    public ApplicationLocaleChangeEvent {
         if (prevLocale == null)
             throw new IllegalArgumentException("prevLocale");
         if (newLocale == null)
             throw new IllegalArgumentException("newLocale");
         if (prevLocale.equals(newLocale))
             throw new IllegalArgumentException("No change");
-
-        this.prevLocale = prevLocale;
-        this.newLocale = newLocale;
-	}
+    }
 }

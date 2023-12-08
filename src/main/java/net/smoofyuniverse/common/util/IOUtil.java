@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ public class IOUtil {
 			return false;
 		}
 
-		return download(co, file, config.bufferSize, p);
+		return download(co, file, config.bufferSize(), p);
 	}
 
 	public static boolean download(HttpURLConnection co, Path file, int bufferSize, IncrementalListenerProvider p) {

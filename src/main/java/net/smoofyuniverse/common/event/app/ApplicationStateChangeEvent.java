@@ -26,30 +26,15 @@ import net.smoofyuniverse.common.app.State;
 import net.smoofyuniverse.common.event.Event;
 
 /**
- * Posted when the application changes his state.
+ * Posted when the application changes state.
+ *
+ * @param prevState The previous state.
+ * @param newState  The new state.
  */
-public class ApplicationStateChangeEvent implements Event {
-	/**
-	 * The previous state.
-	 */
-	public final State prevState;
+public record ApplicationStateChangeEvent(State prevState, State newState) implements Event {
 
-	/**
-	 * The new state.
-	 */
-	public final State newState;
-
-	/**
-	 * Creates a new {@link ApplicationStateChangeEvent}.
-	 *
-	 * @param prevState The previous state.
-	 * @param newState  The new state.
-	 */
-    public ApplicationStateChangeEvent(State prevState, State newState) {
+	public ApplicationStateChangeEvent {
 		if (prevState == newState)
 			throw new IllegalArgumentException("No change");
-
-		this.prevState = prevState;
-		this.newState = newState;
 	}
 }

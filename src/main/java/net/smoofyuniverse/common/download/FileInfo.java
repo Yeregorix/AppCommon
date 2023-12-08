@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Hugo Dupanloup (Yeregorix)
+ * Copyright (c) 2017-2023 Hugo Dupanloup (Yeregorix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -133,7 +133,7 @@ public class FileInfo {
 			return false;
 		}
 
-		return IOUtil.download(co, file, config.bufferSize, p);
+		return IOUtil.download(co, file, config.bufferSize(), p);
 	}
 
 	/**

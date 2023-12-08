@@ -45,7 +45,7 @@ public abstract class Translator {
 
 	public Translator() {
 		this.targetLocale = ApplicationManager.get().getLocale();
-		new ListenerRegistration<>(ApplicationLocaleChangeEvent.class, e -> setTargetLocale(e.newLocale), -100).register();
+		new ListenerRegistration<>(ApplicationLocaleChangeEvent.class, e -> setTargetLocale(e.newLocale()), -100).register();
 	}
 
 	/**
