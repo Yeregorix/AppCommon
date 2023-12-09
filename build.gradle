@@ -56,13 +56,13 @@ configurations {
 
 dependencyExport {
     loggerImpl {
-        path = "dep/logger.json"
+        path = 'dep/logger.json'
         config = configurations.loggerImpl
     }
 
     if (generateJavaFXDeps) {
         javafx {
-            path = "dep/javafx.json"
+            path = 'dep/javafx.json'
             config = configurations.javaFXRuntime
             presetOpenJFX()
         }
@@ -81,12 +81,12 @@ dependencies {
 
     loggerImpl 'org.apache.logging.log4j:log4j-core:2.22.0'
     loggerImpl('org.apache.logging.log4j:log4j-slf4j2-impl:2.22.0') {
-        exclude group: "org.slf4j", module: "slf4j-api"
+        exclude group: 'org.slf4j', module: 'slf4j-api'
     }
 
     if (generateJavaFXDeps) {
         for (classifier in dependencyExport.javafx.constraints.names) {
-            for (name in ["base", "graphics", "controls"]) {
+            for (name in ['base', 'graphics', 'controls']) {
                 javaFXRuntime 'org.openjfx:javafx-' + name + ':21.0.1:' + classifier
             }
         }
@@ -116,7 +116,7 @@ publishing {
             pom {
                 name = 'AppCommon'
                 packaging = 'jar'
-                description = "Common library for JavaFX applications."
+                description = 'Common library for JavaFX applications.'
                 url = 'https://github.com/Yeregorix/AppCommon'
 
                 scm {
@@ -146,8 +146,8 @@ publishing {
     repositories {
         maven {
             url = version.endsWith('SNAPSHOT') ?
-                    "https://oss.sonatype.org/content/repositories/snapshots/"
-                    : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                    'https://oss.sonatype.org/content/repositories/snapshots/'
+                    : 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
 
             credentials {
                 username findProperty('ossrhUsername')
@@ -157,7 +157,7 @@ publishing {
     }
 }
 
-if (project.hasProperty("signing.keyId")) {
+if (project.hasProperty('signing.keyId')) {
     apply plugin: 'signing'
     signing {
         sign publishing.publications.mavenJava
