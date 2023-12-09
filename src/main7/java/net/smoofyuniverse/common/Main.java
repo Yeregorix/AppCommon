@@ -28,13 +28,8 @@ import java.lang.reflect.InvocationTargetException;
 public class Main {
 	private static Instrumentation instrumentation;
 
-	public static void premain(String args, Instrumentation inst) {
-		System.out.println("Instrumentation initialized (premain).");
-		instrumentation = inst;
-	}
-
 	public static void agentmain(String args, Instrumentation inst) {
-		System.out.println("Instrumentation initialized (agentmain).");
+		System.out.println("Instrumentation initialized.");
 		instrumentation = inst;
 	}
 
